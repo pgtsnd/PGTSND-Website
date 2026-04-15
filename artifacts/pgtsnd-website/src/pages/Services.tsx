@@ -107,58 +107,75 @@ function TestimonialImage({
   return (
     <section
       ref={sectionRef}
-      style={{ position: "relative", overflow: "hidden" }}
+      style={{ position: "relative", marginBottom: "60px" }}
     >
-      <img
-        src={imageSrc}
-        alt={imageAlt}
-        style={{
-          width: scrollSlide ? "110%" : "100%",
-          height: "80vh",
-          objectFit: "cover",
-          display: "block",
-          marginLeft: scrollSlide ? "-5%" : undefined,
-          transform: scrollSlide ? `translate(${translateX}px, ${translateY}px) scale(1.05)` : undefined,
-          transition: scrollSlide ? "transform 0.1s linear" : undefined,
-        }}
-      />
-      {scrollSlide && (
-        <div
+      <div style={{ overflow: "hidden", position: "relative" }}>
+        <img
+          src={imageSrc}
+          alt={imageAlt}
           style={{
-            position: "absolute",
-            inset: 0,
-            background: `rgba(0,0,0,${darken})`,
-            pointerEvents: "none",
-            transition: "background 0.1s linear",
+            width: scrollSlide ? "110%" : "100%",
+            height: "80vh",
+            objectFit: "cover",
+            display: "block",
+            marginLeft: scrollSlide ? "-5%" : undefined,
+            transform: scrollSlide ? `translate(${translateX}px, ${translateY}px) scale(1.05)` : undefined,
+            transition: scrollSlide ? "transform 0.1s linear" : undefined,
           }}
         />
-      )}
+        {scrollSlide && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: `rgba(0,0,0,${darken})`,
+              pointerEvents: "none",
+              transition: "background 0.1s linear",
+            }}
+          />
+        )}
+      </div>
       <div
         style={{
           position: "absolute",
-          bottom: "60px",
+          bottom: "-40px",
           left: "80px",
           maxWidth: "400px",
-          background: "rgba(0,0,0,0.88)",
-          border: "1px solid rgba(255,255,255,0.15)",
-          padding: "32px",
+          zIndex: 2,
         }}
       >
         {avatarSrc && (
           <img
             src={avatarSrc}
             alt={author}
-            style={{ width: "44px", height: "44px", borderRadius: "50%", objectFit: "cover", marginBottom: "16px" }}
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              objectFit: "cover",
+              position: "relative",
+              zIndex: 3,
+              marginBottom: "-24px",
+              marginLeft: "24px",
+            }}
           />
         )}
-        <p style={f({ fontWeight: 400, fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, fontStyle: "italic", marginBottom: "16px" })}>
-          &ldquo;{quote}&rdquo;
-        </p>
-        <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
-          {author}{authorTitle ? `, ${authorTitle}` : ""}
-        </p>
+        <div
+          style={{
+            background: "rgba(0,0,0,0.88)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            padding: "36px 32px 28px",
+          }}
+        >
+          <p style={f({ fontWeight: 400, fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, fontStyle: "italic", marginBottom: "16px" })}>
+            &ldquo;{quote}&rdquo;
+          </p>
+          <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
+            {author}{authorTitle ? `, ${authorTitle}` : ""}
+          </p>
+        </div>
       </div>
-      <div style={{ position: "absolute", top: "40px", right: "40px" }}>
+      <div style={{ position: "absolute", top: "24px", right: "24px", zIndex: 3 }}>
         <ScrollBadge inline />
       </div>
     </section>
