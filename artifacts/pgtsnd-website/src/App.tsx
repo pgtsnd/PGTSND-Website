@@ -19,6 +19,7 @@ import ProjectTreatment from "@/pages/ProjectTreatment";
 import ProjectStoryboard from "@/pages/ProjectStoryboard";
 import ProjectShotList from "@/pages/ProjectShotList";
 import ProjectNotes from "@/pages/ProjectNotes";
+import TeamLogin from "@/pages/TeamLogin";
 import TeamDashboard from "@/pages/TeamDashboard";
 import TeamProjects from "@/pages/TeamProjects";
 import TeamProjectDetail from "@/pages/TeamProjectDetail";
@@ -55,6 +56,7 @@ function Router() {
       <Route path="/team/assets" component={TeamAssets} />
       <Route path="/team/crew" component={TeamCrew} />
       <Route path="/team/settings" component={TeamSettings} />
+      <Route path="/team" component={TeamLogin} />
       <Route>
         {() => (
           <>

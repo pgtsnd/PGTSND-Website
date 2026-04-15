@@ -1,11 +1,15 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+
+const BYPASS_EMAIL = "demo@pgtsnd.com";
 
 export default function ClientHub() {
   const [mode, setMode] = useState<"login" | "register" | "check-email">("login");
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
+  const [, navigate] = useLocation();
 
   const inputStyle: React.CSSProperties = {
     fontFamily: "'Montserrat', sans-serif",
@@ -33,6 +37,10 @@ export default function ClientHub() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (email.toLowerCase().trim() === BYPASS_EMAIL) {
+      navigate("/client-hub/dashboard");
+      return;
+    }
     setMode("check-email");
   };
 
