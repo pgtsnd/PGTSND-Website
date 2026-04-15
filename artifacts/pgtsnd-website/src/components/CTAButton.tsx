@@ -17,11 +17,11 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
     alignItems: "center",
     position: "relative",
     overflow: "hidden",
-    background: isDark ? "#000000" : "#ffffff",
-    border: isDark ? "2px solid rgba(255,255,255,0.4)" : "2px solid transparent",
+    background: "transparent",
+    border: "2px solid",
+    borderColor: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.08)",
     borderRadius: "999px",
     padding: "4px 4px",
-    color: isDark ? "#ffffff" : "#000000",
     fontFamily: "'Montserrat', sans-serif",
     fontWeight: 600,
     fontSize: "11px",
@@ -31,15 +31,14 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
     textDecoration: "none",
     whiteSpace: "nowrap",
     minWidth: "300px",
-    transition: "border-color 0.4s ease",
   };
 
-  const fillStyle: React.CSSProperties = {
+  const circleExpandStyle: React.CSSProperties = {
     position: "absolute",
-    top: 0,
-    left: 0,
-    bottom: 0,
-    width: hovered ? "100%" : "0%",
+    top: "4px",
+    left: "4px",
+    bottom: "4px",
+    width: hovered ? "calc(100% - 8px)" : "36px",
     background: isDark ? "#ffffff" : "#000000",
     borderRadius: "999px",
     transition: "width 0.45s ease",
@@ -54,15 +53,12 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
     justifyContent: "center",
     width: "36px",
     height: "36px",
-    borderRadius: "50%",
-    background: hovered ? "transparent" : (isDark ? "#ffffff" : "#000000"),
     flexShrink: 0,
-    transition: "background 0.35s ease",
   };
 
-  const arrowColor = hovered
-    ? (isDark ? "#000000" : "#ffffff")
-    : (isDark ? "#000000" : "#ffffff");
+  const arrowColor = isDark
+    ? (hovered ? "#000000" : "#000000")
+    : (hovered ? "#ffffff" : "#ffffff");
 
   const labelStyle: React.CSSProperties = {
     position: "relative",
@@ -78,7 +74,7 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
 
   const content = (
     <>
-      <div style={fillStyle} />
+      <div style={circleExpandStyle} />
       <span style={arrowStyle}>
         <svg
           width="14"
