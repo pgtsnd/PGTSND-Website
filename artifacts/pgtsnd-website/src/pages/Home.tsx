@@ -127,11 +127,11 @@ export default function Home() {
             />
           </div>
         </div>
-        <div style={{ height: "220px" }} />
+        <div style={{ height: "100px" }} />
       </section>
 
       {/* ===== SERVICES SECTION ===== */}
-      <section style={{ padding: "280px 80px 260px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "180px 80px 260px", maxWidth: "1400px", margin: "0 auto" }}>
         <p
           style={{
             fontFamily: "'Montserrat', sans-serif",
