@@ -5,36 +5,37 @@ export default function ScrollBadge({
   position?: "bottom-left" | "bottom-right";
   inline?: boolean;
 }) {
+  const size = 120;
   const style: React.CSSProperties = inline
-    ? { width: "80px", height: "80px", position: "relative" as const }
+    ? { width: `${size}px`, height: `${size}px`, position: "relative" as const }
     : {
         position: "absolute" as const,
-        bottom: "40px",
-        ...(position === "bottom-right" ? { right: "40px" } : { left: "40px" }),
-        width: "80px",
-        height: "80px",
+        bottom: "32px",
+        ...(position === "bottom-right" ? { right: "32px" } : { left: "32px" }),
+        width: `${size}px`,
+        height: `${size}px`,
       };
 
   return (
     <div style={style}>
-      <div className="animate-spin-slow" style={{ width: "80px", height: "80px", position: "relative" }}>
-        <svg viewBox="0 0 80 80" width="80" height="80">
+      <div className="animate-spin-slow" style={{ width: `${size}px`, height: `${size}px`, position: "relative" }}>
+        <svg viewBox="0 0 120 120" width={size} height={size}>
           <defs>
             <path
               id="circle-text-path"
-              d="M 40,40 m -28,0 a 28,28 0 1,1 56,0 a 28,28 0 1,1 -56,0"
+              d="M 60,60 m -45,0 a 45,45 0 1,1 90,0 a 45,45 0 1,1 -90,0"
             />
           </defs>
           <text
             fill="white"
-            fontSize="9"
+            fontSize="12"
             fontFamily="Montserrat, sans-serif"
-            fontWeight="600"
-            letterSpacing="2"
+            fontWeight="700"
+            letterSpacing="4"
             textAnchor="start"
           >
             <textPath href="#circle-text-path">
-              SCROLL DOWN FOR MORE • SCROLL DOWN FOR MORE •&nbsp;
+              SCROLL DOWN FOR MORE &bull; SCROLL DOWN FOR MORE &bull;
             </textPath>
           </text>
         </svg>
@@ -48,10 +49,22 @@ export default function ScrollBadge({
           justifyContent: "center",
         }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 8l4 4-4 4M8 12h8" />
-        </svg>
+        <div
+          style={{
+            width: "36px",
+            height: "36px",
+            borderRadius: "50%",
+            border: "2px solid white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 11V3" stroke="white" strokeWidth="2" strokeLinecap="round" />
+            <path d="M3 6L7 2L11 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
       </div>
     </div>
   );
