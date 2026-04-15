@@ -132,7 +132,7 @@ export default function About() {
   const boatTranslateY = boatProgress * -50;
   const boatDarken = boatProgress * 0.75;
 
-  const briBrightness = 0.4 + Math.min(1, briProgress * 1.5) * 0.6;
+  const briBrightness = 0.15 + Math.min(1, briProgress * 2.5) * 0.85;
 
   return (
     <div style={{ background: "#000000", minHeight: "100vh" }}>
