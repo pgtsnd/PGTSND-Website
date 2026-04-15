@@ -18,27 +18,27 @@ export default function ScrollBadge({
 
   return (
     <div style={style} className="animate-spin-slow">
-      <svg viewBox="0 0 90 90" width={size} height={size}>
+      <svg viewBox="0 0 100 100" width={size} height={size}>
         <defs>
           <path
             id="scroll-text-path"
-            d="M 45,45 m -36,0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0"
+            d="M 50,50 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
           />
         </defs>
         <text
           fill="white"
-          fontSize="11.5"
+          fontSize="9"
           fontFamily="Montserrat, sans-serif"
           fontWeight="900"
-          letterSpacing="4.5"
+          letterSpacing="3"
         >
           <textPath href="#scroll-text-path">
             SCROLL DOWN FOR MORE &bull;
           </textPath>
         </text>
-        <circle cx="45" cy="45" r="14" fill="none" stroke="white" strokeWidth="3" />
-        <path d="M45 53V39" stroke="white" strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M39.5 44L45 38.5L50.5 44" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="50" cy="50" r="13" fill="none" stroke="white" strokeWidth="2.5" />
+        <line x1="50" y1="56" x2="50" y2="44" stroke="white" strokeWidth="3" strokeLinecap="round" />
+        <polyline points="44.5,49 50,43.5 55.5,49" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
   );
