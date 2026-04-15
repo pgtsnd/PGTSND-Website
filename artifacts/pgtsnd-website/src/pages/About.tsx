@@ -108,23 +108,23 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({ fontFamily: "'Mont
 const heroWords = [
   {
     text: "Resilient",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/e8f0c233-3e66-4424-af76-721f2754573d/gloves-close-bri-dwyer-pgtsnd-alaska-berring.jpeg",
-    position: { top: "5%", left: "55%", width: "40%", height: "90%" },
+    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b7737613-01e6-491f-bb56-a3e38eb70d5f/boats-inlet-pgtsnd-bri-dwyer.jpeg",
+    position: { top: "10%", left: "30%", width: "35%", maxHeight: "65%" },
   },
   {
     text: "Roots,",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/93006ba2-8cb2-4602-994e-d06460bddefb/nw-sablefish-pgtsnd-photography-7.jpeg",
-    position: { top: "0%", left: "50%", width: "45%", height: "95%" },
+    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/072a41a3-9259-4ffb-a573-6bab24757639/crabs-pelican-pgtsnd-bri-dwyer.jpeg",
+    position: { top: "5%", left: "52%", width: "38%", maxHeight: "75%" },
   },
   {
     text: "Steady",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f2eeee17-7f28-4cb4-b4f1-e153742b789e/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg",
-    position: { top: "10%", left: "25%", width: "45%", height: "85%" },
+    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/a4bb4098-6f6b-412f-9f99-da7396dbab92/foggy-fishing-coast-pgtsnd.jpeg",
+    position: { top: "15%", left: "18%", width: "36%", maxHeight: "60%" },
   },
   {
     text: "Stories",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d9460e68-5cd2-4c0f-94e1-1882061a71e3/green-juju-dog-kitchen-pgtsnd.jpeg",
-    position: { top: "5%", left: "15%", width: "42%", height: "90%" },
+    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d00d09c7-98fc-4637-aad9-98173f451b5f/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg",
+    position: { top: "8%", left: "40%", width: "32%", maxHeight: "65%" },
   },
 ];
 
@@ -143,31 +143,6 @@ function HeroSection() {
         overflow: "hidden",
       }}
     >
-      {heroWords.map((word, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            ...word.position,
-            opacity: activeWord === i ? 1 : 0,
-            transform: activeWord === i ? "scale(1)" : "scale(0.95)",
-            transition: "opacity 0.5s ease, transform 0.6s ease",
-            pointerEvents: "none",
-            zIndex: 1,
-          }}
-        >
-          <img
-            src={word.image}
-            alt=""
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-            }}
-          />
-        </div>
-      ))}
       <h1
         style={f({
           fontWeight: 900,
@@ -178,7 +153,7 @@ function HeroSection() {
           color: "#ffffff",
           whiteSpace: "nowrap",
           position: "relative",
-          zIndex: 2,
+          zIndex: 1,
         })}
       >
         <span style={{ display: "inline" }}>
@@ -207,6 +182,34 @@ function HeroSection() {
           ))}
         </span>
       </h1>
+      {heroWords.map((word, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            top: word.position.top,
+            left: word.position.left,
+            width: word.position.width,
+            maxHeight: word.position.maxHeight,
+            opacity: activeWord === i ? 1 : 0,
+            transform: activeWord === i ? "scale(1)" : "scale(0.92)",
+            transition: "opacity 0.45s ease, transform 0.55s ease",
+            pointerEvents: "none",
+            zIndex: 3,
+          }}
+        >
+          <img
+            src={word.image}
+            alt=""
+            style={{
+              width: "100%",
+              height: "auto",
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
+        </div>
+      ))}
       <ScrollBadge position="bottom-left" />
     </section>
   );
