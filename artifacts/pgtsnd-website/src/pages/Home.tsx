@@ -263,7 +263,7 @@ export default function Home() {
           </div>
           <div style={{ overflow: "hidden", aspectRatio: "4/3" }}>
             <img
-              src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/797a5279-175e-486a-9cce-3a78bfa11c6e/bri-and-team-at-camera-pgtsnd-productions.jpeg"
+              src={`${import.meta.env.BASE_URL}images/bri-and-team-at-camera-pgtsnd-productions.jpeg`}
               alt="Two people looking at a camera in a video production environment."
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
@@ -342,7 +342,7 @@ export default function Home() {
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-end" }}>
             <img
-              src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/da2bf98c-a194-492e-b033-0bd7a8f3010a/pgt-snd-tripod-horizontal.webp"
+              src={`${import.meta.env.BASE_URL}images/pgt-snd-tripod-horizontal.webp`}
               alt="Outline drawing of film and video production equipment."
               style={{
                 maxWidth: "340px",
@@ -367,7 +367,7 @@ export default function Home() {
         >
           <div style={{ overflow: "hidden" }}>
             <img
-              src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d00d09c7-98fc-4637-aad9-98173f451b5f/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg"
+              src={`${import.meta.env.BASE_URL}images/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg`}
               alt="A person tying their boots on a metal diamond-plated floor with Adventure Bay Fish Co. crate."
               style={{
                 width: "100%",
@@ -394,8 +394,8 @@ export default function Home() {
 
           <div style={{ overflow: "hidden", position: "relative" }}>
             <img
-              src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b7737613-01e6-491f-bb56-a3e38eb70d5f/boats-inlet-pgtsnd-bri-dwyer.jpeg"
-              alt="Aerial view of a river winding through a dense forest."
+              src={`${import.meta.env.BASE_URL}images/foggy-fishing-coast-pgtsnd.jpeg`}
+              alt="A boat on calm water with forested mountains and low-hanging clouds in the background."
               style={{
                 width: "100%",
                 height: "100%",
