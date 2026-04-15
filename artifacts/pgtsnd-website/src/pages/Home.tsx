@@ -548,8 +548,10 @@ export default function Home() {
             alt="Aerial view of docked boats"
             style={{
               width: "100%",
-              height: "100%",
+              height: "calc(100% + 150px)",
               objectFit: "cover",
+              objectPosition: "center center",
+              marginTop: "-75px",
               opacity: 0.2,
             }}
           />
