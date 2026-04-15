@@ -27,7 +27,7 @@ export default function Footer() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "240px 1fr auto",
+            gridTemplateColumns: "200px 1fr auto",
             gap: "80px",
             alignItems: "start",
           }}
@@ -36,7 +36,7 @@ export default function Footer() {
             <img
               src={logo}
               alt="PGTSND Productions"
-              style={{ width: "100%", maxWidth: "240px", height: "auto", opacity: 0.95 }}
+              style={{ width: "100%", maxWidth: "200px", height: "auto", opacity: 0.95 }}
             />
           </div>
 
