@@ -309,14 +309,14 @@ export default function About() {
               key={member.name}
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr",
+                gridTemplateColumns: "3fr 2fr",
                 gap: "0px",
                 alignItems: "start",
                 padding: "60px 0",
                 borderTop: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              <div style={{ paddingRight: "60px" }}>
+              <div>
                 <img
                   src={member.image}
                   alt={`Illustration of ${member.name}`}
