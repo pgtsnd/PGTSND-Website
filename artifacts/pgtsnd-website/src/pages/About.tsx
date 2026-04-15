@@ -140,7 +140,7 @@ export default function About() {
       {/* 2. Mission statement — large bold heading + body copy */}
       <section
         style={{
-          padding: "120px 80px",
+          padding: "120px 80px 240px",
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
           gap: "80px",
