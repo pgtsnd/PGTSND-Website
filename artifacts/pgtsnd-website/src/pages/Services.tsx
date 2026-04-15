@@ -233,7 +233,9 @@ export default function Services() {
             <CTAButton href="/contact" label="Work With Us" />
           </div>
         </div>
-        <ScrollBadge position="bottom-right" />
+        <div style={{ position: "absolute", bottom: "-75px", right: "32px", zIndex: 10 }}>
+          <ScrollBadge inline />
+        </div>
       </section>
 
       {/* 2. Seagulls image with Nicole Baker testimonial */}
