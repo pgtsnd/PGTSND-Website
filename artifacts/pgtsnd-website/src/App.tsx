@@ -22,6 +22,12 @@ import ProjectNotes from "@/pages/ProjectNotes";
 import TeamDashboard from "@/pages/TeamDashboard";
 import TeamProjects from "@/pages/TeamProjects";
 import TeamProjectDetail from "@/pages/TeamProjectDetail";
+import TeamClients from "@/pages/TeamClients";
+import TeamMessages from "@/pages/TeamMessages";
+import TeamSchedule from "@/pages/TeamSchedule";
+import TeamAssets from "@/pages/TeamAssets";
+import TeamCrew from "@/pages/TeamCrew";
+import TeamSettings from "@/pages/TeamSettings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -43,6 +49,12 @@ function Router() {
       <Route path="/team/dashboard" component={TeamDashboard} />
       <Route path="/team/projects/:id" component={TeamProjectDetail} />
       <Route path="/team/projects" component={TeamProjects} />
+      <Route path="/team/clients" component={TeamClients} />
+      <Route path="/team/messages" component={TeamMessages} />
+      <Route path="/team/schedule" component={TeamSchedule} />
+      <Route path="/team/assets" component={TeamAssets} />
+      <Route path="/team/crew" component={TeamCrew} />
+      <Route path="/team/settings" component={TeamSettings} />
       <Route>
         {() => (
           <>

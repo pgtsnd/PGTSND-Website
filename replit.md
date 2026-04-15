@@ -57,6 +57,12 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
     - **Files**: Drag-drop upload zone, folder grid (Raw Footage, Exports, Sound Design, Color Grades, Client Deliverables, BTS Photos)
     - **Review**: Client review items with urgency indicators, Nudge Client / View Comments / Open in Player buttons, "Send New Cut for Review"
   - All 6 projects (IDs 1-6) have detail data; state resyncs on route change via useEffect
+  - **Clients** (`TeamClients.tsx`): `/team/clients` — 2-column card grid with avatar, company, role, project/active/revenue stats, Email + Message buttons, expandable project list linking to project detail
+  - **Messages** (`TeamMessages.tsx`): `/team/messages` — Split-pane inbox: thread list (client vs team avatars, unread badges, project context) + chat view with bubble layout (outgoing right-aligned), compose input, "View Project" link
+  - **Schedule** (`TeamSchedule.tsx`): `/team/schedule` — Two views: Timeline (Gantt-style bars with milestone dots + "Today" column highlight) and Upcoming (event cards with date, crew chips, project/time)
+  - **Asset Library** (`TeamAssets.tsx`): `/team/assets` — Project filter tabs, 3-column folder grid with file-type icons + metadata, Recent Files list with download buttons, Upload button
+  - **Crew** (`TeamCrew.tsx`): `/team/crew` — Expandable member rows with avatar, role, current project, availability status (Available/Busy), expanded detail shows email/phone/rate/skills/project count
+  - **Settings** (`TeamSettings.tsx`): `/team/settings` — Left nav with 4 sections: Company Profile (editable form), Notifications (toggle switches with aria-labels), Integrations (connect buttons), Billing & Plans (plan card with storage bar, payment method)
   - Sidebar: Dashboard, Projects, Clients, Messages (badge), Schedule, Asset Library, Crew, Settings
 - **Design**: Black background, white text, bold Montserrat 900 weight headings, pill-shaped CTA buttons, hamburger nav overlay
 - **Images**: Loaded directly from Squarespace CDN URLs
