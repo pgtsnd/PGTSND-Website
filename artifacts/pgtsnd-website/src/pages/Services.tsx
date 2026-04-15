@@ -164,8 +164,8 @@ function TestimonialImage({
         )}
         <div
           style={{
-            background: "rgba(0,0,0,0.88)",
-            border: "1px solid rgba(255,255,255,0.15)",
+            background: "rgba(0,0,0,0.92)",
+            border: "2px solid #ffffff",
             padding: "36px 32px 28px",
           }}
         >
@@ -176,9 +176,6 @@ function TestimonialImage({
             {author}{authorTitle ? `, ${authorTitle}` : ""}
           </p>
         </div>
-      </div>
-      <div style={{ position: "absolute", top: "24px", right: "24px", zIndex: 3 }}>
-        <ScrollBadge inline />
       </div>
     </section>
   );
