@@ -16,18 +16,24 @@ export default function ScrollBadge({
         height: `${size}px`,
       };
 
-  const text = "SCROLL DOWN FOR MORE ";
+  const chars = "SCROLL DOWN FOR MORE".split("");
   const r = 28;
   const cx = 50;
   const cy = 50;
-  const totalAngle = 360;
-  const anglePerChar = totalAngle / text.length;
+  const charAngle = 14;
+  const spaceAngle = 8;
+  const angles: number[] = [];
+  let current = -90;
+  for (const c of chars) {
+    angles.push(current);
+    current += c === " " ? spaceAngle : charAngle;
+  }
 
   return (
     <div style={style} className="animate-spin-slow">
       <svg viewBox="0 0 100 100" width={size} height={size}>
-        {text.split("").map((char, i) => {
-          const angle = -90 + i * anglePerChar;
+        {chars.map((char, i) => {
+          const angle = angles[i];
           const rad = (angle * Math.PI) / 180;
           const x = cx + r * Math.cos(rad);
           const y = cy + r * Math.sin(rad);
@@ -37,7 +43,7 @@ export default function ScrollBadge({
               x={x}
               y={y}
               fill="white"
-              fontSize="9"
+              fontSize="10"
               fontFamily="Montserrat, sans-serif"
               fontWeight="900"
               textAnchor="middle"
