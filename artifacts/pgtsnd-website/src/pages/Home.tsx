@@ -131,7 +131,7 @@ export default function Home() {
       </section>
 
       {/* ===== SERVICES SECTION ===== */}
-      <section style={{ padding: "280px 80px 180px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "280px 80px 260px", maxWidth: "1400px", margin: "0 auto" }}>
         <p
           style={{
             fontFamily: "'Montserrat', sans-serif",
