@@ -175,7 +175,7 @@ export default function About() {
       </section>
 
       {/* 3. Aerial boat photo with rope coil illustration */}
-      <section style={{ position: "relative" }}>
+      <section style={{ position: "relative", marginBottom: "120px" }}>
         <img
           src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f2eeee17-7f28-4cb4-b4f1-e153742b789e/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
           alt="Aerial view of a fishing boat sailing through dark water with white foam"
