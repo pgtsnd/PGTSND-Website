@@ -128,10 +128,9 @@ export default function About() {
   const boatProgress = useScrollProgress(boatRef);
   const briProgress = useScrollProgress(briRef);
 
-  const boatExitAmount = Math.max(0, (boatProgress - 0.5) * 2);
-  const boatTranslateX = boatExitAmount * 60;
-  const boatTranslateY = boatExitAmount * -40;
-  const boatDarken = boatExitAmount * 0.7;
+  const boatTranslateX = boatProgress * 50;
+  const boatTranslateY = boatProgress * -30;
+  const boatDarken = boatProgress * 0.6;
 
   const briBrightness = 0.4 + Math.min(1, briProgress * 1.5) * 0.6;
 
@@ -209,11 +208,12 @@ export default function About() {
           src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f2eeee17-7f28-4cb4-b4f1-e153742b789e/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
           alt="Aerial view of a fishing boat sailing through dark water with white foam"
           style={{
-            width: "100%",
-            height: "70vh",
+            width: "110%",
+            height: "80vh",
             objectFit: "cover",
             display: "block",
-            transform: `translate(${boatTranslateX}px, ${boatTranslateY}px)`,
+            marginLeft: "-5%",
+            transform: `translate(${boatTranslateX}px, ${boatTranslateY}px) scale(1.05)`,
             transition: "transform 0.1s linear",
           }}
         />
