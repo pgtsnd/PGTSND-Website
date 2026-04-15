@@ -295,7 +295,7 @@ export default function About() {
         <h2
           style={f({
             fontWeight: 900,
-            fontSize: "clamp(40px, 8vw, 100px)",
+            fontSize: "clamp(40px, 8.2vw, 105px)",
             textTransform: "uppercase",
             letterSpacing: "-0.03em",
             lineHeight: 0.95,
