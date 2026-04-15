@@ -30,6 +30,7 @@ import TeamSchedule from "@/pages/TeamSchedule";
 import TeamAssets from "@/pages/TeamAssets";
 import TeamCrew from "@/pages/TeamCrew";
 import TeamSettings from "@/pages/TeamSettings";
+import CaseStudyDetail from "@/pages/case-studies/CaseStudyDetail";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import NotFound from "@/pages/not-found";
@@ -76,6 +77,7 @@ function Router() {
               <Route path="/" component={Home} />
               <Route path="/services" component={Services} />
               <Route path="/about" component={About} />
+              <Route path="/case-studies/:slug" component={CaseStudyDetail} />
               <Route path="/case-studies" component={CaseStudies} />
               <Route path="/contact" component={Contact} />
               <Route path="/privacy-policy" component={PrivacyPolicy} />

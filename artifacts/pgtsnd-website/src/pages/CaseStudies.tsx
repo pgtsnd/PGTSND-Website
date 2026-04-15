@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import CTAButton from "../components/CTAButton";
 import ScrollBadge from "../components/ScrollBadge";
 import Footer from "../components/Footer";
@@ -9,54 +10,47 @@ const BASE = import.meta.env.BASE_URL;
 
 const caseStudies = [
   {
+    slug: "alaska-bering-sea-crabbers",
     client: "Alaska Bering Sea Crabbers",
     category: "Documentary + Photography",
-    description:
-      "Documenting a season of commercial crabbing required us to be fully embedded with the crew — early mornings, rough seas, and all. The result was an authentic portrait of the industry.",
     image: `${BASE}images/catch-close-pgtsnd-bri-dwyer.jpeg`,
   },
   {
+    slug: "vallation-outerwear",
     client: "Vallation Outerwear",
     category: "Photography",
-    description:
-      "From the start, PGTSND worked with Vallation on their goals for what they wanted to accomplish, and within the parameters they set.",
     image: `${BASE}images/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg`,
   },
   {
+    slug: "green-juju",
     client: "Green Juju",
     category: "Full Production Suite +",
-    description:
-      "Green Juju needed a refreshed digital presence to reflect their growth and mission. We developed a full suite of video and photography assets.",
     image:
       "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d9460e68-5cd2-4c0f-94e1-1882061a71e3/green-juju-dog-kitchen-pgtsnd.jpeg",
   },
   {
+    slug: "net-your-problem",
     client: "Net Your Problem",
     category: "Brand Film",
-    description:
-      "A commercial fishing technology startup needed compelling video assets to present at industry conferences and help recruit new partners.",
     image: `${BASE}images/crabs-pelican-pgtsnd-bri-dwyer.jpeg`,
   },
   {
-    client: "Pacific Coast Fisheries",
-    category: "On-Location Photography",
-    description:
-      "Sweeping on-location production combined to tell the full story of the hard-working crews behind Pacific Coast's commercial fishing operations.",
+    slug: "alaska-whitefish-trawlers",
+    client: "Alaska Whitefish Trawlers",
+    category: "Website & Photography",
     image: `${BASE}images/foggy-fishing-coast-pgtsnd.jpeg`,
   },
   {
+    slug: "lodge-58-north",
     client: "Lodge @ 58 North",
     category: "Video Production | Photography",
-    description:
-      "A complete visual overhaul — from on-the-water photography to plated culinary shots that showcase the product at every stage.",
     image:
       "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/93006ba2-8cb2-4602-994e-d06460bddefb/nw-sablefish-pgtsnd-photography-7.jpeg",
   },
   {
+    slug: "nw-sablefish",
     client: "NW Sablefish",
-    category: "Documentary Photography",
-    description:
-      "An incredible collection of images capturing the gear, grit, and community behind the catch.",
+    category: "Brand Identity & Visual Media",
     image: `${BASE}images/boats-inlet-pgtsnd-bri-dwyer.jpeg`,
   },
 ];
@@ -64,6 +58,7 @@ const caseStudies = [
 function GalleryCard({ study, height }: { study: typeof caseStudies[0]; height: string }) {
   const [hovered, setHovered] = useState(false);
   return (
+    <Link href={`/case-studies/${study.slug}`} style={{ textDecoration: "none", display: "block" }}>
     <div
       style={{ position: "relative", overflow: "hidden", cursor: "pointer", height }}
       onMouseEnter={() => setHovered(true)}
@@ -116,6 +111,7 @@ function GalleryCard({ study, height }: { study: typeof caseStudies[0]; height: 
         </p>
       </div>
     </div>
+    </Link>
   );
 }
 
