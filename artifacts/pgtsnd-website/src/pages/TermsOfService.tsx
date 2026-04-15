@@ -31,7 +31,7 @@ export default function TermsOfService() {
             color: "#ffffff",
           })}
         >
-          Terms of Service.
+          Terms &amp; Conditions.
         </h1>
 
         <div>
