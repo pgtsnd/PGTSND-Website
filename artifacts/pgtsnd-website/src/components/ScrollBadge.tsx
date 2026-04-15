@@ -16,6 +16,7 @@ export default function ScrollBadge({
         ...(position === "bottom-right" ? { right: "32px" } : { left: "32px" }),
         width: `${size}px`,
         height: `${size}px`,
+        zIndex: 10,
       };
 
   const chars = "SCROLL DOWN FOR MORE".split("");
