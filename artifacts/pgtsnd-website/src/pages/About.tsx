@@ -316,11 +316,11 @@ export default function About() {
                 borderTop: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              <div>
+              <div style={{ height: "400px", display: "flex", alignItems: "flex-start" }}>
                 <img
                   src={member.image}
                   alt={`Illustration of ${member.name}`}
-                  style={{ width: "340px", maxHeight: "480px", objectFit: "contain", objectPosition: "left top" }}
+                  style={{ height: "400px", width: "auto", maxWidth: "100%", objectFit: "contain", objectPosition: "left top" }}
                 />
               </div>
               <div style={{ paddingTop: "10px" }}>
