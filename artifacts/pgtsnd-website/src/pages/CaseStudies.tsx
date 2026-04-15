@@ -177,7 +177,7 @@ export default function CaseStudies() {
           </div>
         </div>
 
-        <ScrollBadge position="bottom-left" />
+        <ScrollBadge position="bottom-left" bottomOffset={-18} />
       </section>
 
       {/* Gallery Grid — full-bleed massive images */}

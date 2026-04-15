@@ -1,16 +1,18 @@
 export default function ScrollBadge({
   position = "bottom-left",
   inline = false,
+  bottomOffset,
 }: {
   position?: "bottom-left" | "bottom-right";
   inline?: boolean;
+  bottomOffset?: number;
 }) {
   const size = 117;
   const style: React.CSSProperties = inline
     ? { width: `${size}px`, height: `${size}px`, position: "relative" as const }
     : {
         position: "absolute" as const,
-        bottom: "32px",
+        bottom: bottomOffset !== undefined ? `${bottomOffset}px` : "32px",
         ...(position === "bottom-right" ? { right: "32px" } : { left: "32px" }),
         width: `${size}px`,
         height: `${size}px`,
