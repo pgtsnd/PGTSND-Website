@@ -13,7 +13,7 @@ export default function Home() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          padding: "160px 80px 80px",
+          padding: "160px 80px 100px",
           maxWidth: "1400px",
           margin: "0 auto",
         }}
@@ -89,7 +89,7 @@ export default function Home() {
       </section>
 
       {/* ===== SERVICES SECTION ===== */}
-      <section style={{ padding: "160px 80px 100px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "200px 80px 120px", maxWidth: "1400px", margin: "0 auto" }}>
         <p
           style={{
             fontFamily: "'Montserrat', sans-serif",
@@ -146,7 +146,7 @@ export default function Home() {
       {/* ===== THREE PHOTOS STRIP ===== */}
       <section
         style={{
-          padding: "0 80px",
+          padding: "60px 80px 0",
           maxWidth: "1400px",
           margin: "0 auto",
           position: "relative",
@@ -156,7 +156,7 @@ export default function Home() {
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "8px",
+            gap: "6px",
           }}
         >
           <div style={{ overflow: "hidden", aspectRatio: "4/3" }}>
@@ -193,7 +193,7 @@ export default function Home() {
       </section>
 
       {/* ===== ABOUT SECTION ===== */}
-      <section style={{ padding: "160px 80px 120px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "200px 80px 140px", maxWidth: "1400px", margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
@@ -388,7 +388,7 @@ export default function Home() {
       </section>
 
       {/* ===== SOCIAL / INSTAGRAM SECTION ===== */}
-      <section style={{ padding: "160px 80px 100px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "200px 80px 120px", maxWidth: "1400px", margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
@@ -482,7 +482,7 @@ export default function Home() {
       <section
         style={{
           position: "relative",
-          padding: "120px 80px",
+          padding: "160px 80px",
           textAlign: "center",
           overflow: "hidden",
         }}
