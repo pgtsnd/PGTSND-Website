@@ -30,7 +30,8 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Type**: React + Vite (frontend-only, no backend)
 - **Preview path**: `/`
 - **Purpose**: Pixel-faithful clone of pgtsndproductions.com migrated from Squarespace
-- **Pages**: Home, Services, About, Case Studies, Contact
+- **Pages**: Home, Services, About, Case Studies, Contact, Client Hub (login/register with magic link + invite token)
+- **Client Portal** (`/client-hub/*`): Dashboard, Projects, Assets, Video Review, Billing, Account — uses `ClientLayout.tsx` sidebar layout, all mock data for now
 - **Design**: Black background, white text, bold Montserrat 900 weight headings, pill-shaped CTA buttons, hamburger nav overlay
 - **Images**: Loaded directly from Squarespace CDN URLs
 - **Logo**: Uses attached_assets/logo.webp via @assets alias

@@ -6,22 +6,40 @@ import About from "@/pages/About";
 import CaseStudies from "@/pages/CaseStudies";
 import Contact from "@/pages/Contact";
 import ClientHub from "@/pages/ClientHub";
+import ClientDashboard from "@/pages/ClientDashboard";
+import ClientProjects from "@/pages/ClientProjects";
+import ClientAssets from "@/pages/ClientAssets";
+import ClientVideoReview from "@/pages/ClientVideoReview";
+import ClientBilling from "@/pages/ClientBilling";
+import ClientAccount from "@/pages/ClientAccount";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
-    <>
-      <Header />
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/services" component={Services} />
-        <Route path="/about" component={About} />
-        <Route path="/case-studies" component={CaseStudies} />
-        <Route path="/contact" component={Contact} />
-        <Route path="/client-hub" component={ClientHub} />
-        <Route component={NotFound} />
-      </Switch>
-    </>
+    <Switch>
+      <Route path="/client-hub/dashboard" component={ClientDashboard} />
+      <Route path="/client-hub/projects" component={ClientProjects} />
+      <Route path="/client-hub/assets" component={ClientAssets} />
+      <Route path="/client-hub/review" component={ClientVideoReview} />
+      <Route path="/client-hub/billing" component={ClientBilling} />
+      <Route path="/client-hub/account" component={ClientAccount} />
+      <Route path="/client-hub" component={ClientHub} />
+      <Route>
+        {() => (
+          <>
+            <Header />
+            <Switch>
+              <Route path="/" component={Home} />
+              <Route path="/services" component={Services} />
+              <Route path="/about" component={About} />
+              <Route path="/case-studies" component={CaseStudies} />
+              <Route path="/contact" component={Contact} />
+              <Route component={NotFound} />
+            </Switch>
+          </>
+        )}
+      </Route>
+    </Switch>
   );
 }
 
