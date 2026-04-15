@@ -15,9 +15,10 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
   const buttonStyle: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
-    gap: "0",
+    position: "relative",
+    overflow: "hidden",
     background: isDark ? "#000000" : "#ffffff",
-    border: isDark ? "1px solid rgba(255,255,255,0.35)" : "1px solid rgba(0,0,0,0.15)",
+    border: isDark ? "2px solid rgba(255,255,255,0.4)" : "2px solid transparent",
     borderRadius: "999px",
     padding: "4px 4px",
     color: isDark ? "#ffffff" : "#000000",
@@ -29,45 +30,77 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
     cursor: "pointer",
     textDecoration: "none",
     whiteSpace: "nowrap",
-    transition: "background 0.3s ease, border-color 0.3s ease",
     minWidth: "300px",
+    transition: "border-color 0.4s ease",
   };
 
-  const arrowCircleStyle: React.CSSProperties = {
+  const fillStyle: React.CSSProperties = {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: hovered ? "100%" : "0%",
+    background: isDark ? "#ffffff" : "#000000",
+    borderRadius: "999px",
+    transition: "width 0.45s ease",
+    zIndex: 0,
+  };
+
+  const arrowStyle: React.CSSProperties = {
+    position: "relative",
+    zIndex: 1,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     width: "36px",
     height: "36px",
     borderRadius: "50%",
-    background: isDark ? "#ffffff" : "#000000",
+    background: hovered ? "transparent" : (isDark ? "#ffffff" : "#000000"),
     flexShrink: 0,
-    transition: "transform 0.3s ease",
-    transform: hovered ? "scale(1.08)" : "scale(1)",
+    transition: "background 0.35s ease",
   };
 
-  const arrowColor = isDark ? "#000000" : "#ffffff";
+  const arrowColor = hovered
+    ? (isDark ? "#000000" : "#ffffff")
+    : (isDark ? "#000000" : "#ffffff");
 
-  const arrowCircle = (
-    <span style={arrowCircleStyle}>
-      <svg width="14" height="14" viewBox="0 0 512 512" fill={arrowColor}>
-        <path d="M497.777 0H184.889C177.028 0 170.666 6.36133 170.666 14.2227V42.6667C170.666 50.528 177.028 56.8893 184.889 56.8893H414.889L4.16509 467.611C1.44242 470.335 0.0557541 473.887 0.0024208 477.455C-0.0535792 481.165 1.33575 484.893 4.16509 487.725L24.2744 507.833C26.9531 510.513 30.4358 511.901 33.9478 511.995C37.7131 512.096 41.5131 510.708 44.3864 507.833L455.11 97.1107V327.111C455.11 334.972 461.472 341.333 469.333 341.333H497.777C505.638 341.333 512 334.972 512 327.111V14.2227C512 6.36133 505.638 0 497.777 0Z" />
-      </svg>
-    </span>
-  );
+  const labelStyle: React.CSSProperties = {
+    position: "relative",
+    zIndex: 1,
+    flex: 1,
+    textAlign: "center",
+    padding: "0 20px",
+    color: hovered
+      ? (isDark ? "#000000" : "#ffffff")
+      : (isDark ? "#ffffff" : "#000000"),
+    transition: "color 0.35s ease",
+  };
 
-  const labelSpan = (
-    <span
-      style={{
-        flex: 1,
-        textAlign: "center",
-        padding: "0 20px",
-        transition: "letter-spacing 0.3s ease",
-        letterSpacing: hovered ? "0.18em" : "0.12em",
-      }}
-    >
-      {label}
-    </span>
+  const content = (
+    <>
+      <div style={fillStyle} />
+      <span style={arrowStyle}>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          style={{
+            transition: "transform 0.35s ease",
+            transform: hovered ? "rotate(0deg)" : "rotate(-45deg)",
+          }}
+        >
+          <path
+            d="M1 7h12M8 2l5 5-5 5"
+            stroke={arrowColor}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+      <span style={labelStyle}>{label}</span>
+    </>
   );
 
   const handlers = {
@@ -78,16 +111,14 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
   if (external) {
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" style={buttonStyle} {...handlers}>
-        {arrowCircle}
-        {labelSpan}
+        {content}
       </a>
     );
   }
 
   return (
     <Link href={href} style={buttonStyle} {...handlers}>
-      {arrowCircle}
-      {labelSpan}
+      {content}
     </Link>
   );
 }
