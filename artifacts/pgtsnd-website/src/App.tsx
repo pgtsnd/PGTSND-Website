@@ -5,6 +5,7 @@ import Services from "@/pages/Services";
 import About from "@/pages/About";
 import CaseStudies from "@/pages/CaseStudies";
 import Contact from "@/pages/Contact";
+import ClientHub from "@/pages/ClientHub";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
         <Route path="/about" component={About} />
         <Route path="/case-studies" component={CaseStudies} />
         <Route path="/contact" component={Contact} />
+        <Route path="/client-hub" component={ClientHub} />
         <Route component={NotFound} />
       </Switch>
     </>

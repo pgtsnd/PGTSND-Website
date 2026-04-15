@@ -8,6 +8,7 @@ export default function Footer() {
     { href: "/services", label: "Services" },
     { href: "/case-studies", label: "Case Studies" },
     { href: "/contact", label: "Contact" },
+    { href: "/client-hub", label: "Client Hub" },
   ];
 
   return (
