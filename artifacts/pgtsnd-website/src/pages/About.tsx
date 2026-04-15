@@ -378,12 +378,10 @@ export default function About() {
           style={f({
             fontWeight: 900,
             fontSize: "clamp(32px, 5vw, 56px)",
-            fontStyle: "italic",
             textTransform: "uppercase",
             letterSpacing: "-0.02em",
             lineHeight: 1.1,
             color: "#ffffff",
-            maxWidth: "1100px",
             margin: "0 auto 48px",
           })}
         >
