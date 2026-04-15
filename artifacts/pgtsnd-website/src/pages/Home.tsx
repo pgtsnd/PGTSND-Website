@@ -89,7 +89,7 @@ export default function Home() {
       </section>
 
       {/* ===== SERVICES SECTION ===== */}
-      <section style={{ padding: "200px 80px 120px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "280px 80px 180px", maxWidth: "1400px", margin: "0 auto" }}>
         <p
           style={{
             fontFamily: "'Montserrat', sans-serif",
@@ -98,7 +98,7 @@ export default function Home() {
             textTransform: "uppercase",
             letterSpacing: "0.15em",
             color: "rgba(255,255,255,0.5)",
-            marginBottom: "24px",
+            marginBottom: "28px",
           }}
         >
           services
@@ -107,7 +107,7 @@ export default function Home() {
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: "60px",
+            gap: "80px",
             alignItems: "start",
           }}
         >
@@ -129,11 +129,11 @@ export default function Home() {
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 400,
-                fontSize: "17px",
+                fontSize: "19px",
                 color: "rgba(255,255,255,0.85)",
                 lineHeight: 1.7,
                 paddingTop: "8px",
-                marginBottom: "40px",
+                marginBottom: "48px",
               }}
             >
               We handle the logistics, the craft, and the storytelling from planning through post, so your message lands strong and is ready to use.
@@ -193,7 +193,7 @@ export default function Home() {
       </section>
 
       {/* ===== ABOUT SECTION ===== */}
-      <section style={{ padding: "200px 80px 140px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "280px 80px 180px", maxWidth: "1400px", margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
@@ -211,7 +211,7 @@ export default function Home() {
                 textTransform: "uppercase",
                 letterSpacing: "0.15em",
                 color: "rgba(255,255,255,0.5)",
-                marginBottom: "24px",
+                marginBottom: "28px",
               }}
             >
               About Us
@@ -234,9 +234,9 @@ export default function Home() {
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 400,
-                fontSize: "16px",
+                fontSize: "18px",
                 color: "rgba(255,255,255,0.7)",
-                lineHeight: 1.8,
+                lineHeight: 1.75,
                 marginBottom: "48px",
                 maxWidth: "440px",
               }}
@@ -371,10 +371,10 @@ export default function Home() {
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 400,
-                fontSize: "16px",
+                fontSize: "18px",
                 color: "rgba(255,255,255,0.7)",
-                lineHeight: 1.8,
-                marginBottom: "40px",
+                lineHeight: 1.75,
+                marginBottom: "48px",
                 maxWidth: "440px",
               }}
             >
@@ -388,7 +388,7 @@ export default function Home() {
       </section>
 
       {/* ===== SOCIAL / INSTAGRAM SECTION ===== */}
-      <section style={{ padding: "200px 80px 120px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "280px 80px 180px", maxWidth: "1400px", margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
@@ -406,7 +406,7 @@ export default function Home() {
                 textTransform: "uppercase",
                 letterSpacing: "0.15em",
                 color: "rgba(255,255,255,0.5)",
-                marginBottom: "24px",
+                marginBottom: "28px",
               }}
             >
               Catch Us On Social
@@ -482,7 +482,7 @@ export default function Home() {
       <section
         style={{
           position: "relative",
-          padding: "160px 80px",
+          padding: "200px 80px",
           textAlign: "center",
           overflow: "hidden",
         }}
