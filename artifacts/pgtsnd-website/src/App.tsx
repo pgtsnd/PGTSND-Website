@@ -35,6 +35,7 @@ import AlaskaBeringSeaCrabbers from "@/pages/case-studies/AlaskaBeringSeaCrabber
 import GreenJuju from "@/pages/case-studies/GreenJuju";
 import NWSablefish from "@/pages/case-studies/NWSablefish";
 import AlaskaWhitefishTrawlers from "@/pages/case-studies/AlaskaWhitefishTrawlers";
+import Lodge58North from "@/pages/case-studies/Lodge58North";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import NotFound from "@/pages/not-found";
@@ -77,6 +78,7 @@ function Router() {
       <Route path="/case-studies/green-juju" component={GreenJuju} />
       <Route path="/case-studies/nw-sablefish" component={NWSablefish} />
       <Route path="/case-studies/alaska-whitefish-trawlers" component={AlaskaWhitefishTrawlers} />
+      <Route path="/case-studies/lodge-58-north" component={Lodge58North} />
       <Route>
         {() => (
           <>

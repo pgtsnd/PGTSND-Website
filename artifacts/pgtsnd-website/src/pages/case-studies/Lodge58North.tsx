@@ -1,0 +1,175 @@
+import CTAButton from "../../components/CTAButton";
+import ScrollBadge from "../../components/ScrollBadge";
+import Footer from "../../components/Footer";
+import Header from "../../components/Header";
+
+const f = (s: React.CSSProperties): React.CSSProperties => ({
+  fontFamily: "'Montserrat', sans-serif",
+  ...s,
+});
+
+const SQ = "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5";
+
+const services = ["Video Production", "Photography"];
+
+const galleryImages = [
+  `${SQ}/3a3c9078-fa7d-475e-aef7-f4ab48b19728/lodge-58-north-pgtsnd-photography-1.jpeg`,
+  `${SQ}/2147988f-12fa-485c-bec4-86f9cd386716/lodge-58-north-pgtsnd-photography-2.jpeg`,
+  `${SQ}/4f079e9e-8cf9-4713-92ff-f455d9347e1e/lodge-58-north-pgtsnd-photography-3.jpeg`,
+  `${SQ}/3d5fdfab-b978-4048-8fb0-9f2a31dfa710/lodge-58-north-pgtsnd-photography-4.jpeg`,
+  `${SQ}/660a1adc-c597-43c0-a724-7489d83d92ae/lodge-58-north-pgtsnd-photography-5.jpeg`,
+  `${SQ}/cdddc0a3-c806-47b1-9ab5-1f1caaf43ac3/lodge-58-north-pgtsnd-photography-6.jpeg`,
+  `${SQ}/2d377987-3d8e-4f26-8f3a-679bc8f7faac/lodge-58-north-pgtsnd-photography-7.jpeg`,
+  `${SQ}/3c4d192c-904c-492b-b231-b956a4b8a3f9/lodge-58-north-pgtsnd-photography-8.jpeg`,
+  `${SQ}/6905dff7-a7ab-4f20-bcf6-6dad7fbc93aa/lodge-58-north-pgtsnd-photography-9.jpeg`,
+  `${SQ}/648d4721-fd76-43e0-b731-bfb434e494e4/lodge-58-north-pgtsnd-photography-10.jpeg`,
+];
+
+const socialLinks = [
+  { label: "Visit Instagram", href: "https://www.instagram.com/lodgeat58north" },
+  { label: "Visit Website", href: "https://www.lodgeat58north.com" },
+  { label: "Visit YouTube", href: "https://www.youtube.com/@lodgeat58north" },
+];
+
+export default function Lodge58North() {
+  return (
+    <>
+      <Header />
+      <div style={{ background: "#000000", minHeight: "100vh" }}>
+        {/* Hero */}
+        <section style={{ padding: "140px 80px 60px", textAlign: "center" }}>
+          <h1 style={f({ fontWeight: 900, fontSize: "clamp(36px, 5vw, 64px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
+            Lodge @ 58 North X PGTSND
+          </h1>
+          <div style={{ display: "flex", justifyContent: "center", gap: "40px" }}>
+            {services.map((s) => (
+              <p key={s} style={f({ fontSize: "14px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>&#183; {s}</p>
+            ))}
+          </div>
+        </section>
+
+        {/* Panoramic Hero Image */}
+        <section style={{ padding: "0 40px 40px", position: "relative" }}>
+          <ScrollBadge position="bottom-right" bottomOffset={-58} />
+          <div style={{ overflow: "hidden", aspectRatio: "21 / 9" }}>
+            <img
+              src={galleryImages[0]}
+              alt="Lodge @ 58 North - Aerial View"
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+          </div>
+        </section>
+
+        {/* Video Placeholder - Aerial Shot */}
+        <section style={{ padding: "0 40px 40px", position: "relative" }}>
+          <div style={{ position: "relative", overflow: "hidden", aspectRatio: "16 / 9" }}>
+            <img
+              src={galleryImages[9]}
+              alt="Bristol Bay Alaska"
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(0,0,0,0.4)", border: "2px solid rgba(255,255,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="20" height="24" viewBox="0 0 18 22" fill="white"><polygon points="0,0 18,11 0,22" /></svg>
+              </div>
+            </div>
+          </div>
+          <div style={{ position: "absolute", top: "20px", right: "60px" }}>
+            <ScrollBadge position="bottom-right" inline />
+          </div>
+        </section>
+
+        {/* Inside Our Partnership */}
+        <section style={{ padding: "120px 80px", display: "grid", gridTemplateColumns: "2fr 3fr", gap: "80px", alignItems: "start" }}>
+          <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff" })}>
+            Inside Our Partnership
+          </h2>
+          <div>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+              From still images to cinematic storytelling. What started as a single project grew into a trusted partnership with owners Kate and Justin as they expanded their lodge and their vision.
+            </p>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+              Our relationship with Lodge @ 58 North began documenting the sport fishing experience through photography set against the wild beauty of Bristol Bay.
+            </p>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+              When the new lodge was completed, PGTSND evolved the story with them. We returned to capture a fresh suite of photography and produced a brand film in partnership with our friends at <a href="#" style={{ color: "#ffffff", textDecoration: "underline" }}>Topo Films</a> that showcases both the modern design of the lodge and the people behind it.
+            </p>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8 })}>
+              This ongoing collaboration has given Lodge @ 58 North a visual foundation to share their story and connect their audience to the unique experience they've created in Bristol Bay.
+            </p>
+          </div>
+        </section>
+
+        {/* Photo Gallery */}
+        <section style={{ padding: "0 40px 40px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            {galleryImages.map((img, i) => (
+              <div key={i} style={{ overflow: "hidden", aspectRatio: "4 / 3" }}>
+                <img
+                  src={img}
+                  alt=""
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Social Links */}
+        <section style={{ padding: "40px 80px 80px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+            {socialLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "16px 24px",
+                  border: "2px solid rgba(255,255,255,0.4)",
+                  borderRadius: "999px",
+                  textDecoration: "none",
+                  ...f({ fontWeight: 600, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.12em", color: "#ffffff" }),
+                }}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </section>
+
+        {/* Bottom CTA */}
+        <section style={{ padding: "80px 80px 80px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+          <div style={{ maxWidth: "440px" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
+              <img
+                src={galleryImages[4]}
+                alt="Kate Crump"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </div>
+            <div style={{ border: "2px solid rgba(255,255,255,0.3)", padding: "44px 28px 28px" }}>
+              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.8)", lineHeight: 1.7, marginBottom: "16px" })}>
+                &ldquo;PGTSND Productions has always been so professional and fun to work with in the last five years. The quality of people are outstanding and the work is always exceptional and timely. We are very proud to partner with Bri at PGT.&rdquo;
+              </p>
+              <p style={f({ fontWeight: 700, fontSize: "12px", color: "#ffffff" })}>
+                Kate Crump, Lodge at 58 North
+              </p>
+            </div>
+          </div>
+          <div>
+            <h2 style={f({ fontWeight: 900, fontSize: "clamp(28px, 4.5vw, 52px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
+              You're already doing the hard work. We'll make sure people see why it matters.
+            </h2>
+            <CTAButton href="/contact" label="Work With Us" />
+          </div>
+        </section>
+
+        <Footer />
+      </div>
+    </>
+  );
+}
