@@ -320,7 +320,7 @@ export default function About() {
                 <img
                   src={member.image}
                   alt={`Illustration of ${member.name}`}
-                  style={{ width: "280px", maxHeight: "420px", objectFit: "contain", objectPosition: "left top" }}
+                  style={{ width: "340px", maxHeight: "480px", objectFit: "contain", objectPosition: "left top" }}
                 />
               </div>
               <div style={{ paddingTop: "10px" }}>
