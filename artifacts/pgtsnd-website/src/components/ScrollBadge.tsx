@@ -16,28 +16,40 @@ export default function ScrollBadge({
         height: `${size}px`,
       };
 
+  const text = "SCROLL DOWN FOR MORE ";
+  const r = 28;
+  const cx = 50;
+  const cy = 50;
+  const totalAngle = 360;
+  const anglePerChar = totalAngle / text.length;
+
   return (
     <div style={style} className="animate-spin-slow">
       <svg viewBox="0 0 100 100" width={size} height={size}>
-        <defs>
-          <path
-            id="scroll-text-path"
-            d="M 50,50 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
-          />
-        </defs>
-        <text
-          fill="white"
-          fontSize="9"
-          fontFamily="Montserrat, sans-serif"
-          fontWeight="900"
-          letterSpacing="3"
-        >
-          <textPath href="#scroll-text-path">
-            SCROLL DOWN FOR MORE &bull;
-          </textPath>
-        </text>
-        <circle cx="50" cy="50" r="13" fill="none" stroke="white" strokeWidth="2.5" />
-        <line x1="50" y1="56" x2="50" y2="44" stroke="white" strokeWidth="3" strokeLinecap="round" />
+        {text.split("").map((char, i) => {
+          const angle = -90 + i * anglePerChar;
+          const rad = (angle * Math.PI) / 180;
+          const x = cx + r * Math.cos(rad);
+          const y = cy + r * Math.sin(rad);
+          return (
+            <text
+              key={i}
+              x={x}
+              y={y}
+              fill="white"
+              fontSize="8"
+              fontFamily="Montserrat, sans-serif"
+              fontWeight="900"
+              textAnchor="middle"
+              dominantBaseline="central"
+              transform={`rotate(${angle + 90}, ${x}, ${y})`}
+            >
+              {char}
+            </text>
+          );
+        })}
+        <circle cx="50" cy="50" r="15" fill="none" stroke="white" strokeWidth="2.5" />
+        <line x1="50" y1="57" x2="50" y2="44" stroke="white" strokeWidth="3" strokeLinecap="round" />
         <polyline points="44.5,49 50,43.5 55.5,49" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
