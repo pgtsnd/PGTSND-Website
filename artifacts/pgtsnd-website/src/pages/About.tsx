@@ -111,7 +111,7 @@ function useScrollProgress(ref: React.RefObject<HTMLElement | null>) {
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const vh = window.innerHeight;
-    const p = Math.max(0, Math.min(1, (vh - rect.top) / vh));
+    const p = Math.max(0, Math.min(1, (vh - rect.top) / (vh + rect.height)));
     setProgress(p);
   }, [ref]);
   useEffect(() => {
@@ -128,9 +128,9 @@ export default function About() {
   const boatProgress = useScrollProgress(boatRef);
   const briProgress = useScrollProgress(briRef);
 
-  const boatTranslateX = boatProgress * 50;
-  const boatTranslateY = boatProgress * -30;
-  const boatDarken = boatProgress * 0.6;
+  const boatTranslateX = boatProgress * 80;
+  const boatTranslateY = boatProgress * -50;
+  const boatDarken = boatProgress * 0.75;
 
   const briBrightness = 0.4 + Math.min(1, briProgress * 1.5) * 0.6;
 
