@@ -24,4 +24,16 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
+## Artifacts
+
+### PGTSND Productions Website (`artifacts/pgtsnd-website`)
+- **Type**: React + Vite (frontend-only, no backend)
+- **Preview path**: `/`
+- **Purpose**: Pixel-faithful clone of pgtsndproductions.com migrated from Squarespace
+- **Pages**: Home, Services, About, Case Studies, Contact
+- **Design**: Black background, white text, bold Montserrat 900 weight headings, pill-shaped CTA buttons, hamburger nav overlay
+- **Images**: Loaded directly from Squarespace CDN URLs
+- **Logo**: Uses attached_assets/logo.webp via @assets alias
+- **No backend required**: Pure frontend, contact form is client-side only
+
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
