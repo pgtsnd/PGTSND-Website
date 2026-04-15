@@ -5,7 +5,7 @@ export default function ScrollBadge({
   position?: "bottom-left" | "bottom-right";
   inline?: boolean;
 }) {
-  const size = 90;
+  const size = 100;
   const style: React.CSSProperties = inline
     ? { width: `${size}px`, height: `${size}px`, position: "relative" as const }
     : {
@@ -18,28 +18,27 @@ export default function ScrollBadge({
 
   return (
     <div style={style} className="animate-spin-slow">
-      <svg viewBox="0 0 90 90" width={size} height={size}>
+      <svg viewBox="0 0 100 100" width={size} height={size}>
         <defs>
           <path
             id="circle-text-path"
-            d="M 45,45 m -34,0 a 34,34 0 1,1 68,0 a 34,34 0 1,1 -68,0"
+            d="M 50,50 m -40,0 a 40,40 0 1,1 80,0 a 40,40 0 1,1 -80,0"
           />
         </defs>
         <text
           fill="white"
-          fontSize="9.5"
+          fontSize="13"
           fontFamily="Montserrat, sans-serif"
-          fontWeight="800"
-          letterSpacing="3.5"
-          textAnchor="start"
+          fontWeight="900"
+          letterSpacing="5"
         >
           <textPath href="#circle-text-path">
-            SCROLL DOWN FOR MORE &bull; SCROLL DOWN FOR MORE &bull;
+            SCROLL DOWN FOR MORE &bull;
           </textPath>
         </text>
-        <circle cx="45" cy="45" r="16" fill="none" stroke="white" strokeWidth="2" />
-        <path d="M45 52V38" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M39 43L45 37L51 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="50" cy="50" r="17" fill="none" stroke="white" strokeWidth="2.5" />
+        <path d="M50 58V42" stroke="white" strokeWidth="3" strokeLinecap="round" />
+        <path d="M43 48L50 41L57 48" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
   );
