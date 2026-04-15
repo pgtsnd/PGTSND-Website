@@ -30,6 +30,7 @@ import TeamSchedule from "@/pages/TeamSchedule";
 import TeamAssets from "@/pages/TeamAssets";
 import TeamCrew from "@/pages/TeamCrew";
 import TeamSettings from "@/pages/TeamSettings";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import NotFound from "@/pages/not-found";
 
 function ScrollToTop() {
@@ -76,6 +77,7 @@ function Router() {
               <Route path="/about" component={About} />
               <Route path="/case-studies" component={CaseStudies} />
               <Route path="/contact" component={Contact} />
+              <Route path="/privacy-policy" component={PrivacyPolicy} />
               <Route component={NotFound} />
             </Switch>
           </>

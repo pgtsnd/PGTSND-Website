@@ -180,7 +180,7 @@ export default function Footer() {
             </Link>
             {" | "}
             <Link
-              href="/privacy"
+              href="/privacy-policy"
               style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", transition: "color 0.2s ease" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
