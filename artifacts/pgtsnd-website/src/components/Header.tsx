@@ -108,44 +108,55 @@ export default function Header() {
           transition: "opacity 0.35s ease",
         }}
       >
-        <nav
-          onClick={(e) => e.stopPropagation()}
+        <div
           style={{
             flex: 1,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            gap: "8px",
           }}
         >
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              onClick={(e) => {
-                e.preventDefault();
-                setMenuOpen(false);
-                navigate(link.href);
-              }}
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 600,
-                fontSize: "38px",
-                letterSpacing: "0.01em",
-                lineHeight: 1.8,
-                color: "#ffffff",
-                textDecoration: "none",
-                display: "block",
-                textAlign: "center",
-              }}
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
+          <nav
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMenuOpen(false);
+                  navigate(link.href);
+                }}
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "38px",
+                  letterSpacing: "0.01em",
+                  lineHeight: 1.8,
+                  color: "#ffffff",
+                  textDecoration: "none",
+                  display: "block",
+                  textAlign: "center",
+                }}
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+        </div>
 
-        <div style={{ padding: "24px 32px", textAlign: "center" }}>
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{ padding: "24px 32px", textAlign: "center" }}
+        >
           <a
             href="/team"
             onClick={(e) => {
