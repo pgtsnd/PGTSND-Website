@@ -323,11 +323,11 @@ export default function Home() {
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gridTemplateRows: "1fr 1fr",
-            gap: "8px",
+            gridTemplateRows: "auto auto",
+            gap: "6px",
           }}
         >
-          <div style={{ overflow: "hidden" }}>
+          <div style={{ overflow: "hidden", aspectRatio: "4 / 3" }}>
             <img
               src={`${import.meta.env.BASE_URL}images/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg`}
               alt="A person tying their boots on a metal diamond-plated floor with Adventure Bay Fish Co. crate."
@@ -341,20 +341,7 @@ export default function Home() {
             />
           </div>
 
-          <div style={{ overflow: "hidden" }}>
-            <img
-              src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b7737613-01e6-491f-bb56-a3e38eb70d5f/boats-inlet-pgtsnd-bri-dwyer.jpeg"
-              alt="A boat on misty water surrounded by forested mountains."
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
-              }}
-            />
-          </div>
-
-          <div style={{ overflow: "hidden", position: "relative" }}>
+          <div style={{ overflow: "hidden", aspectRatio: "4 / 3" }}>
             <img
               src={`${import.meta.env.BASE_URL}images/foggy-fishing-coast-pgtsnd.jpeg`}
               alt="A boat on calm water with forested mountains and low-hanging clouds in the background."
@@ -365,16 +352,31 @@ export default function Home() {
                 display: "block",
               }}
             />
+          </div>
+
+          <div style={{ position: "relative", overflow: "visible" }}>
+            <div style={{ aspectRatio: "4 / 3", overflow: "hidden" }}>
+              <img
+                src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b7737613-01e6-491f-bb56-a3e38eb70d5f/boats-inlet-pgtsnd-bri-dwyer.jpeg"
+                alt="An aerial view of a river winding through a dense forest with trees on both sides, and two boats traveling downstream."
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            </div>
 
             <div
               style={{
                 position: "absolute",
-                bottom: "24px",
-                left: "24px",
+                bottom: "-40px",
                 right: "24px",
-                background: "rgba(0,0,0,0.85)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                padding: "32px",
+                left: "60px",
+                background: "rgba(0,0,0,0.9)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                padding: "32px 28px 28px",
                 zIndex: 10,
               }}
             >
@@ -382,7 +384,7 @@ export default function Home() {
                 style={{
                   position: "absolute",
                   top: "-28px",
-                  left: "32px",
+                  left: "28px",
                 }}
               >
                 <img
@@ -422,7 +424,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div style={{ position: "absolute", bottom: "16px", left: "16px" }}>
+            <div style={{ position: "absolute", bottom: "-20px", left: "8px", zIndex: 11 }}>
               <ScrollBadge position="bottom-left" inline />
             </div>
           </div>
@@ -432,7 +434,7 @@ export default function Home() {
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              padding: "48px",
+              padding: "60px 48px",
             }}
           >
             <p
@@ -443,7 +445,7 @@ export default function Home() {
                 textTransform: "uppercase",
                 letterSpacing: "0.15em",
                 color: "rgba(255,255,255,0.5)",
-                marginBottom: "16px",
+                marginBottom: "24px",
               }}
             >
               Case Studies
@@ -452,12 +454,12 @@ export default function Home() {
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 900,
-                fontSize: "clamp(28px, 4vw, 44px)",
+                fontSize: "clamp(32px, 4.5vw, 48px)",
                 textTransform: "uppercase",
                 letterSpacing: "-0.02em",
                 lineHeight: 0.95,
                 color: "#ffffff",
-                marginBottom: "24px",
+                marginBottom: "32px",
               }}
             >
               Trusted in tough places
@@ -468,8 +470,9 @@ export default function Home() {
                 fontWeight: 400,
                 fontSize: "16px",
                 color: "rgba(255,255,255,0.7)",
-                lineHeight: 1.7,
-                marginBottom: "32px",
+                lineHeight: 1.8,
+                marginBottom: "40px",
+                maxWidth: "440px",
               }}
             >
               When the work is wild and the conditions are demanding, clients put their confidence in us to capture it right. See how that trust shows up in action.
