@@ -82,11 +82,12 @@ export default function About() {
         <h1
           style={f({
             fontWeight: 900,
-            fontSize: "clamp(60px, 10vw, 130px)",
+            fontSize: "clamp(48px, 7.5vw, 105px)",
             textTransform: "uppercase",
             letterSpacing: "-0.03em",
-            lineHeight: 0.9,
+            lineHeight: 0.95,
             color: "#ffffff",
+            whiteSpace: "nowrap",
           })}
         >
           Resilient Roots,
