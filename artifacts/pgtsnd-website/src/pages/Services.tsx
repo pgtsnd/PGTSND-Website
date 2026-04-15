@@ -117,7 +117,7 @@ export default function Services() {
               key={i}
               style={{
                 display: "grid",
-                gridTemplateColumns: i % 2 === 0 ? "1fr 1fr" : "1fr 1fr",
+                gridTemplateColumns: "1fr 1fr",
                 gap: "60px",
                 alignItems: "center",
                 padding: "80px 0",
@@ -178,99 +178,6 @@ export default function Services() {
                   }}
                 />
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Process */}
-      <section
-        style={{
-          padding: "80px 32px",
-          maxWidth: "1400px",
-          margin: "0 auto",
-          borderTop: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        <h2
-          style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontWeight: 900,
-            fontSize: "clamp(36px, 5vw, 56px)",
-            textTransform: "uppercase",
-            letterSpacing: "-0.02em",
-            lineHeight: 0.9,
-            color: "#ffffff",
-            marginBottom: "60px",
-          }}
-        >
-          Our Process
-        </h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "32px",
-          }}
-        >
-          {[
-            {
-              num: "01",
-              title: "Discovery",
-              desc: "We learn your business, your audience, and your goals before we ever pick up a camera.",
-            },
-            {
-              num: "02",
-              title: "Planning",
-              desc: "Logistics, shot lists, schedules, permits — we handle every detail so you can focus on your work.",
-            },
-            {
-              num: "03",
-              title: "Production",
-              desc: "We show up prepared and stay adaptable. We go where the work happens — no matter the conditions.",
-            },
-            {
-              num: "04",
-              title: "Post",
-              desc: "Edit, color, sound, delivery. Your assets, optimized for every platform you need.",
-            },
-          ].map((step) => (
-            <div key={step.num}>
-              <div
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 900,
-                  fontSize: "48px",
-                  color: "rgba(255,255,255,0.1)",
-                  marginBottom: "8px",
-                }}
-              >
-                {step.num}
-              </div>
-              <h3
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 700,
-                  fontSize: "18px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  color: "#ffffff",
-                  marginBottom: "12px",
-                }}
-              >
-                {step.title}
-              </h3>
-              <p
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 400,
-                  fontSize: "14px",
-                  color: "rgba(255,255,255,0.6)",
-                  lineHeight: 1.7,
-                }}
-              >
-                {step.desc}
-              </p>
             </div>
           ))}
         </div>

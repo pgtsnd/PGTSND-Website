@@ -1,21 +1,7 @@
-import { useState } from "react";
 import ScrollBadge from "../components/ScrollBadge";
 import Footer from "../components/Footer";
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    company: "",
-    message: "",
-  });
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-  };
-
   const inputStyle: React.CSSProperties = {
     fontFamily: "'Montserrat', sans-serif",
     fontWeight: 400,
@@ -27,7 +13,6 @@ export default function Contact() {
     padding: "12px 0",
     width: "100%",
     outline: "none",
-    transition: "border-color 0.2s",
   };
 
   const labelStyle: React.CSSProperties = {
@@ -110,7 +95,7 @@ export default function Contact() {
         <ScrollBadge position="bottom-right" />
       </section>
 
-      {/* Eagle Image */}
+      {/* Hero Image */}
       <section style={{ padding: "0" }}>
         <img
           src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/a4bb4098-6f6b-412f-9f99-da7396dbab92/foggy-fishing-coast-pgtsnd.jpeg"
@@ -132,139 +117,105 @@ export default function Contact() {
           margin: "0 auto",
         }}
       >
-        {submitted ? (
+        <form
+          action="mailto:hello@pgtsndproductions.com"
+          method="get"
+          encType="text/plain"
+        >
           <div
             style={{
-              textAlign: "center",
-              padding: "80px 0",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "40px",
+              marginBottom: "40px",
             }}
           >
-            <h2
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 900,
-                fontSize: "48px",
-                textTransform: "uppercase",
-                letterSpacing: "-0.02em",
-                color: "#ffffff",
-                marginBottom: "16px",
-              }}
-            >
-              We'll be in touch.
-            </h2>
-            <p
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 400,
-                fontSize: "16px",
-                color: "rgba(255,255,255,0.7)",
-              }}
-            >
-              Thanks for reaching out. Expect to hear from us within 1-2 business days.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "40px",
-                marginBottom: "40px",
-              }}
-            >
-              <div>
-                <label style={labelStyle}>Name</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  style={inputStyle}
-                  placeholder="Your name"
-                />
-              </div>
-              <div>
-                <label style={labelStyle}>Email</label>
-                <input
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  style={inputStyle}
-                  placeholder="your@email.com"
-                />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: "40px" }}>
-              <label style={labelStyle}>Company / Organization</label>
+            <div>
+              <label style={labelStyle}>Name</label>
               <input
                 type="text"
-                value={formData.company}
-                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                style={inputStyle}
-                placeholder="Your company name"
-              />
-            </div>
-
-            <div style={{ marginBottom: "60px" }}>
-              <label style={labelStyle}>Tell us about your project</label>
-              <textarea
+                name="name"
                 required
-                value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                rows={6}
-                style={{
-                  ...inputStyle,
-                  resize: "vertical",
-                  borderBottom: "1px solid rgba(255,255,255,0.3)",
-                  display: "block",
-                }}
-                placeholder="What are you working on? What does success look like to you?"
+                style={inputStyle}
+                placeholder="Your name"
               />
             </div>
+            <div>
+              <label style={labelStyle}>Email</label>
+              <input
+                type="email"
+                name="email"
+                required
+                style={inputStyle}
+                placeholder="your@email.com"
+              />
+            </div>
+          </div>
 
-            <button
-              type="submit"
+          <div style={{ marginBottom: "40px" }}>
+            <label style={labelStyle}>Company / Organization</label>
+            <input
+              type="text"
+              name="company"
+              style={inputStyle}
+              placeholder="Your company name"
+            />
+          </div>
+
+          <div style={{ marginBottom: "60px" }}>
+            <label style={labelStyle}>Tell us about your project</label>
+            <textarea
+              name="message"
+              required
+              rows={6}
               style={{
-                display: "inline-flex",
+                ...inputStyle,
+                resize: "vertical",
+                display: "block",
+              }}
+              placeholder="What are you working on? What does success look like to you?"
+            />
+          </div>
+
+          <button
+            type="submit"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "16px",
+              background: "#ffffff",
+              border: "2px solid #ffffff",
+              borderRadius: "999px",
+              padding: "12px 28px 12px 14px",
+              color: "#000000",
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 700,
+              fontSize: "13px",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              cursor: "pointer",
+            }}
+          >
+            <span
+              style={{
+                display: "flex",
                 alignItems: "center",
-                gap: "16px",
-                background: "#ffffff",
-                border: "2px solid #ffffff",
-                borderRadius: "999px",
-                padding: "12px 28px 12px 14px",
-                color: "#000000",
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 700,
-                fontSize: "13px",
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                cursor: "pointer",
+                justifyContent: "center",
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "#000000",
+                color: "#ffffff",
+                flexShrink: 0,
               }}
             >
-              <span
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "50%",
-                  background: "#000000",
-                  color: "#ffffff",
-                  flexShrink: 0,
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M7 17L17 7M17 7H7M17 7v10" />
-                </svg>
-              </span>
-              Send Message
-            </button>
-          </form>
-        )}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M7 17L17 7M17 7H7M17 7v10" />
+              </svg>
+            </span>
+            Send Message
+          </button>
+        </form>
       </section>
 
       <Footer />
