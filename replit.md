@@ -46,6 +46,11 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Theme System** (`ThemeContext.tsx`): Dark/light mode toggle in sidebar; dark mode uses `#111114` gray (not pure black), light mode uses `#f4f4f6`; all portal pages consume `useTheme()` with `t.*` token variables for backgrounds, text, borders, cards, modals
   - Assets page has grid/list view toggle, thumbnail cards with colored gradient placeholders, "Send to Review" button on draft videos, breadcrumb navigation, and drag-drop upload zone
   - Video Review links back to Assets via "View in Assets" source file row
+- **Team Portal** (`/team/*`): Admin/production team dashboard — uses `TeamLayout.tsx` sidebar layout, logged in as Bri Dwyer (Director/Producer)
+  - **Dashboard** (`TeamDashboard.tsx`): Stat cards (active projects, tasks, pending client actions, crew), active project cards, "Waiting on Client" queue with wait times, recent activity feed, team workload matrix (tasks + projects per crew member)
+  - **Projects** (`TeamProjects.tsx`): All projects list with status filters (Active/Paused/Completed/Archived), progress bars, team avatar stacks, task counts, due dates; "New Project" button; 6 sample projects across 3 clients
+  - **Project Detail** (`TeamProjectDetail.tsx`): `/team/projects/:id` — Overview tab with stats, document status (draft/final) with Edit buttons, client review queue (pending/changes requested) with Remind button, quick actions (Upload Assets, Send to Review, Update Schedule, Generate Invoice); tabbed views for Schedule, Assets, Review (placeholder); team roster + recent messages sidebar
+  - Sidebar: Dashboard, Projects, Clients, Messages (badge), Schedule, Asset Library, Crew, Settings
 - **Design**: Black background, white text, bold Montserrat 900 weight headings, pill-shaped CTA buttons, hamburger nav overlay
 - **Images**: Loaded directly from Squarespace CDN URLs
 - **Logo**: Uses attached_assets/logo.webp via @assets alias

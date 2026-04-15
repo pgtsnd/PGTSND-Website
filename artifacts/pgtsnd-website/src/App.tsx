@@ -19,6 +19,9 @@ import ProjectTreatment from "@/pages/ProjectTreatment";
 import ProjectStoryboard from "@/pages/ProjectStoryboard";
 import ProjectShotList from "@/pages/ProjectShotList";
 import ProjectNotes from "@/pages/ProjectNotes";
+import TeamDashboard from "@/pages/TeamDashboard";
+import TeamProjects from "@/pages/TeamProjects";
+import TeamProjectDetail from "@/pages/TeamProjectDetail";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -37,6 +40,9 @@ function Router() {
       <Route path="/client-hub/billing" component={ClientBilling} />
       <Route path="/client-hub/account" component={ClientAccount} />
       <Route path="/client-hub" component={ClientHub} />
+      <Route path="/team/dashboard" component={TeamDashboard} />
+      <Route path="/team/projects/:id" component={TeamProjectDetail} />
+      <Route path="/team/projects" component={TeamProjects} />
       <Route>
         {() => (
           <>
