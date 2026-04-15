@@ -44,7 +44,7 @@ function ServiceCategory({
       <h2
         style={f({
           fontWeight: 900,
-          fontSize: "clamp(36px, 5vw, 60px)",
+          fontSize: "clamp(40px, 5.5vw, 68px)",
           textTransform: "uppercase",
           letterSpacing: "-0.02em",
           lineHeight: 0.95,
@@ -53,19 +53,21 @@ function ServiceCategory({
       >
         {title}
       </h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "56px" }}>
         {items.map((item, i) => (
           <div
             key={i}
             style={{
-              borderLeft: "2px solid rgba(255,255,255,0.3)",
-              paddingLeft: "24px",
+              borderLeft: "2px solid rgba(255,255,255,0.25)",
+              paddingLeft: "28px",
+              paddingTop: "4px",
+              paddingBottom: "4px",
             }}
           >
-            <p style={f({ fontWeight: 700, fontSize: "15px", color: "#ffffff", marginBottom: "8px" })}>
+            <p style={f({ fontWeight: 700, fontSize: "17px", color: "#ffffff", marginBottom: "8px" })}>
               {item.label}
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.7)", lineHeight: 1.7 })}>
+            <p style={f({ fontWeight: 400, fontSize: "17px", color: "rgba(255,255,255,0.7)", lineHeight: 1.7 })}>
               {item.desc}
             </p>
           </div>
@@ -312,14 +314,16 @@ export default function Services() {
             <div
               key={i}
               style={{
-                borderLeft: "2px solid rgba(255,255,255,0.3)",
-                paddingLeft: "24px",
+                borderLeft: "2px solid rgba(255,255,255,0.25)",
+                paddingLeft: "28px",
+                paddingTop: "4px",
+                paddingBottom: "4px",
               }}
             >
-              <p style={f({ fontWeight: 700, fontSize: "15px", color: "#ffffff", marginBottom: "8px" })}>
+              <p style={f({ fontWeight: 700, fontSize: "17px", color: "#ffffff", marginBottom: "8px" })}>
                 {item.label}
               </p>
-              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.7)", lineHeight: 1.7 })}>
+              <p style={f({ fontWeight: 400, fontSize: "17px", color: "rgba(255,255,255,0.7)", lineHeight: 1.7 })}>
                 {item.desc}
               </p>
             </div>
