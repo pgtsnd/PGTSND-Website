@@ -295,12 +295,13 @@ export default function About() {
         <h2
           style={f({
             fontWeight: 900,
-            fontSize: "clamp(48px, 9vw, 120px)",
+            fontSize: "clamp(40px, 7vw, 96px)",
             textTransform: "uppercase",
             letterSpacing: "-0.03em",
             lineHeight: 0.95,
             color: "#ffffff",
             marginBottom: "48px",
+            whiteSpace: "nowrap",
           })}
         >
           Our Work In Action
