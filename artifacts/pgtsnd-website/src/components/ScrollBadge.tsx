@@ -5,7 +5,7 @@ export default function ScrollBadge({
   position?: "bottom-left" | "bottom-right";
   inline?: boolean;
 }) {
-  const size = 120;
+  const size = 90;
   const style: React.CSSProperties = inline
     ? { width: `${size}px`, height: `${size}px`, position: "relative" as const }
     : {
@@ -17,55 +17,30 @@ export default function ScrollBadge({
       };
 
   return (
-    <div style={style}>
-      <div className="animate-spin-slow" style={{ width: `${size}px`, height: `${size}px`, position: "relative" }}>
-        <svg viewBox="0 0 120 120" width={size} height={size}>
-          <defs>
-            <path
-              id="circle-text-path"
-              d="M 60,60 m -45,0 a 45,45 0 1,1 90,0 a 45,45 0 1,1 -90,0"
-            />
-          </defs>
-          <text
-            fill="white"
-            fontSize="12"
-            fontFamily="Montserrat, sans-serif"
-            fontWeight="700"
-            letterSpacing="4"
-            textAnchor="start"
-          >
-            <textPath href="#circle-text-path">
-              SCROLL DOWN FOR MORE &bull; SCROLL DOWN FOR MORE &bull;
-            </textPath>
-          </text>
-        </svg>
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            width: "36px",
-            height: "36px",
-            borderRadius: "50%",
-            border: "2px solid white",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+    <div style={style} className="animate-spin-slow">
+      <svg viewBox="0 0 90 90" width={size} height={size}>
+        <defs>
+          <path
+            id="circle-text-path"
+            d="M 45,45 m -34,0 a 34,34 0 1,1 68,0 a 34,34 0 1,1 -68,0"
+          />
+        </defs>
+        <text
+          fill="white"
+          fontSize="9.5"
+          fontFamily="Montserrat, sans-serif"
+          fontWeight="800"
+          letterSpacing="3.5"
+          textAnchor="start"
         >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M7 11V3" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            <path d="M3 6L7 2L11 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-      </div>
+          <textPath href="#circle-text-path">
+            SCROLL DOWN FOR MORE &bull; SCROLL DOWN FOR MORE &bull;
+          </textPath>
+        </text>
+        <circle cx="45" cy="45" r="16" fill="none" stroke="white" strokeWidth="2" />
+        <path d="M45 52V38" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M39 43L45 37L51 43" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     </div>
   );
 }
