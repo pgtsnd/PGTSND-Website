@@ -8,11 +8,10 @@ export default function Home() {
       {/* ===== HERO SECTION ===== */}
       <section
         style={{
-          minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          padding: "120px 32px 60px",
+          padding: "160px 80px 80px",
           maxWidth: "1400px",
           margin: "0 auto",
         }}
@@ -26,15 +25,15 @@ export default function Home() {
             gap: "40px",
           }}
         >
-          <div style={{ maxWidth: "600px" }}>
+          <div style={{ maxWidth: "700px" }}>
             <h1
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 900,
-                fontSize: "clamp(56px, 8vw, 84px)",
+                fontSize: "clamp(48px, 7vw, 80px)",
                 textTransform: "uppercase",
                 letterSpacing: "-0.02em",
-                lineHeight: 0.9,
+                lineHeight: 0.92,
                 color: "#ffffff",
                 marginBottom: "32px",
               }}
@@ -45,10 +44,10 @@ export default function Home() {
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 400,
-                fontSize: "16px",
-                color: "rgba(255,255,255,0.7)",
+                fontSize: "18px",
+                color: "#ffffff",
                 lineHeight: 1.7,
-                maxWidth: "400px",
+                maxWidth: "480px",
               }}
             >
               On deck, in the mud, sliding through snow, or riding the swells. We go where your work happens and capture your story with clarity and conviction.
@@ -61,7 +60,7 @@ export default function Home() {
       {/* ===== VIDEO / IMAGE SECTION WITH OVERLAPPING TESTIMONIAL ===== */}
       <section
         style={{
-          padding: "0 32px 0",
+          padding: "0 80px 0",
           maxWidth: "1400px",
           margin: "0 auto",
           position: "relative",
@@ -148,7 +147,7 @@ export default function Home() {
       </section>
 
       {/* ===== SERVICES SECTION ===== */}
-      <section style={{ padding: "120px 32px 80px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "120px 80px 80px", maxWidth: "1400px", margin: "0 auto" }}>
         <p
           style={{
             fontFamily: "'Montserrat', sans-serif",
@@ -160,7 +159,7 @@ export default function Home() {
             marginBottom: "16px",
           }}
         >
-          Services
+          services
         </p>
         <div
           style={{
@@ -174,7 +173,7 @@ export default function Home() {
             style={{
               fontFamily: "'Montserrat', sans-serif",
               fontWeight: 900,
-              fontSize: "clamp(32px, 5vw, 48px)",
+              fontSize: "clamp(36px, 4vw, 50px)",
               textTransform: "uppercase",
               letterSpacing: "-0.02em",
               lineHeight: 0.95,
@@ -188,8 +187,8 @@ export default function Home() {
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 400,
-                fontSize: "16px",
-                color: "rgba(255,255,255,0.7)",
+                fontSize: "17px",
+                color: "rgba(255,255,255,0.85)",
                 lineHeight: 1.7,
                 paddingTop: "8px",
                 marginBottom: "40px",
@@ -205,7 +204,7 @@ export default function Home() {
       {/* ===== THREE PHOTOS STRIP ===== */}
       <section
         style={{
-          padding: "0 32px",
+          padding: "0 80px",
           maxWidth: "1400px",
           margin: "0 auto",
           position: "relative",
@@ -252,7 +251,7 @@ export default function Home() {
       </section>
 
       {/* ===== ABOUT SECTION ===== */}
-      <section style={{ padding: "120px 32px 80px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "120px 80px 80px", maxWidth: "1400px", margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
@@ -320,7 +319,7 @@ export default function Home() {
       </section>
 
       {/* ===== CASE STUDIES 2x2 GRID ===== */}
-      <section style={{ padding: "0 32px 0", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "0 80px 0", maxWidth: "1400px", margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
@@ -484,7 +483,7 @@ export default function Home() {
       </section>
 
       {/* ===== SOCIAL / INSTAGRAM SECTION ===== */}
-      <section style={{ padding: "120px 32px 80px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "120px 80px 80px", maxWidth: "1400px", margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
@@ -578,7 +577,7 @@ export default function Home() {
       <section
         style={{
           position: "relative",
-          padding: "120px 32px",
+          padding: "120px 80px",
           textAlign: "center",
           overflow: "hidden",
         }}
