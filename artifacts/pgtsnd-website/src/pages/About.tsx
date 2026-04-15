@@ -109,22 +109,22 @@ const heroWords = [
   {
     text: "Resilient",
     image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b7737613-01e6-491f-bb56-a3e38eb70d5f/boats-inlet-pgtsnd-bri-dwyer.jpeg",
-    position: { top: "5%", left: "3%", width: "38%", height: "85%" },
+    position: { top: "16%", left: "3%", width: "24%", height: "58%" },
   },
   {
     text: "Roots,",
     image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/072a41a3-9259-4ffb-a573-6bab24757639/crabs-pelican-pgtsnd-bri-dwyer.jpeg",
-    position: { top: "2%", left: "32%", width: "36%", height: "90%" },
+    position: { top: "5%", left: "27%", width: "30%", height: "76%" },
   },
   {
     text: "Steady",
     image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/a4bb4098-6f6b-412f-9f99-da7396dbab92/foggy-fishing-coast-pgtsnd.jpeg",
-    position: { top: "5%", left: "3%", width: "38%", height: "85%" },
+    position: { top: "16%", left: "3%", width: "24%", height: "58%" },
   },
   {
     text: "Stories",
     image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d00d09c7-98fc-4637-aad9-98173f451b5f/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg",
-    position: { top: "2%", left: "55%", width: "40%", height: "90%" },
+    position: { top: "16%", left: "62%", width: "32%", height: "60%" },
   },
 ];
 
