@@ -97,27 +97,7 @@ export default function About() {
         <ScrollBadge position="bottom-left" />
       </section>
 
-      {/* 2. Aerial boat photo with rope coil illustration */}
-      <section style={{ position: "relative" }}>
-        <img
-          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f2eeee17-7f28-4cb4-b4f1-e153742b789e/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
-          alt="Aerial view of a fishing boat sailing through dark water with white foam"
-          style={{ width: "100%", height: "70vh", objectFit: "cover", display: "block" }}
-        />
-        <img
-          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/afed82ab-8cce-4351-8779-a17d290ad607/av-cord-pgtsnd.webp"
-          alt="Coiled production cable illustration"
-          style={{
-            position: "absolute", top: "40px", right: "80px",
-            width: "180px", height: "auto", opacity: 0.9,
-          }}
-        />
-        <div style={{ position: "absolute", bottom: "40px", left: "80px" }}>
-          <ScrollBadge inline />
-        </div>
-      </section>
-
-      {/* 3. Mission statement — large italic heading + body copy */}
+      {/* 2. Mission statement — large bold heading + body copy */}
       <section
         style={{
           padding: "120px 80px",
@@ -131,7 +111,6 @@ export default function About() {
           style={f({
             fontWeight: 900,
             fontSize: "clamp(32px, 4vw, 52px)",
-            fontStyle: "italic",
             textTransform: "uppercase",
             letterSpacing: "-0.02em",
             lineHeight: 1.0,
@@ -152,6 +131,26 @@ export default function About() {
             Our team is at the top of their technical fields, but what we deliver goes beyond precision. The assets we create build connection and understanding between crews and communities, companies and partners, industries and the people they serve.
           </p>
           <CTAButton href="/services" label="Our Services" />
+        </div>
+      </section>
+
+      {/* 3. Aerial boat photo with rope coil illustration */}
+      <section style={{ position: "relative" }}>
+        <img
+          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f2eeee17-7f28-4cb4-b4f1-e153742b789e/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
+          alt="Aerial view of a fishing boat sailing through dark water with white foam"
+          style={{ width: "100%", height: "70vh", objectFit: "cover", display: "block" }}
+        />
+        <img
+          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/afed82ab-8cce-4351-8779-a17d290ad607/av-cord-pgtsnd.webp"
+          alt="Coiled production cable illustration"
+          style={{
+            position: "absolute", top: "40px", right: "80px",
+            width: "180px", height: "auto", opacity: 0.9,
+          }}
+        />
+        <div style={{ position: "absolute", bottom: "40px", left: "80px" }}>
+          <ScrollBadge inline />
         </div>
       </section>
 
