@@ -354,13 +354,13 @@ export default function About() {
               src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/2de5fc52-919a-43e2-98e1-c4490cca1679/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"
               alt="Jamie Goen"
               style={{
-                width: "80px",
-                height: "80px",
+                width: "64px",
+                height: "64px",
                 borderRadius: "50%",
                 objectFit: "cover",
                 position: "relative",
                 zIndex: 2,
-                marginBottom: "-40px",
+                marginBottom: "-32px",
                 marginLeft: "28px",
               }}
             />
@@ -368,7 +368,7 @@ export default function About() {
               style={{
                 background: "rgba(0,0,0,0.92)",
                 border: "2px solid #ffffff",
-                padding: "52px 36px 32px",
+                padding: "44px 36px 32px",
               }}
             >
               <p style={f({ fontWeight: 400, fontSize: "16px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, fontStyle: "italic", marginBottom: "20px" })}>
