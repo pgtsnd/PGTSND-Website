@@ -117,7 +117,7 @@ function TestimonialImage({
           alt={imageAlt}
           style={{
             width: scrollSlide ? "110%" : "100%",
-            height: "80vh",
+            height: "55vh",
             objectFit: "cover",
             display: "block",
             marginLeft: scrollSlide ? "-5%" : undefined,
