@@ -31,12 +31,17 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Preview path**: `/`
 - **Purpose**: Pixel-faithful clone of pgtsndproductions.com migrated from Squarespace
 - **Pages**: Home, Services, About, Case Studies, Contact, Client Hub (login/register with magic link + invite token)
-- **Client Portal** (`/client-hub/*`): Dashboard, Messages, Projects, Assets, Video Review, Billing, Account — uses `ClientLayout.tsx` sidebar layout, all mock data for now
+- **Client Portal** (`/client-hub/*`): Dashboard, Messages, Projects, Assets, Video Review, Contracts, Billing, Account — uses `ClientLayout.tsx` sidebar layout, all mock data for now
   - **Dashboard**: Welcome banner, review queue with reminders, recent messages feed, active project status cards
   - **Messages** (`ClientMessages.tsx`): Full threaded chat with conversation sidebar, team/client bubble layout, file attachments, unread badges
-  - **Projects** (`ClientProjects.tsx`): Gantt-style schedule with phase bars + "TODAY" marker, expandable sections (Treatment, Storyboard, Shot List, Client Notes), team roster
+  - **Projects** (`ClientProjects.tsx`): Gantt-style schedule with 29 tasks across 5 phases, collapsible phase rows, assignee column, weekly timeline grid, "TODAY" marker; Project Documents section links to dedicated subpages, team roster
+  - **Treatment** (`ProjectTreatment.tsx`): `/client-hub/projects/:id/treatment` — long-form written narrative (~1000 words), blog-post style, author + date, cross-links to storyboard/shotlist
+  - **Storyboard** (`ProjectStoryboard.tsx`): `/client-hub/projects/:id/storyboard` — visual mood board with gradient placeholder cards per scene, mood tags, camera notes
+  - **Shot List** (`ProjectShotList.tsx`): `/client-hub/projects/:id/shotlist` — detailed scene-grouped table of all planned shots with type (Hero/B-Roll/Aerial/Macro/Slo-Mo/Interview), lens, camera movement, captured checkmarks, scene/type filters, progress bar
+  - **Client Notes** (`ProjectNotes.tsx`): `/client-hub/projects/:id/notes` — pinned important notes + chronological timeline, client vs team attribution, tagged categories
   - **Assets** (`ClientAssets.tsx`): Finder-style folder browser with breadcrumbs, folder grid → file list view, drag-drop upload zone, download icons
   - **Video Review** (`ClientVideoReview.tsx`): Video player with colored timeline dots per comment, clickable dots to highlight comment, threaded replies, "Approve This Draft" / "Request Changes" buttons, version selector
+  - **Contracts** (`ClientContracts.tsx`): DocuSign links and signed copies; MSA, SOW, NDA, Release, Amendment types; pending signature alerts with "Sign in DocuSign" CTA; expandable signer status and details; Download PDF for signed copies
   - **Billing** (`ClientBilling.tsx`): Invoice table with Pay Now buttons, subscriptions & recurring section, payment history with CSV export, payment method cards (Visa/ACH), Pay modal with payment method selector and Confirm Payment button
 - **Theme System** (`ThemeContext.tsx`): Dark/light mode toggle in sidebar; dark mode uses `#111114` gray (not pure black), light mode uses `#f4f4f6`; all portal pages consume `useTheme()` with `t.*` token variables for backgrounds, text, borders, cards, modals
   - Assets page has grid/list view toggle, thumbnail cards with colored gradient placeholders, "Send to Review" button on draft videos, breadcrumb navigation, and drag-drop upload zone

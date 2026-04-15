@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { Link } from "wouter";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 
@@ -199,14 +200,9 @@ const projects = [
 export default function ClientProjects() {
   const { t } = useTheme();
   const [selectedProject, setSelectedProject] = useState(projects[0]);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>(
     Object.fromEntries(projects[0].phases.map((p) => [p.name, true]))
   );
-
-  const toggleSection = (key: string) => {
-    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
 
   const togglePhase = (name: string) => {
     setExpandedPhases((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -233,31 +229,31 @@ export default function ClientProjects() {
   const totalWeeks = selectedProject.totalWeeks;
   for (let i = 1; i <= totalWeeks; i++) weekLabels.push(`W${i}`);
 
-  const sectionButton = (key: string, label: string, icon: ReactNode) => (
-    <button
-      onClick={() => toggleSection(key)}
-      style={{
-        width: "100%",
+  const docLink = (href: string, label: string, icon: ReactNode, subtitle: string) => (
+    <Link href={href} style={{ textDecoration: "none", display: "block", marginBottom: "8px" }}>
+      <div style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         padding: "16px 20px",
         background: t.bgCard,
         border: `1px solid ${t.border}`,
-        borderRadius: expandedSections[key] ? "8px 8px 0 0" : "8px",
+        borderRadius: "8px",
         cursor: "pointer",
-        marginBottom: expandedSections[key] ? "0" : "8px",
-        transition: "all 0.15s ease",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        <span style={{ color: t.textTertiary, display: "flex" }}>{icon}</span>
-        <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text }}>{label}</span>
+        transition: "border-color 0.15s ease",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ color: t.textTertiary, display: "flex" }}>{icon}</span>
+          <div>
+            <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, display: "block" }}>{label}</span>
+            <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>{subtitle}</span>
+          </div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
       </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2" style={{ transform: expandedSections[key] ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}>
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
-    </button>
+    </Link>
   );
 
   return (
@@ -542,43 +538,10 @@ export default function ClientProjects() {
           <div>
             <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.textTertiary, marginBottom: "16px" }}>Project Documents</h2>
 
-            {sectionButton("treatment", "Treatment / Creative Brief", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>))}
-            {expandedSections["treatment"] && (
-              <div style={{ padding: "20px", background: t.bgElevated, border: `1px solid ${t.border}`, borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
-                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "14px", color: t.textSecondary, lineHeight: 1.75 }}>{selectedProject.sections.treatment}</p>
-              </div>
-            )}
-
-            {sectionButton("storyboard", "Storyboard", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="2" width="20" height="20" rx="2" /><line x1="2" y1="12" x2="22" y2="12" /><line x1="12" y1="2" x2="12" y2="22" /></svg>))}
-            {expandedSections["storyboard"] && (
-              <div style={{ padding: "20px", background: t.bgElevated, border: `1px solid ${t.border}`, borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
-                {selectedProject.sections.storyboard.map((scene, i) => (
-                  <div key={i} style={{ display: "flex", gap: "12px", marginBottom: "12px", alignItems: "flex-start" }}>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: t.textMuted, minWidth: "20px" }}>{i + 1}.</span>
-                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textSecondary, lineHeight: 1.6 }}>{scene}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {sectionButton("shotlist", "Shot List", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" /></svg>))}
-            {expandedSections["shotlist"] && (
-              <div style={{ padding: "20px", background: t.bgElevated, border: `1px solid ${t.border}`, borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
-                {selectedProject.sections.shotlist.map((shot, i) => (
-                  <div key={i} style={{ display: "flex", gap: "12px", marginBottom: "10px", alignItems: "center" }}>
-                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: t.border, flexShrink: 0 }} />
-                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textSecondary }}>{shot}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {sectionButton("clientNotes", "Client Notes & Context", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>))}
-            {expandedSections["clientNotes"] && (
-              <div style={{ padding: "20px", background: t.bgElevated, border: `1px solid ${t.border}`, borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
-                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "14px", color: t.textSecondary, lineHeight: 1.75 }}>{selectedProject.sections.clientNotes}</p>
-              </div>
-            )}
+            {docLink(`/client-hub/projects/${selectedProject.id}/treatment`, "Treatment / Creative Brief", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>), "Written narrative & creative direction")}
+            {docLink(`/client-hub/projects/${selectedProject.id}/storyboard`, "Storyboard", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="2" width="20" height="20" rx="2" /><line x1="2" y1="12" x2="22" y2="12" /><line x1="12" y1="2" x2="12" y2="22" /></svg>), `${selectedProject.sections.storyboard.length} scenes · Visual mood board`)}
+            {docLink(`/client-hub/projects/${selectedProject.id}/shotlist`, "Shot List", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" /></svg>), `${selectedProject.sections.shotlist.length}+ planned shots`)}
+            {docLink(`/client-hub/projects/${selectedProject.id}/notes`, "Client Notes & Context", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>), "Preferences, feedback & project context")}
           </div>
 
           <div>
