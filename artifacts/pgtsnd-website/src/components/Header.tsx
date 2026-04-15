@@ -89,6 +89,7 @@ export default function Header() {
       </header>
 
       <div
+        onClick={() => setMenuOpen(false)}
         style={{
           position: "fixed",
           top: 0,
@@ -108,6 +109,7 @@ export default function Header() {
         }}
       >
         <nav
+          onClick={(e) => e.stopPropagation()}
           style={{
             flex: 1,
             display: "flex",
