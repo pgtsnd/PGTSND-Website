@@ -250,14 +250,14 @@ export default function About() {
         <img
           src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/59c50bdc-fea6-4d1d-b867-67a1be5cd36e/pgtsnd-spotlight.webp"
           alt="Production equipment illustration"
-          style={{ width: "100px", height: "auto", marginBottom: "24px", opacity: 0.8 }}
+          style={{ width: "180px", height: "auto", marginBottom: "32px", opacity: 1, filter: "brightness(1.2)" }}
         />
         <h2
           style={f({
             fontWeight: 900,
-            fontSize: "clamp(40px, 6vw, 80px)",
+            fontSize: "clamp(48px, 9vw, 120px)",
             textTransform: "uppercase",
-            letterSpacing: "-0.02em",
+            letterSpacing: "-0.03em",
             lineHeight: 0.95,
             color: "#ffffff",
             marginBottom: "48px",
@@ -273,7 +273,7 @@ export default function About() {
                 <img
                   src={img.src}
                   alt={img.alt}
-                  style={{ width: "100%", height: "360px", objectFit: "cover", display: "block" }}
+                  style={{ width: "100%", height: "440px", objectFit: "cover", display: "block" }}
                 />
               </div>
             </Link>
