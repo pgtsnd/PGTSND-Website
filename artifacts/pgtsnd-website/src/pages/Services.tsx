@@ -213,6 +213,7 @@ export default function Services() {
                 lineHeight: 0.9,
                 color: "#ffffff",
                 marginBottom: "32px",
+                whiteSpace: "nowrap",
               })}
             >
               What We Do
