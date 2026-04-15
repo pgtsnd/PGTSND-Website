@@ -146,7 +146,7 @@ export default function Footer() {
             marginTop: "80px",
             paddingTop: "32px",
             borderTop: "1px solid rgba(255,255,255,0.08)",
-            textAlign: "center",
+            textAlign: "left",
           }}
         >
           <p
