@@ -216,10 +216,10 @@ export default function About() {
             style={{
               position: "absolute",
               bottom: "-40px",
-              left: "40px",
-              right: "40px",
+              left: "65px",
+              right: "65px",
               background: "rgba(0,0,0,0.92)",
-              border: "1px solid rgba(255,255,255,0.15)",
+              border: "2px solid #ffffff",
               padding: "28px 32px",
             }}
           >
