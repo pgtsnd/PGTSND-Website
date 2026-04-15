@@ -27,7 +27,8 @@ export default function Header() {
           alignItems: "center",
           justifyContent: "space-between",
           padding: "24px 32px",
-          background: "transparent",
+          background: "rgba(0, 0, 0, 0.85)",
+          backdropFilter: "blur(8px)",
         }}
       >
         <Link href="/">

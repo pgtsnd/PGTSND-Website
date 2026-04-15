@@ -127,7 +127,7 @@ export default function Home() {
             />
           </div>
         </div>
-        <div style={{ height: "80px" }} />
+        <div style={{ height: "120px" }} />
       </section>
 
       {/* ===== SERVICES SECTION ===== */}
