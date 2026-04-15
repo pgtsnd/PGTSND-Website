@@ -535,32 +535,31 @@ export default function Home() {
           style={{
             position: "absolute",
             inset: 0,
-            background: "#0a0a0a",
+            background: "#000000",
             zIndex: 0,
           }}
         >
           <img
-            src={`${import.meta.env.BASE_URL}images/crabs-pelican-pgtsnd-bri-dwyer.jpeg`}
+            src={`${import.meta.env.BASE_URL}images/boats-aerial-drone-pgtsnd.png`}
             alt="Aerial view of docked boats"
             style={{
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              opacity: 0.25,
+              opacity: 0.2,
             }}
           />
         </div>
 
         <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", margin: "0 auto" }}>
-          <div style={{ marginBottom: "24px" }}>
+          <div style={{ marginBottom: "32px" }}>
             <img
               src={`${import.meta.env.BASE_URL}images/pgtsnd-drone.png`}
               alt="Drone illustration"
               style={{
-                width: "160px",
+                width: "180px",
                 height: "auto",
                 margin: "0 auto",
-                filter: "invert(1)",
               }}
             />
           </div>
