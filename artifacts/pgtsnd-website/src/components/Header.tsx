@@ -15,6 +15,15 @@ export default function Header() {
     { href: "/client-hub", label: "Client Hub" },
   ];
 
+  const barBase: React.CSSProperties = {
+    display: "block",
+    width: "28px",
+    height: "2px",
+    background: "#ffffff",
+    transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
+    transformOrigin: "center",
+  };
+
   return (
     <>
       <header
@@ -23,16 +32,16 @@ export default function Header() {
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 100,
+          zIndex: 300,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           padding: "24px 32px",
-          background: "rgba(0, 0, 0, 0.85)",
-          backdropFilter: "blur(8px)",
+          background: menuOpen ? "#000000" : "rgba(0, 0, 0, 0.85)",
+          backdropFilter: menuOpen ? "none" : "blur(8px)",
         }}
       >
-        <Link href="/">
+        <Link href="/" onClick={() => setMenuOpen(false)}>
           <img
             src={logo}
             alt="PGTSND Productions"
@@ -41,8 +50,8 @@ export default function Header() {
         </Link>
 
         <button
-          onClick={() => setMenuOpen(true)}
-          aria-label="Open menu"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
           style={{
             background: "none",
             border: "none",
@@ -50,23 +59,29 @@ export default function Header() {
             padding: "8px",
             display: "flex",
             flexDirection: "column",
-            gap: "5px",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "44px",
+            height: "44px",
+            position: "relative",
           }}
         >
           <span
             style={{
-              display: "block",
-              width: "28px",
-              height: "2px",
-              background: "#ffffff",
+              ...barBase,
+              position: "absolute",
+              transform: menuOpen
+                ? "rotate(45deg)"
+                : "translateY(-4px)",
             }}
           />
           <span
             style={{
-              display: "block",
-              width: "28px",
-              height: "2px",
-              background: "#ffffff",
+              ...barBase,
+              position: "absolute",
+              transform: menuOpen
+                ? "rotate(-45deg)"
+                : "translateY(4px)",
             }}
           />
         </button>
@@ -76,45 +91,17 @@ export default function Header() {
         <div
           style={{
             position: "fixed",
-            inset: 0,
-            zIndex: 200,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 250,
             background: "#000000",
             display: "flex",
             flexDirection: "column",
+            paddingTop: "108px",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "24px 32px",
-            }}
-          >
-            <Link href="/" onClick={() => setMenuOpen(false)}>
-              <img
-                src={logo}
-                alt="PGTSND Productions"
-                style={{ height: "60px", width: "auto" }}
-              />
-            </Link>
-            <button
-              onClick={() => setMenuOpen(false)}
-              aria-label="Close menu"
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "#ffffff",
-                fontSize: "28px",
-                lineHeight: 1,
-                padding: "8px",
-              }}
-            >
-              ✕
-            </button>
-          </div>
-
           <nav
             style={{
               flex: 1,
