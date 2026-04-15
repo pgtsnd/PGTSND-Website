@@ -2,19 +2,33 @@ import { Link } from "wouter";
 import logo from "@assets/logo.webp";
 
 export default function Footer() {
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/about", label: "About" },
+    { href: "/services", label: "Services" },
+    { href: "/case-studies", label: "Case Studies" },
+    { href: "/contact", label: "Contact" },
+  ];
+
   return (
     <footer
       style={{
         background: "#000000",
-        padding: "80px 32px 40px",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+      <div
+        style={{
+          maxWidth: "1400px",
+          margin: "0 auto",
+          padding: "100px 80px 40px",
+        }}
+      >
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "auto 1fr auto",
-            gap: "60px",
+            gridTemplateColumns: "180px 1fr auto",
+            gap: "80px",
             alignItems: "start",
           }}
         >
@@ -22,7 +36,7 @@ export default function Footer() {
             <img
               src={logo}
               alt="PGTSND Productions"
-              style={{ width: "120px", height: "auto" }}
+              style={{ width: "100px", height: "auto", opacity: 0.95 }}
             />
           </div>
 
@@ -31,9 +45,11 @@ export default function Footer() {
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 700,
-                fontSize: "14px",
+                fontSize: "12px",
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
                 color: "#ffffff",
-                marginBottom: "16px",
+                marginBottom: "20px",
               }}
             >
               About PGTSND
@@ -42,23 +58,29 @@ export default function Footer() {
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 400,
-                fontSize: "14px",
-                color: "rgba(255,255,255,0.7)",
-                lineHeight: 1.7,
-                maxWidth: "320px",
-                marginBottom: "24px",
+                fontSize: "13px",
+                color: "rgba(255,255,255,0.55)",
+                lineHeight: 1.8,
+                maxWidth: "340px",
+                marginBottom: "28px",
               }}
             >
               PGTSND Productions delivers film, photography, and content that demonstrate the care, impact, and technical expertise behind the industries that keep the world moving.
             </p>
-            <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+            <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
               <a
                 href="https://www.instagram.com/pgtsndproductions/"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "#ffffff", display: "flex" }}
+                style={{
+                  color: "rgba(255,255,255,0.6)",
+                  display: "flex",
+                  transition: "color 0.2s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <rect x="2" y="2" width="20" height="20" rx="5" />
                   <circle cx="12" cy="12" r="5" />
                   <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none" />
@@ -66,9 +88,15 @@ export default function Footer() {
               </a>
               <a
                 href="mailto:hello@pgtsndproductions.com"
-                style={{ color: "#ffffff", display: "flex" }}
+                style={{
+                  color: "rgba(255,255,255,0.6)",
+                  display: "flex",
+                  transition: "color 0.2s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <rect x="2" y="4" width="20" height="16" rx="2" />
                   <path d="M22 4L12 13 2 4" />
                 </svg>
@@ -81,31 +109,30 @@ export default function Footer() {
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 700,
-                fontSize: "14px",
+                fontSize: "12px",
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
                 color: "#ffffff",
-                marginBottom: "16px",
+                marginBottom: "20px",
               }}
             >
-              Keep<br />Exploring
+              Keep Exploring
             </h4>
-            <nav style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {[
-                { href: "/", label: "Home" },
-                { href: "/about", label: "About" },
-                { href: "/services", label: "Services" },
-                { href: "/case-studies", label: "Case Studies" },
-                { href: "/contact", label: "Contact" },
-              ].map((link) => (
+            <nav style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   style={{
                     fontFamily: "'Montserrat', sans-serif",
                     fontWeight: 400,
-                    fontSize: "14px",
-                    color: "rgba(255,255,255,0.7)",
+                    fontSize: "13px",
+                    color: "rgba(255,255,255,0.55)",
                     textDecoration: "none",
+                    transition: "color 0.2s ease",
                   }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}
                 >
                   {link.label}
                 </Link>
@@ -117,6 +144,8 @@ export default function Footer() {
         <div
           style={{
             marginTop: "80px",
+            paddingTop: "32px",
+            borderTop: "1px solid rgba(255,255,255,0.08)",
             textAlign: "center",
           }}
         >
@@ -124,15 +153,29 @@ export default function Footer() {
             style={{
               fontFamily: "'Montserrat', sans-serif",
               fontWeight: 400,
-              fontSize: "13px",
-              color: "rgba(255,255,255,0.5)",
-              lineHeight: 1.8,
+              fontSize: "12px",
+              color: "rgba(255,255,255,0.35)",
+              lineHeight: 2,
             }}
           >
-            ©PGTSND Productions 2025 |<br />
-            Seattle, Washington<br />
-            Terms & Conditions |<br />
-            Privacy Policy
+            &copy;PGTSND Productions 2025 | Seattle, Washington
+          </p>
+          <p
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 400,
+              fontSize: "12px",
+              color: "rgba(255,255,255,0.35)",
+              lineHeight: 2,
+            }}
+          >
+            <Link href="/terms" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>
+              Terms &amp; Conditions
+            </Link>
+            {" | "}
+            <Link href="/privacy" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>
+              Privacy Policy
+            </Link>
           </p>
         </div>
       </div>
