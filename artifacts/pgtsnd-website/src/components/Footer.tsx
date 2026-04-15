@@ -36,7 +36,7 @@ export default function Footer() {
             <img
               src={logo}
               alt="PGTSND Productions"
-              style={{ width: "160px", height: "auto", opacity: 0.95 }}
+              style={{ width: "100%", maxWidth: "180px", height: "auto", opacity: 0.95 }}
             />
           </div>
 
