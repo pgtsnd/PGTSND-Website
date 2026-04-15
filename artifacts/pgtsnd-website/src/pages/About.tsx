@@ -309,27 +309,27 @@ export default function About() {
               key={member.name}
               style={{
                 display: "grid",
-                gridTemplateColumns: "400px 1fr",
-                gap: "80px",
-                alignItems: "center",
+                gridTemplateColumns: "340px 1fr",
+                gap: "60px",
+                alignItems: "start",
                 padding: "60px 0",
                 borderTop: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "center" }}>
+              <div>
                 <img
                   src={member.image}
                   alt={`Illustration of ${member.name}`}
-                  style={{ maxWidth: "280px", maxHeight: "320px", objectFit: "contain" }}
+                  style={{ width: "100%", maxHeight: "420px", objectFit: "contain", objectPosition: "left top" }}
                 />
               </div>
-              <div>
+              <div style={{ paddingTop: "20px" }}>
                 <h3
                   style={f({
                     fontWeight: 900,
-                    fontSize: "clamp(28px, 3vw, 40px)",
+                    fontSize: "clamp(24px, 2.5vw, 32px)",
                     textTransform: "uppercase",
-                    letterSpacing: "-0.01em",
+                    letterSpacing: "0.02em",
                     lineHeight: 1,
                     color: "#ffffff",
                     marginBottom: "12px",
@@ -340,9 +340,9 @@ export default function About() {
                 <p
                   style={f({
                     fontWeight: 700,
-                    fontSize: "14px",
+                    fontSize: "13px",
                     color: "#ffffff",
-                    marginBottom: "20px",
+                    marginBottom: "24px",
                   })}
                 >
                   {member.role}
@@ -352,11 +352,10 @@ export default function About() {
                     key={i}
                     style={f({
                       fontWeight: 400,
-                      fontSize: "15px",
+                      fontSize: "14px",
                       color: "rgba(255,255,255,0.85)",
-                      lineHeight: 1.8,
+                      lineHeight: 1.75,
                       marginBottom: "16px",
-                      maxWidth: "520px",
                     })}
                   >
                     {paragraph}
