@@ -358,7 +358,7 @@ export default function Home() {
               style={{
                 position: "absolute",
                 bottom: "-80px",
-                right: "0px",
+                right: "25px",
                 left: "30%",
                 zIndex: 10,
               }}
