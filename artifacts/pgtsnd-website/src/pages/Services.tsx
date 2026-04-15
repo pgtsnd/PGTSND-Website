@@ -233,7 +233,7 @@ export default function Services() {
             <CTAButton href="/contact" label="Work With Us" />
           </div>
         </div>
-        <div style={{ position: "absolute", bottom: "-75px", right: "32px", zIndex: 10 }}>
+        <div style={{ position: "absolute", bottom: "-60px", right: "32px", zIndex: 10 }}>
           <ScrollBadge inline />
         </div>
       </section>
