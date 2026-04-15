@@ -1,5 +1,7 @@
 import CTAButton from "../components/CTAButton";
 import ScrollBadge from "../components/ScrollBadge";
+import TestimonialCard from "../components/TestimonialCard";
+import VideoPlaceholder from "../components/VideoPlaceholder";
 import Footer from "../components/Footer";
 
 export default function Home() {
@@ -58,92 +60,32 @@ export default function Home() {
       </section>
 
       {/* ===== VIDEO / IMAGE SECTION WITH OVERLAPPING TESTIMONIAL ===== */}
-      <section
-        style={{
-          padding: "0 80px 0",
-          maxWidth: "1400px",
-          margin: "0 auto",
-          position: "relative",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            overflow: "hidden",
-            position: "relative",
-          }}
-        >
-          <img
-            src={`${import.meta.env.BASE_URL}images/nicole-baker-pgtsnd.jpg`}
-            alt="Boat on the water - PGTSND video production"
-            style={{
-              width: "100%",
-              height: "auto",
-              display: "block",
-              objectFit: "cover",
-              minHeight: "400px",
-              maxHeight: "600px",
-            }}
+      <section style={{ padding: "0 80px", maxWidth: "1400px", margin: "0 auto" }}>
+        <div style={{ position: "relative" }}>
+          <VideoPlaceholder
+            imageSrc={`${import.meta.env.BASE_URL}images/nicole-baker-pgtsnd.jpg`}
+            imageAlt="PGTSND video production reel"
           />
-
           <div
             style={{
               position: "absolute",
-              bottom: "0",
+              bottom: "-60px",
               right: "40px",
-              transform: "translateY(50%)",
-              background: "rgba(0,0,0,0.85)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              padding: "32px",
-              maxWidth: "400px",
+              maxWidth: "480px",
+              width: "50%",
+              minWidth: "340px",
               zIndex: 10,
             }}
           >
-            <div
-              style={{
-                position: "absolute",
-                top: "-28px",
-                left: "50%",
-                transform: "translateX(-50%)",
-              }}
-            >
-              <img
-                src={`${import.meta.env.BASE_URL}images/nicole-baker-pgtsnd.jpg`}
-                alt="Nicole Baker"
-                style={{
-                  width: "56px",
-                  height: "56px",
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: "2px solid rgba(255,255,255,0.3)",
-                }}
-              />
-            </div>
-            <blockquote
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 400,
-                fontSize: "14px",
-                lineHeight: 1.7,
-                color: "rgba(255,255,255,0.85)",
-                marginTop: "8px",
-                marginBottom: "16px",
-              }}
-            >
-              "The films we have created with PGTSND have been remarkably useful for us at conferences and in helping to recruit new partners."
-            </blockquote>
-            <p
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 700,
-                fontSize: "13px",
-                color: "#ffffff",
-              }}
-            >
-              Nicole Baker, Net Your Problem
-            </p>
+            <TestimonialCard
+              quote={"\u201CThe films we have created with PGTSND have been remarkably useful for us at conferences and in helping to recruit new partners.\u201D"}
+              author="Nicole Baker, Net Your Problem"
+              avatarSrc={`${import.meta.env.BASE_URL}images/nicole-baker-pgtsnd.jpg`}
+              avatarAlt="Nicole Baker"
+            />
           </div>
         </div>
+        <div style={{ height: "80px" }} />
       </section>
 
       {/* ===== SERVICES SECTION ===== */}
@@ -371,60 +313,21 @@ export default function Home() {
             <div
               style={{
                 position: "absolute",
-                bottom: "-40px",
+                bottom: "-60px",
                 right: "24px",
                 left: "60px",
-                background: "rgba(0,0,0,0.9)",
-                border: "1px solid rgba(255,255,255,0.15)",
-                padding: "32px 28px 28px",
                 zIndex: 10,
               }}
             >
-              <div
-                style={{
-                  position: "absolute",
-                  top: "-28px",
-                  left: "28px",
-                }}
-              >
-                <img
-                  src={`${import.meta.env.BASE_URL}images/kelly-green-juju.jpeg`}
-                  alt="Kelly Marian"
-                  style={{
-                    width: "56px",
-                    height: "56px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    border: "2px solid rgba(255,255,255,0.3)",
-                  }}
-                />
-              </div>
-              <blockquote
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 400,
-                  fontSize: "14px",
-                  lineHeight: 1.7,
-                  color: "rgba(255,255,255,0.85)",
-                  marginTop: "8px",
-                  marginBottom: "16px",
-                }}
-              >
-                "Bri and her team have completely transformed our digital presence, and the difference has been remarkable."
-              </blockquote>
-              <p
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 700,
-                  fontSize: "13px",
-                  color: "#ffffff",
-                }}
-              >
-                Kelly Marian, Green Juju
-              </p>
+              <TestimonialCard
+                quote={"\u201CBri and her team have completely transformed our digital presence, and the difference has been remarkable.\u201D"}
+                author="Kelly Marian, Green Juju"
+                avatarSrc={`${import.meta.env.BASE_URL}images/kelly-green-juju.jpeg`}
+                avatarAlt="Kelly Marian"
+              />
             </div>
 
-            <div style={{ position: "absolute", bottom: "-20px", left: "8px", zIndex: 11 }}>
+            <div style={{ position: "absolute", bottom: "-40px", left: "8px", zIndex: 11 }}>
               <ScrollBadge position="bottom-left" inline />
             </div>
           </div>
