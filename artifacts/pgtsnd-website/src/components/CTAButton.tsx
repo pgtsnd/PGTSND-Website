@@ -12,14 +12,18 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
   const [hovered, setHovered] = useState(false);
   const isDark = variant === "dark";
 
+  const bgDefault = isDark ? "#000000" : "#ffffff";
+  const fgDefault = isDark ? "#ffffff" : "#000000";
+  const circleBg = isDark ? "#ffffff" : "#000000";
+  const circleFg = isDark ? "#000000" : "#ffffff";
+
   const buttonStyle: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
     position: "relative",
     overflow: "hidden",
-    background: "transparent",
-    border: "2px solid",
-    borderColor: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.08)",
+    background: bgDefault,
+    border: `2px solid ${isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.12)"}`,
     borderRadius: "999px",
     padding: "4px 4px",
     fontFamily: "'Montserrat', sans-serif",
@@ -35,11 +39,11 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
 
   const circleExpandStyle: React.CSSProperties = {
     position: "absolute",
-    top: "4px",
-    left: "4px",
-    bottom: "4px",
-    width: hovered ? "calc(100% - 8px)" : "36px",
-    background: isDark ? "#ffffff" : "#000000",
+    top: "3px",
+    left: "3px",
+    bottom: "3px",
+    width: hovered ? "calc(100% - 6px)" : "36px",
+    background: circleBg,
     borderRadius: "999px",
     transition: "width 0.45s ease",
     zIndex: 0,
@@ -56,19 +60,13 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
     flexShrink: 0,
   };
 
-  const arrowColor = isDark
-    ? (hovered ? "#000000" : "#000000")
-    : (hovered ? "#ffffff" : "#ffffff");
-
   const labelStyle: React.CSSProperties = {
     position: "relative",
     zIndex: 1,
     flex: 1,
     textAlign: "center",
     padding: "0 20px",
-    color: hovered
-      ? (isDark ? "#000000" : "#ffffff")
-      : (isDark ? "#ffffff" : "#000000"),
+    color: hovered ? circleFg : fgDefault,
     transition: "color 0.35s ease",
   };
 
@@ -88,7 +86,7 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
         >
           <path
             d="M1 7h12M8 2l5 5-5 5"
-            stroke={arrowColor}
+            stroke={circleFg}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
