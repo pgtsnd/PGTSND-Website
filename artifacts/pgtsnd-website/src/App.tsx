@@ -14,6 +14,7 @@ import ClientVideoReview from "@/pages/ClientVideoReview";
 import ClientBilling from "@/pages/ClientBilling";
 import ClientAccount from "@/pages/ClientAccount";
 import ClientMessages from "@/pages/ClientMessages";
+import ClientContracts from "@/pages/ClientContracts";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/client-hub/projects" component={ClientProjects} />
       <Route path="/client-hub/assets" component={ClientAssets} />
       <Route path="/client-hub/review" component={ClientVideoReview} />
+      <Route path="/client-hub/contracts" component={ClientContracts} />
       <Route path="/client-hub/billing" component={ClientBilling} />
       <Route path="/client-hub/account" component={ClientAccount} />
       <Route path="/client-hub" component={ClientHub} />
