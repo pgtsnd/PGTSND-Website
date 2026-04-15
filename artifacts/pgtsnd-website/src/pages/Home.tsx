@@ -357,9 +357,9 @@ export default function Home() {
             <div
               style={{
                 position: "absolute",
-                bottom: "-60px",
-                right: "24px",
-                left: "60px",
+                bottom: "-80px",
+                right: "0px",
+                left: "30%",
                 zIndex: 10,
               }}
             >
@@ -371,7 +371,7 @@ export default function Home() {
               />
             </div>
 
-            <div style={{ position: "absolute", bottom: "-40px", left: "8px", zIndex: 11 }}>
+            <div style={{ position: "absolute", bottom: "-80px", left: "-16px", zIndex: 11 }}>
               <ScrollBadge position="bottom-left" inline />
             </div>
           </div>

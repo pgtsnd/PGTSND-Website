@@ -18,8 +18,6 @@ export default function TestimonialCard({
         background: "#000000",
         border: "2px solid #ffffff",
         padding: "48px 40px 40px",
-        minWidth: "340px",
-        maxWidth: "420px",
       }}
     >
       <div
