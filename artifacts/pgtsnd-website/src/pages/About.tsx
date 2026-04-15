@@ -109,22 +109,22 @@ const heroWords = [
   {
     text: "Resilient",
     image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b7737613-01e6-491f-bb56-a3e38eb70d5f/boats-inlet-pgtsnd-bri-dwyer.jpeg",
-    position: { top: "10%", left: "30%", width: "35%", maxHeight: "65%" },
+    position: { top: "5%", left: "3%", width: "38%", height: "85%" },
   },
   {
     text: "Roots,",
     image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/072a41a3-9259-4ffb-a573-6bab24757639/crabs-pelican-pgtsnd-bri-dwyer.jpeg",
-    position: { top: "5%", left: "52%", width: "38%", maxHeight: "75%" },
+    position: { top: "2%", left: "32%", width: "36%", height: "90%" },
   },
   {
     text: "Steady",
     image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/a4bb4098-6f6b-412f-9f99-da7396dbab92/foggy-fishing-coast-pgtsnd.jpeg",
-    position: { top: "15%", left: "18%", width: "36%", maxHeight: "60%" },
+    position: { top: "5%", left: "3%", width: "38%", height: "85%" },
   },
   {
     text: "Stories",
     image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d00d09c7-98fc-4637-aad9-98173f451b5f/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg",
-    position: { top: "8%", left: "40%", width: "32%", maxHeight: "65%" },
+    position: { top: "2%", left: "55%", width: "40%", height: "90%" },
   },
 ];
 
@@ -190,12 +190,13 @@ function HeroSection() {
             top: word.position.top,
             left: word.position.left,
             width: word.position.width,
-            maxHeight: word.position.maxHeight,
+            height: word.position.height,
             opacity: activeWord === i ? 1 : 0,
             transform: activeWord === i ? "scale(1)" : "scale(0.92)",
             transition: "opacity 0.45s ease, transform 0.55s ease",
             pointerEvents: "none",
             zIndex: 3,
+            overflow: "hidden",
           }}
         >
           <img
@@ -203,7 +204,7 @@ function HeroSection() {
             alt=""
             style={{
               width: "100%",
-              height: "auto",
+              height: "100%",
               objectFit: "cover",
               display: "block",
             }}
