@@ -135,7 +135,7 @@ export default function Header() {
                 }}
                 style={{
                   fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 400,
+                  fontWeight: 600,
                   fontSize: "38px",
                   letterSpacing: "0.01em",
                   lineHeight: 1.8,
