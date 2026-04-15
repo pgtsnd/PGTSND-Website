@@ -82,7 +82,7 @@ export default function About() {
         <h1
           style={f({
             fontWeight: 900,
-            fontSize: "clamp(48px, 7.5vw, 105px)",
+            fontSize: "clamp(48px, 9.5vw, 130px)",
             textTransform: "uppercase",
             letterSpacing: "-0.03em",
             lineHeight: 0.95,
