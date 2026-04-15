@@ -16,7 +16,7 @@ function CaseStudyCard({ img }: { img: { src: string; alt: string; title: string
         <img
           src={img.src}
           alt={img.alt}
-          style={{ width: "100%", height: "440px", objectFit: "cover", display: "block", transition: "transform 0.4s ease", transform: hovered ? "scale(1.05)" : "scale(1)" }}
+          style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", display: "block", transition: "transform 0.4s ease", transform: hovered ? "scale(1.05)" : "scale(1)" }}
         />
         <div
           style={{
