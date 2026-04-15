@@ -345,27 +345,39 @@ export default function About() {
           <div
             style={{
               position: "absolute",
-              bottom: "-40px",
-              left: "65px",
-              right: "65px",
-              background: "rgba(0,0,0,0.92)",
-              border: "2px solid #ffffff",
-              padding: "28px 32px",
+              bottom: "-50px",
+              left: "25px",
+              right: "25px",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-              <img
-                src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/2de5fc52-919a-43e2-98e1-c4490cca1679/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"
-                alt="Jamie Goen"
-                style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }}
-              />
+            <img
+              src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/2de5fc52-919a-43e2-98e1-c4490cca1679/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"
+              alt="Jamie Goen"
+              style={{
+                width: "80px",
+                height: "80px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                position: "relative",
+                zIndex: 2,
+                marginBottom: "-40px",
+                marginLeft: "28px",
+              }}
+            />
+            <div
+              style={{
+                background: "rgba(0,0,0,0.92)",
+                border: "2px solid #ffffff",
+                padding: "52px 36px 32px",
+              }}
+            >
+              <p style={f({ fontWeight: 400, fontSize: "16px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, fontStyle: "italic", marginBottom: "20px" })}>
+                &ldquo;Bri had an amazing vision for how to tell our story from various angles &mdash; showcasing the true grit, hard work, passion, and resilience that are the heart of our industry.&rdquo;
+              </p>
+              <p style={f({ fontWeight: 700, fontSize: "15px", color: "#ffffff" })}>
+                Jamie Goen, Alaska Bering Sea Crabbers
+              </p>
             </div>
-            <p style={f({ fontWeight: 400, fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, fontStyle: "italic", marginBottom: "16px" })}>
-              &ldquo;Bri had an amazing vision for how to tell our story from various angles &mdash; showcasing the true grit, hard work, passion, and resilience that are the heart of our industry.&rdquo;
-            </p>
-            <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
-              Jamie Goen, Alaska Bering Sea Crabbers
-            </p>
           </div>
         </div>
 
