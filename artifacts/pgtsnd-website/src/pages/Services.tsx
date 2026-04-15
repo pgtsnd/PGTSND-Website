@@ -282,7 +282,7 @@ export default function Services() {
       />
 
       {/* 6. How We Work */}
-      <section style={{ padding: "120px 80px" }}>
+      <section style={{ padding: "120px 80px 180px" }}>
         <h2
           style={f({
             fontWeight: 900,
