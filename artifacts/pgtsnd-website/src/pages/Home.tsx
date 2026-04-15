@@ -529,6 +529,10 @@ export default function Home() {
           padding: "200px 80px",
           textAlign: "center",
           overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "80vh",
         }}
       >
         <div
@@ -557,7 +561,7 @@ export default function Home() {
               src={`${import.meta.env.BASE_URL}images/pgtsnd-drone.png`}
               alt="Drone illustration"
               style={{
-                width: "360px",
+                width: "480px",
                 height: "auto",
                 margin: "0 auto",
               }}
