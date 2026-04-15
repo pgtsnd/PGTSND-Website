@@ -136,8 +136,8 @@ export default function CaseStudies() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "80px",
+            gridTemplateColumns: "3fr 2fr",
+            gap: "60px",
             alignItems: "end",
           }}
         >
@@ -145,11 +145,12 @@ export default function CaseStudies() {
             <h1
               style={f({
                 fontWeight: 900,
-                fontSize: "clamp(56px, 8vw, 100px)",
+                fontSize: "clamp(48px, 6.5vw, 84px)",
                 textTransform: "uppercase",
                 letterSpacing: "-0.03em",
-                lineHeight: 0.9,
+                lineHeight: 0.95,
                 color: "#ffffff",
+                whiteSpace: "nowrap",
               })}
             >
               Real Places.
