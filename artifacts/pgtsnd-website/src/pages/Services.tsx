@@ -34,7 +34,7 @@ function ServiceCategory({
   return (
     <section
       style={{
-        padding: "120px 80px",
+        padding: "120px 80px 160px",
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
         gap: "80px",
