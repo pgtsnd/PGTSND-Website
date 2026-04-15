@@ -78,7 +78,7 @@ export default function Home() {
             }}
           >
             <TestimonialCard
-              quote={"\u201CThe films we have created with PGTSND have been remarkably useful for us at conferences and in helping to recruit new partners.\u201D"}
+              quote={"The films we have created with PGTSND have been remarkably useful for us at conferences and in helping to recruit new partners."}
               author="Nicole Baker, Net Your Problem"
               avatarSrc={`${import.meta.env.BASE_URL}images/nicole-baker-pgtsnd.jpg`}
               avatarAlt="Nicole Baker"
@@ -320,7 +320,7 @@ export default function Home() {
               }}
             >
               <TestimonialCard
-                quote={"\u201CBri and her team have completely transformed our digital presence, and the difference has been remarkable.\u201D"}
+                quote={"Bri and her team have completely transformed our digital presence, and the difference has been remarkable."}
                 author="Kelly Marian, Green Juju"
                 avatarSrc={`${import.meta.env.BASE_URL}images/kelly-green-juju.jpeg`}
                 avatarAlt="Kelly Marian"

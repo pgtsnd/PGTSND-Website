@@ -17,22 +17,24 @@ export default function TestimonialCard({
         position: "relative",
         background: "#000000",
         border: "2px solid #ffffff",
-        padding: "40px 32px 32px",
+        padding: "48px 40px 40px",
+        minWidth: "340px",
+        maxWidth: "420px",
       }}
     >
       <div
         style={{
           position: "absolute",
-          top: "-30px",
-          left: "32px",
+          top: "-32px",
+          left: "36px",
         }}
       >
         <img
           src={avatarSrc}
           alt={avatarAlt || author}
           style={{
-            width: "60px",
-            height: "60px",
+            width: "64px",
+            height: "64px",
             borderRadius: "50%",
             objectFit: "cover",
             border: "none",
@@ -43,20 +45,20 @@ export default function TestimonialCard({
         style={{
           fontFamily: "'Montserrat', sans-serif",
           fontWeight: 400,
-          fontSize: "15px",
+          fontSize: "16px",
           lineHeight: 1.75,
           color: "rgba(255,255,255,0.85)",
-          marginTop: "4px",
-          marginBottom: "20px",
+          marginTop: "8px",
+          marginBottom: "24px",
         }}
       >
-        {quote}
+        &ldquo;{quote}&rdquo;
       </blockquote>
       <p
         style={{
           fontFamily: "'Montserrat', sans-serif",
           fontWeight: 700,
-          fontSize: "14px",
+          fontSize: "15px",
           color: "#ffffff",
         }}
       >
