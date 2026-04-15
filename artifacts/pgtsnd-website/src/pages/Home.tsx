@@ -74,7 +74,7 @@ export default function Home() {
           }}
         >
           <img
-            src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/3ac5c6c9-cb24-463f-b0e5-f7e38da1179b/nicole-baker-pgtsnd.jpg"
+            src={`${import.meta.env.BASE_URL}images/nicole-baker-pgtsnd.jpg`}
             alt="Boat on the water - PGTSND video production"
             style={{
               width: "100%",
@@ -108,7 +108,7 @@ export default function Home() {
               }}
             >
               <img
-                src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/3ac5c6c9-cb24-463f-b0e5-f7e38da1179b/nicole-baker-pgtsnd.jpg"
+                src={`${import.meta.env.BASE_URL}images/nicole-baker-pgtsnd.jpg`}
                 alt="Nicole Baker"
                 style={{
                   width: "56px",
@@ -388,7 +388,7 @@ export default function Home() {
                 }}
               >
                 <img
-                  src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/7bc26c26-455f-40a9-a671-e74403d35309/kelly-green-juju.webp"
+                  src={`${import.meta.env.BASE_URL}images/kelly-green-juju.jpeg`}
                   alt="Kelly Marian"
                   style={{
                     width: "56px",
@@ -593,7 +593,7 @@ export default function Home() {
           }}
         >
           <img
-            src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/072a41a3-9259-4ffb-a573-6bab24757639/crabs-pelican-pgtsnd-bri-dwyer.jpeg"
+            src={`${import.meta.env.BASE_URL}images/crabs-pelican-pgtsnd-bri-dwyer.jpeg`}
             alt="Aerial view of docked boats"
             style={{
               width: "100%",

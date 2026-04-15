@@ -15,14 +15,14 @@ const services = [
     description:
       "We build the kind of films that make people stop and watch. Story-driven, industry-specific, and built to last — brand films that make your audience feel what you do, not just understand it.",
     image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/797a5279-175e-486a-9cce-3a78bfa11c6e/bri-and-team-at-camera-pgtsnd-productions.jpeg",
+      `${import.meta.env.BASE_URL}images/bri-and-team-at-camera-pgtsnd-productions.jpeg`,
   },
   {
     title: "Photography",
     description:
       "Still images that speak volumes. We shoot in the field, on the water, and in the studio to give you a library of authentic, high-quality visuals you can use across all your platforms.",
     image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b17487d8-d865-4dac-8457-afe101edc271/catch-close-pgtsnd-bri-dwyer.jpeg",
+      `${import.meta.env.BASE_URL}images/catch-close-pgtsnd-bri-dwyer.jpeg`,
   },
   {
     title: "Aerial / Drone",

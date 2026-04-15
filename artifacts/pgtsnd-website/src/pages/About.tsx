@@ -81,7 +81,7 @@ export default function About() {
           </div>
           <div>
             <img
-              src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/a4bb4098-6f6b-412f-9f99-da7396dbab92/foggy-fishing-coast-pgtsnd.jpeg"
+              src={`${import.meta.env.BASE_URL}images/foggy-fishing-coast-pgtsnd.jpeg`}
               alt="A boat on calm water with forested mountains and low-hanging clouds in the background."
               style={{
                 width: "100%",

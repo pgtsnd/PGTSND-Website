@@ -9,7 +9,7 @@ const caseStudies = [
     description:
       "A commercial fishing technology startup needed compelling video assets to present at industry conferences and help recruit new partners. We spent time on the water with their team, capturing the real work behind their innovation.",
     image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b17487d8-d865-4dac-8457-afe101edc271/catch-close-pgtsnd-bri-dwyer.jpeg",
+      `${import.meta.env.BASE_URL}images/catch-close-pgtsnd-bri-dwyer.jpeg`,
     quote:
       "The films we have created with PGTSND have been remarkably useful for us at conferences and in helping to recruit new partners.",
     author: "Nicole Baker, Net Your Problem",
@@ -20,7 +20,7 @@ const caseStudies = [
     description:
       "Green Juju needed a refreshed digital presence to reflect their growth and mission. We developed a full suite of video and photography assets that transformed how they show up online.",
     image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/072a41a3-9259-4ffb-a573-6bab24757639/crabs-pelican-pgtsnd-bri-dwyer.jpeg",
+      `${import.meta.env.BASE_URL}images/crabs-pelican-pgtsnd-bri-dwyer.jpeg`,
     quote:
       "Bri and her team have completely transformed our digital presence, and the difference has been remarkable.",
     author: "Kelly Marian, Green Juju",
@@ -31,7 +31,7 @@ const caseStudies = [
     description:
       "Documenting a season of commercial crabbing required us to be fully embedded with the crew — early mornings, rough seas, and all. The result was an authentic portrait of the industry.",
     image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d00d09c7-98fc-4637-aad9-98173f451b5f/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg",
+      `${import.meta.env.BASE_URL}images/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg`,
   },
   {
     client: "Alaska Adventure Bay",
