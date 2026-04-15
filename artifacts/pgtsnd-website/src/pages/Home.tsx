@@ -113,9 +113,9 @@ export default function Home() {
               position: "absolute",
               bottom: "-60px",
               right: "40px",
-              maxWidth: "480px",
-              width: "50%",
-              minWidth: "340px",
+              maxWidth: "400px",
+              width: "45%",
+              minWidth: "320px",
               zIndex: 10,
             }}
           >
