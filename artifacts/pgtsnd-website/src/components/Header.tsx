@@ -150,6 +150,27 @@ export default function Header() {
               </a>
             ))}
           </nav>
+
+          <div style={{ padding: "24px 32px", textAlign: "center" }}>
+            <a
+              href="/team"
+              onClick={(e) => {
+                e.preventDefault();
+                setMenuOpen(false);
+                navigate("/team");
+              }}
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 500,
+                fontSize: "13px",
+                color: "rgba(255,255,255,0.35)",
+                textDecoration: "none",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Team Login
+            </a>
+          </div>
         </div>
       )}
     </>
