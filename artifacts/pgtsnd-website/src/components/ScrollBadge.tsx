@@ -5,7 +5,7 @@ export default function ScrollBadge({
   position?: "bottom-left" | "bottom-right";
   inline?: boolean;
 }) {
-  const size = 90;
+  const size = 117;
   const style: React.CSSProperties = inline
     ? { width: `${size}px`, height: `${size}px`, position: "relative" as const }
     : {
