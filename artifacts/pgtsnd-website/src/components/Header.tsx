@@ -121,7 +121,7 @@ export default function Header() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: "12px",
+              gap: "8px",
             }}
           >
             {navLinks.map((link) => (
@@ -135,10 +135,10 @@ export default function Header() {
                 }}
                 style={{
                   fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 500,
-                  fontSize: "32px",
+                  fontWeight: 400,
+                  fontSize: "38px",
                   letterSpacing: "0.01em",
-                  lineHeight: 1.6,
+                  lineHeight: 1.8,
                   color: "#ffffff",
                   textDecoration: "none",
                   display: "block",
