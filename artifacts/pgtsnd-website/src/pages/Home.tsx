@@ -552,12 +552,12 @@ export default function Home() {
         </div>
 
         <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", margin: "0 auto" }}>
-          <div style={{ marginBottom: "32px" }}>
+          <div style={{ marginBottom: "40px" }}>
             <img
               src={`${import.meta.env.BASE_URL}images/pgtsnd-drone.png`}
               alt="Drone illustration"
               style={{
-                width: "180px",
+                width: "360px",
                 height: "auto",
                 margin: "0 auto",
               }}
@@ -585,7 +585,6 @@ export default function Home() {
               color: "rgba(255,255,255,0.7)",
               lineHeight: 1.7,
               marginBottom: "40px",
-              maxWidth: "500px",
               margin: "0 auto 40px",
             }}
           >
