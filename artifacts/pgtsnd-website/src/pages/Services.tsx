@@ -36,8 +36,8 @@ function ServiceCategory({
       style={{
         padding: "120px 80px 160px",
         display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "80px",
+        gridTemplateColumns: "2fr 3fr",
+        gap: "120px",
         alignItems: "start",
       }}
     >
