@@ -1,4 +1,5 @@
 import { Switch, Route, Router as WouterRouter } from "wouter";
+import { ThemeProvider } from "@/components/ThemeContext";
 import Header from "@/components/Header";
 import Home from "@/pages/Home";
 import Services from "@/pages/Services";
@@ -48,7 +49,9 @@ function Router() {
 function App() {
   return (
     <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-      <Router />
+      <ThemeProvider>
+        <Router />
+      </ThemeProvider>
     </WouterRouter>
   );
 }

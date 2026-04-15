@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import ClientLayout from "../components/ClientLayout";
+import { useTheme } from "../components/ThemeContext";
 
 const projects = [
   {
@@ -85,18 +86,19 @@ const projects = [
   },
 ];
 
-const phaseColors: Record<string, string> = {
-  complete: "rgba(120,200,120,0.7)",
-  active: "#ffffff",
-  upcoming: "rgba(255,255,255,0.15)",
-};
-
 export default function ClientProjects() {
+  const { t } = useTheme();
   const [selectedProject, setSelectedProject] = useState(projects[0]);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   const toggleSection = (key: string) => {
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const phaseColors: Record<string, string> = {
+    complete: "rgba(120,200,120,0.7)",
+    active: t.accent,
+    upcoming: t.border,
   };
 
   const sectionButton = (key: string, label: string, icon: ReactNode) => (
@@ -108,8 +110,8 @@ export default function ClientProjects() {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "16px 20px",
-        background: "rgba(255,255,255,0.02)",
-        border: "1px solid rgba(255,255,255,0.06)",
+        background: t.bgCard,
+        border: `1px solid ${t.border}`,
         borderRadius: expandedSections[key] ? "8px 8px 0 0" : "8px",
         cursor: "pointer",
         marginBottom: expandedSections[key] ? "0" : "8px",
@@ -117,20 +119,10 @@ export default function ClientProjects() {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        <span style={{ color: "rgba(255,255,255,0.4)", display: "flex" }}>{icon}</span>
-        <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: "#ffffff" }}>
-          {label}
-        </span>
+        <span style={{ color: t.textTertiary, display: "flex" }}>{icon}</span>
+        <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text }}>{label}</span>
       </div>
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="rgba(255,255,255,0.3)"
-        strokeWidth="2"
-        style={{ transform: expandedSections[key] ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}
-      >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2" style={{ transform: expandedSections[key] ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}>
         <polyline points="6 9 12 15 18 9" />
       </svg>
     </button>
@@ -139,9 +131,7 @@ export default function ClientProjects() {
   return (
     <ClientLayout>
       <div style={{ padding: "40px 48px" }}>
-        <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "24px", color: "#ffffff", marginBottom: "32px" }}>
-          Projects
-        </h1>
+        <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "24px", color: t.text, marginBottom: "32px" }}>Projects</h1>
 
         <div style={{ display: "flex", gap: "8px", marginBottom: "40px" }}>
           {projects.map((p) => (
@@ -152,10 +142,9 @@ export default function ClientProjects() {
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: selectedProject.id === p.id ? 600 : 400,
                 fontSize: "13px",
-                color: selectedProject.id === p.id ? "#ffffff" : "rgba(255,255,255,0.45)",
-                background: selectedProject.id === p.id ? "rgba(255,255,255,0.06)" : "transparent",
-                border: "1px solid",
-                borderColor: selectedProject.id === p.id ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.06)",
+                color: selectedProject.id === p.id ? t.text : t.textTertiary,
+                background: selectedProject.id === p.id ? t.activeNav : "transparent",
+                border: `1px solid ${selectedProject.id === p.id ? t.border : t.borderSubtle}`,
                 borderRadius: "6px",
                 padding: "10px 20px",
                 cursor: "pointer",
@@ -168,64 +157,26 @@ export default function ClientProjects() {
 
         <div style={{ marginBottom: "40px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)" }}>
-              Schedule
-            </h2>
-            <div style={{ display: "flex", gap: "16px" }}>
-              <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>
-                {selectedProject.startDate} — {selectedProject.endDate}
-              </span>
-            </div>
+            <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.textTertiary }}>Schedule</h2>
+            <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textMuted }}>{selectedProject.startDate} — {selectedProject.endDate}</span>
           </div>
 
-          <div
-            style={{
-              background: "rgba(255,255,255,0.02)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              borderRadius: "10px",
-              padding: "24px",
-            }}
-          >
+          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px", padding: "24px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
               {["Week 1-2", "Week 3-4", "Week 5-6", "Week 7-8", "Week 9-10", "Week 11-12"].map((label) => (
-                <span key={label} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: "rgba(255,255,255,0.2)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  {label}
-                </span>
+                <span key={label} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
               ))}
             </div>
 
             {selectedProject.phases.map((phase, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: "10px", gap: "16px" }}>
-                <span
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: phase.status === "active" ? 600 : 400,
-                    fontSize: "12px",
-                    color: phase.status === "upcoming" ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.7)",
-                    width: "140px",
-                    flexShrink: 0,
-                  }}
-                >
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: phase.status === "active" ? 600 : 400, fontSize: "12px", color: phase.status === "upcoming" ? t.textMuted : t.textSecondary, width: "140px", flexShrink: 0 }}>
                   {phase.name}
                 </span>
-                <div style={{ flex: 1, height: "28px", position: "relative", background: "rgba(255,255,255,0.02)", borderRadius: "4px" }}>
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: `${phase.start}%`,
-                      width: `${phase.width}%`,
-                      height: "100%",
-                      background: phaseColors[phase.status],
-                      borderRadius: "4px",
-                      display: "flex",
-                      alignItems: "center",
-                      paddingLeft: "10px",
-                    }}
-                  >
+                <div style={{ flex: 1, height: "28px", position: "relative", background: t.hoverBg, borderRadius: "4px" }}>
+                  <div style={{ position: "absolute", left: `${phase.start}%`, width: `${phase.width}%`, height: "100%", background: phaseColors[phase.status], borderRadius: "4px", display: "flex", alignItems: "center", paddingLeft: "10px" }}>
                     {phase.status === "active" && (
-                      <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "9px", color: "#000000", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        NOW
-                      </span>
+                      <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "9px", color: t.accentText, textTransform: "uppercase", letterSpacing: "0.05em" }}>NOW</span>
                     )}
                   </div>
                 </div>
@@ -233,37 +184,17 @@ export default function ClientProjects() {
             ))}
 
             <div style={{ position: "relative", height: "20px", marginTop: "8px", marginLeft: "156px" }}>
-              <div
-                style={{
-                  position: "absolute",
-                  left: `${selectedProject.currentPosition}%`,
-                  top: "0",
-                  transform: "translateX(-50%)",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                <svg width="10" height="10" viewBox="0 0 10 10">
-                  <polygon points="5,0 10,10 0,10" fill="rgba(255,200,60,0.8)" />
-                </svg>
-                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "9px", color: "rgba(255,200,60,0.8)", marginTop: "2px", textTransform: "uppercase" }}>
-                  Today
-                </span>
+              <div style={{ position: "absolute", left: `${selectedProject.currentPosition}%`, top: "0", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <svg width="10" height="10" viewBox="0 0 10 10"><polygon points="5,0 10,10 0,10" fill="rgba(255,200,60,0.8)" /></svg>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "9px", color: "rgba(255,200,60,0.8)", marginTop: "2px", textTransform: "uppercase" }}>Today</span>
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "20px", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-              {[
-                { color: "rgba(120,200,120,0.7)", label: "Complete" },
-                { color: "#ffffff", label: "In Progress" },
-                { color: "rgba(255,255,255,0.15)", label: "Upcoming" },
-              ].map((legend) => (
+            <div style={{ display: "flex", gap: "20px", marginTop: "20px", paddingTop: "16px", borderTop: `1px solid ${t.borderSubtle}` }}>
+              {[{ color: "rgba(120,200,120,0.7)", label: "Complete" }, { color: t.accent, label: "In Progress" }, { color: t.border, label: "Upcoming" }].map((legend) => (
                 <div key={legend.label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <div style={{ width: "12px", height: "12px", borderRadius: "3px", background: legend.color }} />
-                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: "rgba(255,255,255,0.35)" }}>
-                    {legend.label}
-                  </span>
+                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>{legend.label}</span>
                 </div>
               ))}
             </div>
@@ -272,98 +203,56 @@ export default function ClientProjects() {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "40px" }}>
           <div>
-            <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)", marginBottom: "16px" }}>
-              Project Documents
-            </h2>
+            <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.textTertiary, marginBottom: "16px" }}>Project Documents</h2>
 
-            {sectionButton("treatment", "Treatment / Creative Brief", (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-              </svg>
-            ))}
+            {sectionButton("treatment", "Treatment / Creative Brief", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>))}
             {expandedSections["treatment"] && (
-              <div style={{ padding: "20px", background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.06)", borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
-                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "14px", color: "rgba(255,255,255,0.65)", lineHeight: 1.75 }}>
-                  {selectedProject.sections.treatment}
-                </p>
+              <div style={{ padding: "20px", background: t.bgElevated, border: `1px solid ${t.border}`, borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "14px", color: t.textSecondary, lineHeight: 1.75 }}>{selectedProject.sections.treatment}</p>
               </div>
             )}
 
-            {sectionButton("storyboard", "Storyboard", (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="2" y="2" width="20" height="20" rx="2" />
-                <line x1="2" y1="12" x2="22" y2="12" />
-                <line x1="12" y1="2" x2="12" y2="22" />
-              </svg>
-            ))}
+            {sectionButton("storyboard", "Storyboard", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="2" width="20" height="20" rx="2" /><line x1="2" y1="12" x2="22" y2="12" /><line x1="12" y1="2" x2="12" y2="22" /></svg>))}
             {expandedSections["storyboard"] && (
-              <div style={{ padding: "20px", background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.06)", borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
+              <div style={{ padding: "20px", background: t.bgElevated, border: `1px solid ${t.border}`, borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
                 {selectedProject.sections.storyboard.map((scene, i) => (
                   <div key={i} style={{ display: "flex", gap: "12px", marginBottom: "12px", alignItems: "flex-start" }}>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: "rgba(255,255,255,0.25)", minWidth: "20px" }}>
-                      {i + 1}.
-                    </span>
-                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
-                      {scene}
-                    </p>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: t.textMuted, minWidth: "20px" }}>{i + 1}.</span>
+                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textSecondary, lineHeight: 1.6 }}>{scene}</p>
                   </div>
                 ))}
               </div>
             )}
 
-            {sectionButton("shotlist", "Shot List", (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="12" cy="12" r="10" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            ))}
+            {sectionButton("shotlist", "Shot List", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" /></svg>))}
             {expandedSections["shotlist"] && (
-              <div style={{ padding: "20px", background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.06)", borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
+              <div style={{ padding: "20px", background: t.bgElevated, border: `1px solid ${t.border}`, borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
                 {selectedProject.sections.shotlist.map((shot, i) => (
                   <div key={i} style={{ display: "flex", gap: "12px", marginBottom: "10px", alignItems: "center" }}>
-                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
-                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
-                      {shot}
-                    </p>
+                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: t.border, flexShrink: 0 }} />
+                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textSecondary }}>{shot}</p>
                   </div>
                 ))}
               </div>
             )}
 
-            {sectionButton("clientNotes", "Client Notes & Context", (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-              </svg>
-            ))}
+            {sectionButton("clientNotes", "Client Notes & Context", (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>))}
             {expandedSections["clientNotes"] && (
-              <div style={{ padding: "20px", background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.06)", borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
-                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "14px", color: "rgba(255,255,255,0.65)", lineHeight: 1.75 }}>
-                  {selectedProject.sections.clientNotes}
-                </p>
+              <div style={{ padding: "20px", background: t.bgElevated, border: `1px solid ${t.border}`, borderTop: "none", borderRadius: "0 0 8px 8px", marginBottom: "8px" }}>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "14px", color: t.textSecondary, lineHeight: 1.75 }}>{selectedProject.sections.clientNotes}</p>
               </div>
             )}
           </div>
 
           <div>
-            <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)", marginBottom: "16px" }}>
-              Your Team
-            </h2>
+            <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.textTertiary, marginBottom: "16px" }}>Your Team</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {selectedProject.team.map((member) => (
-                <div key={member.name} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 14px", border: "1px solid rgba(255,255,255,0.04)", borderRadius: "8px" }}>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>
-                    {member.initials}
-                  </div>
+                <div key={member.name} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 14px", background: t.bgCard, border: `1px solid ${t.borderSubtle}`, borderRadius: "8px" }}>
+                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: t.activeNav, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: t.textTertiary, flexShrink: 0 }}>{member.initials}</div>
                   <div>
-                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: "#ffffff", lineHeight: 1.3 }}>
-                      {member.name}
-                    </p>
-                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: "rgba(255,255,255,0.35)" }}>
-                      {member.role}
-                    </p>
+                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, lineHeight: 1.3 }}>{member.name}</p>
+                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>{member.role}</p>
                   </div>
                 </div>
               ))}

@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import ClientLayout from "../components/ClientLayout";
+import { useTheme } from "../components/ThemeContext";
 
 const pendingReviews = [
   {
@@ -37,14 +38,16 @@ const projectStatus = [
 ];
 
 export default function ClientDashboard() {
+  const { t } = useTheme();
+
   return (
     <ClientLayout>
       <div style={{ padding: "40px 48px", maxWidth: "1100px" }}>
         <div style={{ marginBottom: "40px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "14px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "14px", color: t.textTertiary, marginBottom: "4px" }}>
             Welcome back,
           </p>
-          <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "28px", color: "#ffffff" }}>
+          <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "28px", color: t.text }}>
             Nicole
           </h1>
         </div>
@@ -62,17 +65,7 @@ export default function ClientDashboard() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-            <div
-              style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "8px",
-                background: "rgba(255,200,60,0.1)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
+            <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,200,60,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,200,60,0.8)" strokeWidth="1.5">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />
@@ -83,7 +76,7 @@ export default function ClientDashboard() {
               <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: "rgba(255,200,60,0.9)" }}>
                 3 items need your review
               </p>
-              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary }}>
                 Your team is waiting on your feedback to keep things moving
               </p>
             </div>
@@ -110,42 +103,37 @@ export default function ClientDashboard() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", marginBottom: "36px" }}>
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)" }}>
+              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.textTertiary }}>
                 Recent Messages
               </h2>
-              <Link href="/client-hub/messages" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>
+              <Link href="/client-hub/messages" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textMuted, textDecoration: "none" }}>
                 View All →
               </Link>
             </div>
             {recentMessages.map((msg, i) => (
-              <Link
-                key={i}
-                href="/client-hub/messages"
-                style={{ textDecoration: "none", display: "block" }}
-              >
+              <Link key={i} href="/client-hub/messages" style={{ textDecoration: "none", display: "block" }}>
                 <div
                   style={{
                     padding: "14px 16px",
                     borderRadius: "8px",
-                    background: msg.unread ? "rgba(255,255,255,0.03)" : "transparent",
-                    borderLeft: msg.unread ? "2px solid #ffffff" : "2px solid transparent",
+                    background: msg.unread ? t.hoverBg : "transparent",
+                    borderLeft: msg.unread ? `2px solid ${t.accent}` : "2px solid transparent",
                     marginBottom: "2px",
                     cursor: "pointer",
-                    transition: "background 0.1s ease",
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: msg.unread ? 600 : 500, fontSize: "13px", color: "#ffffff" }}>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: msg.unread ? 600 : 500, fontSize: "13px", color: t.text }}>
                       {msg.author}
                     </span>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: "rgba(255,255,255,0.25)" }}>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>
                       {msg.time}
                     </span>
                   </div>
-                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: "rgba(255,255,255,0.5)", marginBottom: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary, marginBottom: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {msg.text}
                   </p>
-                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: "rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.03)", padding: "2px 8px", borderRadius: "4px" }}>
+                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.tagText, background: t.tagBg, padding: "2px 8px", borderRadius: "4px" }}>
                     {msg.project}
                   </span>
                 </div>
@@ -155,7 +143,7 @@ export default function ClientDashboard() {
 
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)" }}>
+              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.textTertiary }}>
                 Content to Review
               </h2>
             </div>
@@ -165,13 +153,14 @@ export default function ClientDashboard() {
                 style={{
                   padding: "14px 16px",
                   borderRadius: "8px",
-                  border: "1px solid rgba(255,255,255,0.06)",
+                  background: t.bgCard,
+                  border: `1px solid ${t.border}`,
                   marginBottom: "8px",
                   cursor: "pointer",
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
-                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: "#ffffff" }}>
+                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text }}>
                     {review.title}
                   </p>
                   <span
@@ -193,7 +182,7 @@ export default function ClientDashboard() {
                   </span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>
+                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>
                     Submitted {review.submitted}
                   </span>
                   {review.reminder && (
@@ -208,7 +197,7 @@ export default function ClientDashboard() {
         </div>
 
         <div>
-          <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)", marginBottom: "16px" }}>
+          <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.textTertiary, marginBottom: "16px" }}>
             Active Projects
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
@@ -216,31 +205,30 @@ export default function ClientDashboard() {
               <Link key={project.name} href="/client-hub/projects" style={{ textDecoration: "none" }}>
                 <div
                   style={{
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    background: t.bgCard,
+                    border: `1px solid ${t.border}`,
                     borderRadius: "10px",
                     padding: "20px 24px",
                     cursor: "pointer",
                     transition: "border-color 0.15s ease",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)")}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
-                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "15px", color: "#ffffff" }}>
+                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "15px", color: t.text }}>
                       {project.name}
                     </p>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary }}>
                       {project.progress}%
                     </span>
                   </div>
-                  <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden", marginBottom: "12px" }}>
-                    <div style={{ height: "100%", width: `${project.progress}%`, background: "#ffffff", borderRadius: "2px" }} />
+                  <div style={{ height: "3px", background: t.border, borderRadius: "2px", overflow: "hidden", marginBottom: "12px" }}>
+                    <div style={{ height: "100%", width: `${project.progress}%`, background: t.accent, borderRadius: "2px" }} />
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary }}>
                       {project.phase}
                     </span>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>
                       Next: {project.nextMilestone}
                     </span>
                   </div>

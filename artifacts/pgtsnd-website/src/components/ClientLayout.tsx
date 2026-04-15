@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { useTheme } from "./ThemeContext";
 import logo from "@assets/logo.webp";
 
 const navItems = [
@@ -78,13 +79,14 @@ const navItems = [
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const { t, toggle } = useTheme();
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#000000" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: t.bg }}>
       <aside
         style={{
           width: "260px",
-          borderRight: "1px solid rgba(255,255,255,0.08)",
+          borderRight: `1px solid ${t.border}`,
           padding: "32px 0",
           display: "flex",
           flexDirection: "column",
@@ -93,17 +95,51 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           left: 0,
           bottom: 0,
           zIndex: 50,
-          background: "#000000",
+          background: t.bgSidebar,
         }}
       >
-        <div style={{ padding: "0 28px", marginBottom: "48px" }}>
+        <div style={{ padding: "0 28px", marginBottom: "48px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Link href="/">
             <img
               src={logo}
               alt="PGTSND Productions"
-              style={{ width: "80px", height: "auto", opacity: 0.9 }}
+              style={{ width: "80px", height: "auto", opacity: 0.9, filter: t.mode === "light" ? "invert(1)" : "none" }}
             />
           </Link>
+          <button
+            onClick={toggle}
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: t.hoverBg,
+              border: `1px solid ${t.border}`,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: t.textTertiary,
+            }}
+            title={t.mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {t.mode === "dark" ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+              </svg>
+            )}
+          </button>
         </div>
 
         <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "2px", padding: "0 12px" }}>
@@ -117,21 +153,21 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   fontFamily: "'Montserrat', sans-serif",
                   fontWeight: isActive ? 600 : 400,
                   fontSize: "13px",
-                  color: isActive ? "#ffffff" : "rgba(255,255,255,0.5)",
+                  color: isActive ? t.text : t.textTertiary,
                   textDecoration: "none",
                   padding: "10px 16px",
                   borderRadius: "6px",
                   display: "flex",
                   alignItems: "center",
                   gap: "12px",
-                  background: isActive ? "rgba(255,255,255,0.06)" : "transparent",
+                  background: isActive ? t.activeNav : "transparent",
                   transition: "all 0.15s ease",
                 }}
               >
                 <span style={{ opacity: isActive ? 1 : 0.5, display: "flex" }}>{item.icon}</span>
                 <span style={{ flex: 1 }}>{item.label}</span>
                 {"badge" in item && item.badge ? (
-                  <span style={{ width: "18px", height: "18px", borderRadius: "50%", background: "#ffffff", color: "#000000", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "9px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ width: "18px", height: "18px", borderRadius: "50%", background: t.badgeBg, color: t.badgeText, fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "9px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {item.badge}
                   </span>
                 ) : null}
@@ -140,45 +176,30 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           })}
         </nav>
 
-        <div style={{ padding: "0 28px", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "20px" }}>
+        <div style={{ padding: "0 28px", borderTop: `1px solid ${t.border}`, paddingTop: "20px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div
               style={{
                 width: "36px",
                 height: "36px",
                 borderRadius: "50%",
-                background: "rgba(255,255,255,0.1)",
+                background: t.activeNav,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 700,
                 fontSize: "13px",
-                color: "#ffffff",
+                color: t.text,
               }}
             >
               NB
             </div>
             <div>
-              <p
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "13px",
-                  color: "#ffffff",
-                  lineHeight: 1.3,
-                }}
-              >
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, lineHeight: 1.3 }}>
                 Nicole Baker
               </p>
-              <p
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 400,
-                  fontSize: "11px",
-                  color: "rgba(255,255,255,0.4)",
-                }}
-              >
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textTertiary }}>
                 Net Your Problem
               </p>
             </div>
