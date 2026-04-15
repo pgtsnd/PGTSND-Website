@@ -309,21 +309,21 @@ export default function About() {
               key={member.name}
               style={{
                 display: "grid",
-                gridTemplateColumns: "340px 1fr",
-                gap: "60px",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "0px",
                 alignItems: "start",
                 padding: "60px 0",
                 borderTop: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              <div>
+              <div style={{ paddingRight: "60px" }}>
                 <img
                   src={member.image}
                   alt={`Illustration of ${member.name}`}
-                  style={{ width: "100%", maxHeight: "420px", objectFit: "contain", objectPosition: "left top" }}
+                  style={{ width: "280px", maxHeight: "420px", objectFit: "contain", objectPosition: "left top" }}
                 />
               </div>
-              <div style={{ paddingTop: "20px" }}>
+              <div style={{ paddingTop: "10px" }}>
                 <h3
                   style={f({
                     fontWeight: 900,
