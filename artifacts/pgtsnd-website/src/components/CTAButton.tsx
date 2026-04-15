@@ -30,7 +30,7 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
     textDecoration: "none",
     whiteSpace: "nowrap",
     transition: "background 0.3s ease, border-color 0.3s ease",
-    minWidth: "260px",
+    minWidth: "280px",
   };
 
   const arrowCircleStyle: React.CSSProperties = {

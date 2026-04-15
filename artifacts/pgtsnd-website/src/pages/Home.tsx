@@ -147,7 +147,7 @@ export default function Home() {
       </section>
 
       {/* ===== SERVICES SECTION ===== */}
-      <section style={{ padding: "120px 80px 80px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "160px 80px 100px", maxWidth: "1400px", margin: "0 auto" }}>
         <p
           style={{
             fontFamily: "'Montserrat', sans-serif",
@@ -156,7 +156,7 @@ export default function Home() {
             textTransform: "uppercase",
             letterSpacing: "0.15em",
             color: "rgba(255,255,255,0.5)",
-            marginBottom: "16px",
+            marginBottom: "24px",
           }}
         >
           services
@@ -251,12 +251,12 @@ export default function Home() {
       </section>
 
       {/* ===== ABOUT SECTION ===== */}
-      <section style={{ padding: "120px 80px 80px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "160px 80px 120px", maxWidth: "1400px", margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: "60px",
+            gap: "80px",
             alignItems: "end",
           }}
         >
@@ -269,7 +269,7 @@ export default function Home() {
                 textTransform: "uppercase",
                 letterSpacing: "0.15em",
                 color: "rgba(255,255,255,0.5)",
-                marginBottom: "16px",
+                marginBottom: "24px",
               }}
             >
               About Us
@@ -278,12 +278,12 @@ export default function Home() {
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 900,
-                fontSize: "clamp(32px, 4vw, 48px)",
+                fontSize: "clamp(36px, 4.5vw, 52px)",
                 textTransform: "uppercase",
                 letterSpacing: "-0.02em",
                 lineHeight: 0.95,
                 color: "#ffffff",
-                marginBottom: "28px",
+                marginBottom: "40px",
               }}
             >
               Resilient roots, steady stories
@@ -294,9 +294,9 @@ export default function Home() {
                 fontWeight: 400,
                 fontSize: "16px",
                 color: "rgba(255,255,255,0.7)",
-                lineHeight: 1.7,
-                marginBottom: "32px",
-                maxWidth: "480px",
+                lineHeight: 1.8,
+                marginBottom: "48px",
+                maxWidth: "440px",
               }}
             >
               PGTSND is built on respect for the people and industries we serve. Our own roots are in tough work, and that resilience keeps us steady no matter the conditions. We're trusted where the stakes are high because we show up prepared, collaborate closely, and capture every story with care.
@@ -305,13 +305,12 @@ export default function Home() {
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-end" }}>
             <img
-              src={`${import.meta.env.BASE_URL}images/pgt-snd-tripod-horizontal.webp`}
+              src={`${import.meta.env.BASE_URL}images/pgt-snd-tripod-horizontal.png`}
               alt="Outline drawing of film and video production equipment."
               style={{
-                maxWidth: "340px",
+                maxWidth: "380px",
                 width: "100%",
-                filter: "invert(1)",
-                opacity: 0.85,
+                opacity: 0.9,
               }}
             />
           </div>
@@ -483,12 +482,12 @@ export default function Home() {
       </section>
 
       {/* ===== SOCIAL / INSTAGRAM SECTION ===== */}
-      <section style={{ padding: "120px 80px 80px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "160px 80px 100px", maxWidth: "1400px", margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: "60px",
+            gap: "80px",
             alignItems: "start",
           }}
         >
@@ -501,7 +500,7 @@ export default function Home() {
                 textTransform: "uppercase",
                 letterSpacing: "0.15em",
                 color: "rgba(255,255,255,0.5)",
-                marginBottom: "16px",
+                marginBottom: "24px",
               }}
             >
               Catch Us On Social
