@@ -1,177 +1,365 @@
+import { useState, useEffect, useRef, useCallback } from "react";
 import CTAButton from "../components/CTAButton";
 import ScrollBadge from "../components/ScrollBadge";
 import Footer from "../components/Footer";
 
-const services = [
-  {
-    title: "Video Production",
-    description:
-      "From concept to final cut, we manage every aspect of your video project. Whether you're documenting a day on the water, a harvest in the field, or a build on the floor — we capture it with precision and care.",
-    image:
-      `${import.meta.env.BASE_URL}images/2024_BRI_DWYER-02064.jpg`,
-  },
-  {
-    title: "Brand Films",
-    description:
-      "We build the kind of films that make people stop and watch. Story-driven, industry-specific, and built to last — brand films that make your audience feel what you do, not just understand it.",
-    image:
-      `${import.meta.env.BASE_URL}images/bri-and-team-at-camera-pgtsnd-productions.jpeg`,
-  },
-  {
-    title: "Photography",
-    description:
-      "Still images that speak volumes. We shoot in the field, on the water, and in the studio to give you a library of authentic, high-quality visuals you can use across all your platforms.",
-    image:
-      `${import.meta.env.BASE_URL}images/catch-close-pgtsnd-bri-dwyer.jpeg`,
-  },
-  {
-    title: "Aerial / Drone",
-    description:
-      "Sweeping aerials that give scale and context to your environment and operations. We hold our FAA Part 107 certification and fly in complex coastal and remote conditions.",
-    image:
-      `${import.meta.env.BASE_URL}images/boats-inlet-pgtsnd-bri-dwyer.jpeg`,
-  },
-];
+const f = (s: React.CSSProperties): React.CSSProperties => ({ fontFamily: "'Montserrat', sans-serif", ...s });
+
+function useScrollProgress(ref: React.RefObject<HTMLElement | null>) {
+  const [progress, setProgress] = useState(0);
+  const onScroll = useCallback(() => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const p = Math.max(0, Math.min(1, (vh - rect.top) / (vh + rect.height)));
+    setProgress(p);
+  }, [ref]);
+  useEffect(() => {
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [onScroll]);
+  return progress;
+}
+
+function ServiceCategory({
+  title,
+  items,
+  cta,
+}: {
+  title: string;
+  items: { label: string; desc: string }[];
+  cta?: { href: string; label: string };
+}) {
+  return (
+    <section
+      style={{
+        padding: "120px 80px",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "80px",
+        alignItems: "start",
+      }}
+    >
+      <h2
+        style={f({
+          fontWeight: 900,
+          fontSize: "clamp(36px, 5vw, 60px)",
+          textTransform: "uppercase",
+          letterSpacing: "-0.02em",
+          lineHeight: 0.95,
+          color: "#ffffff",
+        })}
+      >
+        {title}
+      </h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
+        {items.map((item, i) => (
+          <div
+            key={i}
+            style={{
+              borderLeft: "2px solid rgba(255,255,255,0.3)",
+              paddingLeft: "24px",
+            }}
+          >
+            <p style={f({ fontWeight: 700, fontSize: "15px", color: "#ffffff", marginBottom: "8px" })}>
+              {item.label}
+            </p>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.7)", lineHeight: 1.7 })}>
+              {item.desc}
+            </p>
+          </div>
+        ))}
+        {cta && (
+          <div style={{ paddingTop: "16px" }}>
+            <CTAButton href={cta.href} label={cta.label} />
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function TestimonialImage({
+  imageSrc,
+  imageAlt,
+  quote,
+  author,
+  authorTitle,
+  avatarSrc,
+  scrollSlide,
+}: {
+  imageSrc: string;
+  imageAlt: string;
+  quote: string;
+  author: string;
+  authorTitle?: string;
+  avatarSrc?: string;
+  scrollSlide?: boolean;
+}) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const progress = useScrollProgress(sectionRef);
+
+  const translateX = scrollSlide ? progress * 80 : 0;
+  const translateY = scrollSlide ? progress * -50 : 0;
+  const darken = scrollSlide ? progress * 0.75 : 0;
+
+  return (
+    <section
+      ref={sectionRef}
+      style={{ position: "relative", overflow: "hidden" }}
+    >
+      <img
+        src={imageSrc}
+        alt={imageAlt}
+        style={{
+          width: scrollSlide ? "110%" : "100%",
+          height: "80vh",
+          objectFit: "cover",
+          display: "block",
+          marginLeft: scrollSlide ? "-5%" : undefined,
+          transform: scrollSlide ? `translate(${translateX}px, ${translateY}px) scale(1.05)` : undefined,
+          transition: scrollSlide ? "transform 0.1s linear" : undefined,
+        }}
+      />
+      {scrollSlide && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: `rgba(0,0,0,${darken})`,
+            pointerEvents: "none",
+            transition: "background 0.1s linear",
+          }}
+        />
+      )}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "60px",
+          left: "80px",
+          maxWidth: "400px",
+          background: "rgba(0,0,0,0.88)",
+          border: "1px solid rgba(255,255,255,0.15)",
+          padding: "32px",
+        }}
+      >
+        {avatarSrc && (
+          <img
+            src={avatarSrc}
+            alt={author}
+            style={{ width: "44px", height: "44px", borderRadius: "50%", objectFit: "cover", marginBottom: "16px" }}
+          />
+        )}
+        <p style={f({ fontWeight: 400, fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, fontStyle: "italic", marginBottom: "16px" })}>
+          &ldquo;{quote}&rdquo;
+        </p>
+        <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
+          {author}{authorTitle ? `, ${authorTitle}` : ""}
+        </p>
+      </div>
+      <div style={{ position: "absolute", top: "40px", right: "40px" }}>
+        <ScrollBadge inline />
+      </div>
+    </section>
+  );
+}
 
 export default function Services() {
   return (
     <div style={{ background: "#000000", minHeight: "100vh" }}>
-      {/* Hero */}
+      {/* 1. Hero */}
       <section
         style={{
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          padding: "120px 32px 100px",
-          maxWidth: "1400px",
-          margin: "0 auto",
+          padding: "120px 80px 100px",
           position: "relative",
         }}
       >
         <div
           style={{
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: "40px",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "80px",
+            alignItems: "end",
           }}
         >
-          <div style={{ maxWidth: "640px" }}>
+          <div>
             <h1
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
+              style={f({
                 fontWeight: 900,
-                fontSize: "clamp(56px, 8vw, 84px)",
+                fontSize: "clamp(56px, 8vw, 100px)",
                 textTransform: "uppercase",
-                letterSpacing: "-0.02em",
+                letterSpacing: "-0.03em",
                 lineHeight: 0.9,
                 color: "#ffffff",
                 marginBottom: "32px",
-              }}
+              })}
             >
               What We Do
             </h1>
             <p
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
+              style={f({
                 fontWeight: 400,
                 fontSize: "16px",
                 color: "rgba(255,255,255,0.85)",
-                lineHeight: 1.7,
-                maxWidth: "480px",
-              }}
+                lineHeight: 1.8,
+                maxWidth: "500px",
+              })}
             >
-              PGTSND Productions is a full-service media company specializing in visual assets and messaging for industries that work. We're not here to define who you are. We're here to sharpen it, bring it into focus, and give you the tools to show it with confidence.
+              PGTSND Productions is a full-service media company specializing in visual assets and messaging for industries that work. We&rsquo;re not here to define who you are. We&rsquo;re here to sharpen it, bring it into focus, and give you the tools to show it with confidence.
             </p>
           </div>
-          <CTAButton href="/contact" label="Work With Us" />
+          <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: "8px" }}>
+            <CTAButton href="/contact" label="Work With Us" />
+          </div>
         </div>
-
         <ScrollBadge position="bottom-right" />
       </section>
 
-      {/* Image Hero */}
-      <section style={{ padding: "0", overflow: "hidden" }}>
-        <img
-          src={`${import.meta.env.BASE_URL}images/net-hands-close-pgtsnd-bri-dwyer.jpeg`}
-          alt="A person wearing an orange raincoat and gloves repairing a blue fishing net outdoors."
-          style={{ width: "100%", height: "60vh", objectFit: "cover", display: "block" }}
-        />
-      </section>
+      {/* 2. Seagulls image with Nicole Baker testimonial */}
+      <TestimonialImage
+        imageSrc="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/14af0879-4786-4259-9b66-d4c405db4091/pacific-gulls-bri-dwyer-pgtsnd.jpeg"
+        imageAlt="Pacific gulls flying over ocean water"
+        quote="The films we have created with PGTSND have been remarkably useful for us at conferences and in helping to recruit new partners. We've also taken clips from the long form video to use in social media and they are some of our most successful posts."
+        author="Nicole Baker"
+        authorTitle="Net Your Problem"
+        avatarSrc="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/3ac5c6c9-cb24-463f-b0e5-f7e38da1179b/nicole-baker-pgtsnd.jpg"
+        scrollSlide
+      />
 
-      {/* Services List */}
-      <section style={{ padding: "80px 32px", maxWidth: "1400px", margin: "0 auto" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-          {services.map((service, i) => (
+      {/* 3. Visual Asset Production */}
+      <ServiceCategory
+        title="Visual Asset Production"
+        items={[
+          { label: "Photography:", desc: "On-site, in-studio, environmental, portraits, products, events" },
+          { label: "Videography:", desc: "Full production (pre-pro to post), brand videos, interviews, documentary, campaigns, social cuts" },
+          { label: "Design:", desc: "Logos, graphics, icon suites, branded visuals" },
+          { label: "Websites:", desc: "Design, build, and launch with integrated visuals" },
+        ]}
+      />
+
+      {/* 4. Messaging & Content */}
+      <ServiceCategory
+        title="Messaging & Content"
+        items={[
+          { label: "Website writing:", desc: "Clear, concise, on-brand copy" },
+          { label: "Content writing:", desc: "Blogs, case studies, articles" },
+          { label: "Brand voice guides:", desc: "Messaging frameworks and tone references" },
+          { label: "Support messaging:", desc: "Scripts, captions, one-pagers, and product descriptions" },
+        ]}
+        cta={{ href: "/contact", label: "Start Now" }}
+      />
+
+      {/* 5. Forest image with Cory Jackson testimonial */}
+      <TestimonialImage
+        imageSrc="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b2e67e24-7d8b-451b-b98a-58f51bc297e4/forest-rays-bri-dwyer-pgtsnd.jpeg"
+        imageAlt="Sunlight streaming through tall forest trees"
+        quote="From the start, PGTSND worked with us on our goals for what we wanted to accomplish, and within the parameters we set. The finished product was an incredible collection of images from the Puget Sound commercial Dungeness fishery."
+        author="Cory Jackson"
+        authorTitle="Vallation Outerwear"
+        avatarSrc="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f16cb15a-0aaa-4577-9fa4-8cf9e110b702/vallation-outerwear-logo.png"
+      />
+
+      {/* 6. How We Work */}
+      <section style={{ padding: "120px 80px" }}>
+        <h2
+          style={f({
+            fontWeight: 900,
+            fontSize: "clamp(48px, 8vw, 100px)",
+            textTransform: "uppercase",
+            letterSpacing: "-0.03em",
+            lineHeight: 0.95,
+            color: "#ffffff",
+            marginBottom: "80px",
+          })}
+        >
+          How We Work
+        </h2>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "60px 80px",
+          }}
+        >
+          {[
+            { label: "Full-service:", desc: "From pre-production to final cut" },
+            { label: "Field-proven:", desc: "Travel-ready crews, remote and on-site" },
+            { label: "Production Studio:", desc: "Based in Seattle, with controlled environment options" },
+            { label: "Results-focused:", desc: "Assets designed to move the needle (sales, funding, hiring, policy, awareness)" },
+          ].map((item, i) => (
             <div
               key={i}
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "60px",
-                alignItems: "center",
-                padding: "80px 0",
-                borderTop: "1px solid rgba(255,255,255,0.1)",
-                direction: i % 2 !== 0 ? "rtl" : "ltr",
+                borderLeft: "2px solid rgba(255,255,255,0.3)",
+                paddingLeft: "24px",
               }}
             >
-              <div style={{ direction: "ltr" }}>
-                <span
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 900,
-                    fontSize: "80px",
-                    color: "rgba(255,255,255,0.08)",
-                    lineHeight: 1,
-                    display: "block",
-                    marginBottom: "-20px",
-                  }}
-                >
-                  0{i + 1}
-                </span>
-                <h3
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 900,
-                    fontSize: "clamp(28px, 4vw, 40px)",
-                    textTransform: "uppercase",
-                    letterSpacing: "-0.02em",
-                    color: "#ffffff",
-                    marginBottom: "20px",
-                    position: "relative",
-                  }}
-                >
-                  {service.title}
-                </h3>
-                <p
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 400,
-                    fontSize: "16px",
-                    color: "rgba(255,255,255,0.7)",
-                    lineHeight: 1.7,
-                    maxWidth: "420px",
-                  }}
-                >
-                  {service.description}
-                </p>
-              </div>
-              <div style={{ direction: "ltr", overflow: "hidden", borderRadius: "4px" }}>
-                <img
-                  src={service.image}
-                  alt={service.title}
-                  style={{
-                    width: "100%",
-                    height: "400px",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
-                />
-              </div>
+              <p style={f({ fontWeight: 700, fontSize: "15px", color: "#ffffff", marginBottom: "8px" })}>
+                {item.label}
+              </p>
+              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.7)", lineHeight: 1.7 })}>
+                {item.desc}
+              </p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* 7. Final CTA — Boat background */}
+      <section
+        style={{
+          position: "relative",
+          minHeight: "80vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          overflow: "hidden",
+        }}
+      >
+        <img
+          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f2eeee17-7f28-4cb4-b4f1-e153742b789e/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
+          alt=""
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            filter: "brightness(0.3)",
+          }}
+        />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <img
+            src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/a561f668-0ce3-4365-b3c5-61543b8647dd/pgtsnd-camera.webp"
+            alt="Camera illustration"
+            style={{ width: "140px", height: "auto", margin: "0 auto 40px", display: "block", opacity: 0.9 }}
+          />
+          <h2
+            style={f({
+              fontWeight: 900,
+              fontSize: "clamp(36px, 5vw, 60px)",
+              textTransform: "uppercase",
+              letterSpacing: "-0.02em",
+              lineHeight: 1.0,
+              color: "#ffffff",
+              marginBottom: "20px",
+            })}
+          >
+            Wherever the job
+            <br />
+            takes you&hellip;
+          </h2>
+          <p style={f({ fontWeight: 400, fontSize: "16px", color: "rgba(255,255,255,0.8)", marginBottom: "40px" })}>
+            We&rsquo;ll meet you there.
+          </p>
+          <CTAButton href="/contact" label="Let's Get To Work" />
         </div>
       </section>
 
