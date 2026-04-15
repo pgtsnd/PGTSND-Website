@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "wouter";
 import CTAButton from "../components/CTAButton";
 import ScrollBadge from "../components/ScrollBadge";
@@ -105,7 +105,37 @@ const caseStudyImages = [
 
 const f = (s: React.CSSProperties): React.CSSProperties => ({ fontFamily: "'Montserrat', sans-serif", ...s });
 
+function useScrollProgress(ref: React.RefObject<HTMLElement | null>) {
+  const [progress, setProgress] = useState(0);
+  const onScroll = useCallback(() => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const p = Math.max(0, Math.min(1, (vh - rect.top) / (vh + rect.height)));
+    setProgress(p);
+  }, [ref]);
+  useEffect(() => {
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [onScroll]);
+  return progress;
+}
+
 export default function About() {
+  const boatRef = useRef<HTMLElement>(null);
+  const briRef = useRef<HTMLDivElement>(null);
+  const boatProgress = useScrollProgress(boatRef);
+  const briProgress = useScrollProgress(briRef);
+
+  const boatExitAmount = Math.max(0, (boatProgress - 0.5) * 2);
+  const boatTranslateX = boatExitAmount * 60;
+  const boatTranslateY = boatExitAmount * -40;
+  const boatDarken = boatExitAmount * 0.7;
+
+  const briEntryAmount = Math.min(1, briProgress * 2);
+  const briBrightness = 0.4 + briEntryAmount * 0.6;
+
   return (
     <div style={{ background: "#000000", minHeight: "100vh" }}>
       {/* 1. Hero — "RESILIENT ROOTS, STEADY STORIES" */}
@@ -175,11 +205,27 @@ export default function About() {
       </section>
 
       {/* 3. Aerial boat photo with rope coil illustration */}
-      <section style={{ position: "relative", marginBottom: "120px" }}>
+      <section ref={boatRef} style={{ position: "relative", marginBottom: "120px", overflow: "hidden" }}>
         <img
           src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f2eeee17-7f28-4cb4-b4f1-e153742b789e/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
           alt="Aerial view of a fishing boat sailing through dark water with white foam"
-          style={{ width: "100%", height: "70vh", objectFit: "cover", display: "block" }}
+          style={{
+            width: "100%",
+            height: "70vh",
+            objectFit: "cover",
+            display: "block",
+            transform: `translate(${boatTranslateX}px, ${boatTranslateY}px)`,
+            transition: "transform 0.1s linear",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: `rgba(0,0,0,${boatDarken})`,
+            pointerEvents: "none",
+            transition: "background 0.1s linear",
+          }}
         />
         <img
           src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/afed82ab-8cce-4351-8779-a17d290ad607/av-cord-pgtsnd.webp"
@@ -196,6 +242,7 @@ export default function About() {
 
       {/* 4. Bri's Story */}
       <section
+        ref={briRef}
         style={{
           padding: "80px 80px 0",
           display: "grid",
@@ -208,7 +255,7 @@ export default function About() {
           <img
             src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/e34e7052-3ba2-4f80-902c-725c6f157b33/bri-dwyer-on-site-headshot-pgtsnd.jpg"
             alt="Bri Dwyer standing on a dock with boats in the background"
-            style={{ width: "100%", display: "block" }}
+            style={{ width: "100%", display: "block", filter: `brightness(${briBrightness})`, transition: "filter 0.15s linear" }}
           />
 
           {/* Testimonial overlay */}
