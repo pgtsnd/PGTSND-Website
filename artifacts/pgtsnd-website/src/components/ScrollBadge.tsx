@@ -20,8 +20,8 @@ export default function ScrollBadge({
   const r = 28;
   const cx = 50;
   const cy = 50;
-  const charAngle = 14;
-  const spaceAngle = 8;
+  const charAngle = 18.5;
+  const spaceAngle = 11;
   const angles: number[] = [];
   let current = -90;
   for (const c of chars) {
@@ -43,7 +43,7 @@ export default function ScrollBadge({
               x={x}
               y={y}
               fill="white"
-              fontSize="10"
+              fontSize="11.5"
               fontFamily="Montserrat, sans-serif"
               fontWeight="900"
               textAnchor="middle"
