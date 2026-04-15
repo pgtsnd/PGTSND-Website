@@ -109,7 +109,7 @@ function TestimonialImage({
   return (
     <section
       ref={sectionRef}
-      style={{ position: "relative", marginBottom: "60px" }}
+      style={{ position: "relative", marginBottom: "120px" }}
     >
       <div style={{ overflow: "hidden", position: "relative" }}>
         <img
