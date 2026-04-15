@@ -1,284 +1,252 @@
+import { Link } from "wouter";
 import ClientLayout from "../components/ClientLayout";
 
-const activeProjects = [
+const pendingReviews = [
   {
-    name: "Spring Campaign Film",
-    status: "In Review",
-    phase: "Post-Production",
-    progress: 75,
-    dueDate: "May 15, 2025",
+    title: "Spring Campaign Film — v3",
+    type: "Video Draft",
+    submitted: "2 hours ago",
+    reminder: null,
+    project: "Spring Campaign",
   },
   {
-    name: "Product Launch Teaser",
-    status: "Filming",
-    phase: "Production",
-    progress: 40,
-    dueDate: "June 2, 2025",
+    title: "Social Media Graphics — Batch 2",
+    type: "Graphics",
+    submitted: "1 day ago",
+    reminder: "Reminder sent",
+    project: "Spring Campaign",
+  },
+  {
+    title: "Blog Post — Behind the Scenes",
+    type: "Blog Post",
+    submitted: "3 days ago",
+    reminder: "2nd reminder sent",
+    project: "Product Launch",
   },
 ];
 
-const recentActivity = [
-  { text: "New draft uploaded: Spring Campaign v3", time: "2 hours ago", type: "draft" },
-  { text: "Comment from Bri on Product Launch storyboard", time: "5 hours ago", type: "comment" },
-  { text: "Invoice #1042 paid — $4,500.00", time: "1 day ago", type: "payment" },
-  { text: "Spring Campaign v2 approved", time: "3 days ago", type: "approval" },
-  { text: "New assets uploaded to Spring Campaign", time: "4 days ago", type: "upload" },
+const recentMessages = [
+  { author: "Bri Dwyer", text: "Let me know when you've reviewed the latest cut", project: "Spring Campaign", time: "2 min ago", unread: true },
+  { author: "Sam Reeves", text: "Macro lens reveal idea for the product launch", project: "Product Launch Teaser", time: "1 hour ago", unread: false },
+  { author: "Kandice M.", text: "Rough cut targeting Friday — I'll send the review link", project: "Spring Campaign", time: "Yesterday", unread: false },
 ];
 
-const offerings = [
-  { name: "Brand Documentary", range: "$8,000 – $25,000", available: false },
-  { name: "Social Media Package", range: "$2,500 – $6,000", available: false },
-  { name: "Aerial / Drone Coverage", range: "$1,500 – $4,000", available: false },
-  { name: "Photography Package", range: "$1,200 – $3,500", available: false },
+const projectStatus = [
+  { name: "Spring Campaign Film", phase: "Post-Production", progress: 75, nextMilestone: "Review — May 2" },
+  { name: "Product Launch Teaser", phase: "Production", progress: 40, nextMilestone: "Filming — Apr 28" },
 ];
 
 export default function ClientDashboard() {
   return (
     <ClientLayout>
-      <div style={{ padding: "48px 56px" }}>
-        <div style={{ marginBottom: "48px" }}>
-          <p
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 400,
-              fontSize: "14px",
-              color: "rgba(255,255,255,0.4)",
-              marginBottom: "8px",
-            }}
-          >
+      <div style={{ padding: "40px 48px", maxWidth: "1100px" }}>
+        <div style={{ marginBottom: "40px" }}>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "14px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>
             Welcome back,
           </p>
-          <h1
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 900,
-              fontSize: "32px",
-              textTransform: "uppercase",
-              letterSpacing: "-0.02em",
-              color: "#ffffff",
-            }}
-          >
+          <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "28px", color: "#ffffff" }}>
             Nicole
           </h1>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "48px" }}>
-          {activeProjects.map((project) => (
+        <div
+          style={{
+            background: "rgba(255,200,60,0.04)",
+            border: "1px solid rgba(255,200,60,0.12)",
+            borderRadius: "10px",
+            padding: "20px 24px",
+            marginBottom: "36px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
             <div
-              key={project.name}
               style={{
-                border: "1px solid rgba(255,255,255,0.1)",
+                width: "36px",
+                height: "36px",
                 borderRadius: "8px",
-                padding: "28px",
+                background: "rgba(255,200,60,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
-                <div>
-                  <h3
-                    style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 700,
-                      fontSize: "16px",
-                      color: "#ffffff",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    {project.name}
-                  </h3>
-                  <p
-                    style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 400,
-                      fontSize: "12px",
-                      color: "rgba(255,255,255,0.4)",
-                    }}
-                  >
-                    Due {project.dueDate}
-                  </p>
-                </div>
-                <span
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 600,
-                    fontSize: "11px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    color: project.status === "In Review" ? "#f0c040" : "#60d060",
-                    background: project.status === "In Review" ? "rgba(240,192,64,0.1)" : "rgba(96,208,96,0.1)",
-                    padding: "4px 12px",
-                    borderRadius: "20px",
-                  }}
-                >
-                  {project.status}
-                </span>
-              </div>
-              <div style={{ marginBottom: "8px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                  <span
-                    style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 500,
-                      fontSize: "12px",
-                      color: "rgba(255,255,255,0.5)",
-                    }}
-                  >
-                    {project.phase}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 600,
-                      fontSize: "12px",
-                      color: "rgba(255,255,255,0.7)",
-                    }}
-                  >
-                    {project.progress}%
-                  </span>
-                </div>
-                <div
-                  style={{
-                    height: "3px",
-                    background: "rgba(255,255,255,0.08)",
-                    borderRadius: "2px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${project.progress}%`,
-                      background: "#ffffff",
-                      borderRadius: "2px",
-                      transition: "width 0.3s ease",
-                    }}
-                  />
-                </div>
-              </div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,200,60,0.8)" strokeWidth="1.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
             </div>
-          ))}
+            <div>
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: "rgba(255,200,60,0.9)" }}>
+                3 items need your review
+              </p>
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>
+                Your team is waiting on your feedback to keep things moving
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/client-hub/review"
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 600,
+              fontSize: "11px",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              color: "#000000",
+              background: "rgba(255,200,60,0.9)",
+              padding: "8px 20px",
+              borderRadius: "6px",
+              textDecoration: "none",
+            }}
+          >
+            Review Now
+          </Link>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", marginBottom: "36px" }}>
           <div>
-            <h2
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 700,
-                fontSize: "13px",
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                color: "rgba(255,255,255,0.5)",
-                marginBottom: "24px",
-              }}
-            >
-              Recent Activity
-            </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-              {recentActivity.map((item, i) => (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)" }}>
+                Recent Messages
+              </h2>
+              <Link href="/client-hub/messages" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>
+                View All →
+              </Link>
+            </div>
+            {recentMessages.map((msg, i) => (
+              <Link
+                key={i}
+                href="/client-hub/messages"
+                style={{ textDecoration: "none", display: "block" }}
+              >
                 <div
-                  key={i}
                   style={{
-                    padding: "16px 0",
-                    borderBottom: i < recentActivity.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    padding: "14px 16px",
+                    borderRadius: "8px",
+                    background: msg.unread ? "rgba(255,255,255,0.03)" : "transparent",
+                    borderLeft: msg.unread ? "2px solid #ffffff" : "2px solid transparent",
+                    marginBottom: "2px",
+                    cursor: "pointer",
+                    transition: "background 0.1s ease",
                   }}
                 >
-                  <p
-                    style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      color: "rgba(255,255,255,0.7)",
-                    }}
-                  >
-                    {item.text}
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: msg.unread ? 600 : 500, fontSize: "13px", color: "#ffffff" }}>
+                      {msg.author}
+                    </span>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: "rgba(255,255,255,0.25)" }}>
+                      {msg.time}
+                    </span>
+                  </div>
+                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: "rgba(255,255,255,0.5)", marginBottom: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {msg.text}
                   </p>
-                  <p
-                    style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 400,
-                      fontSize: "12px",
-                      color: "rgba(255,255,255,0.3)",
-                      whiteSpace: "nowrap",
-                      marginLeft: "24px",
-                    }}
-                  >
-                    {item.time}
-                  </p>
+                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: "rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.03)", padding: "2px 8px", borderRadius: "4px" }}>
+                    {msg.project}
+                  </span>
                 </div>
-              ))}
-            </div>
+              </Link>
+            ))}
           </div>
 
           <div>
-            <h2
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 700,
-                fontSize: "13px",
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                color: "rgba(255,255,255,0.5)",
-                marginBottom: "24px",
-              }}
-            >
-              More From PGTSND
-            </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {offerings.map((offering) => (
-                <div
-                  key={offering.name}
-                  style={{
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    borderRadius: "8px",
-                    padding: "20px 24px",
-                    opacity: 0.45,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <p
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 600,
-                        fontSize: "14px",
-                        color: "#ffffff",
-                        marginBottom: "2px",
-                      }}
-                    >
-                      {offering.name}
-                    </p>
-                    <p
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 400,
-                        fontSize: "12px",
-                        color: "rgba(255,255,255,0.5)",
-                      }}
-                    >
-                      {offering.range}
-                    </p>
-                  </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)" }}>
+                Content to Review
+              </h2>
+            </div>
+            {pendingReviews.map((review, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "14px 16px",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  marginBottom: "8px",
+                  cursor: "pointer",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
+                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: "#ffffff" }}>
+                    {review.title}
+                  </p>
                   <span
                     style={{
                       fontFamily: "'Montserrat', sans-serif",
                       fontWeight: 600,
-                      fontSize: "11px",
-                      color: "rgba(255,255,255,0.4)",
-                      textDecoration: "underline",
-                      textUnderlineOffset: "3px",
-                      cursor: "pointer",
+                      fontSize: "9px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      color: review.type === "Video Draft" ? "rgba(120,180,255,0.8)" : review.type === "Graphics" ? "rgba(200,140,255,0.8)" : "rgba(120,220,160,0.8)",
+                      background: review.type === "Video Draft" ? "rgba(120,180,255,0.08)" : review.type === "Graphics" ? "rgba(200,140,255,0.08)" : "rgba(120,220,160,0.08)",
+                      padding: "3px 10px",
+                      borderRadius: "4px",
+                      flexShrink: 0,
+                      marginLeft: "8px",
                     }}
                   >
-                    Contact Bri
+                    {review.type}
                   </span>
                 </div>
-              ))}
-            </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>
+                    Submitted {review.submitted}
+                  </span>
+                  {review.reminder && (
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: "rgba(255,180,60,0.7)" }}>
+                      {review.reminder}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.5)", marginBottom: "16px" }}>
+            Active Projects
+          </h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            {projectStatus.map((project) => (
+              <Link key={project.name} href="/client-hub/projects" style={{ textDecoration: "none" }}>
+                <div
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    borderRadius: "10px",
+                    padding: "20px 24px",
+                    cursor: "pointer",
+                    transition: "border-color 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)")}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "15px", color: "#ffffff" }}>
+                      {project.name}
+                    </p>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                      {project.progress}%
+                    </span>
+                  </div>
+                  <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden", marginBottom: "12px" }}>
+                    <div style={{ height: "100%", width: `${project.progress}%`, background: "#ffffff", borderRadius: "2px" }} />
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                      {project.phase}
+                    </span>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>
+                      Next: {project.nextMilestone}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </div>

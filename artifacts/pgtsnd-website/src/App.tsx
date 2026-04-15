@@ -12,12 +12,14 @@ import ClientAssets from "@/pages/ClientAssets";
 import ClientVideoReview from "@/pages/ClientVideoReview";
 import ClientBilling from "@/pages/ClientBilling";
 import ClientAccount from "@/pages/ClientAccount";
+import ClientMessages from "@/pages/ClientMessages";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
       <Route path="/client-hub/dashboard" component={ClientDashboard} />
+      <Route path="/client-hub/messages" component={ClientMessages} />
       <Route path="/client-hub/projects" component={ClientProjects} />
       <Route path="/client-hub/assets" component={ClientAssets} />
       <Route path="/client-hub/review" component={ClientVideoReview} />

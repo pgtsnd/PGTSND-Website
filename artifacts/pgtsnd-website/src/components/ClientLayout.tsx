@@ -15,6 +15,16 @@ const navItems = [
     ),
   },
   {
+    href: "/client-hub/messages",
+    label: "Messages",
+    badge: 2,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+      </svg>
+    ),
+  },
+  {
     href: "/client-hub/projects",
     label: "Projects",
     icon: (
@@ -119,7 +129,12 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 }}
               >
                 <span style={{ opacity: isActive ? 1 : 0.5, display: "flex" }}>{item.icon}</span>
-                {item.label}
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {"badge" in item && item.badge ? (
+                  <span style={{ width: "18px", height: "18px", borderRadius: "50%", background: "#ffffff", color: "#000000", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "9px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {item.badge}
+                  </span>
+                ) : null}
               </Link>
             );
           })}
