@@ -37,7 +37,7 @@ export default function ScrollBadge({
               x={x}
               y={y}
               fill="white"
-              fontSize="8"
+              fontSize="9"
               fontFamily="Montserrat, sans-serif"
               fontWeight="900"
               textAnchor="middle"
