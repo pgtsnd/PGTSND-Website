@@ -1,8 +1,50 @@
+import { useState } from "react";
 import CTAButton from "../components/CTAButton";
 import ScrollBadge from "../components/ScrollBadge";
 import TestimonialCard from "../components/TestimonialCard";
 import VideoPlaceholder from "../components/VideoPlaceholder";
 import Footer from "../components/Footer";
+
+function HoverFlipImage({ src, hoverSrc, alt, style, children }: { src: string; hoverSrc: string; alt: string; style?: React.CSSProperties; children?: React.ReactNode }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", cursor: "pointer", ...style }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <img
+        src={src}
+        alt={alt}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          display: "block",
+          opacity: hovered ? 0 : 1,
+          transition: "opacity 0.5s ease",
+        }}
+      />
+      <img
+        src={hoverSrc}
+        alt={alt}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          display: "block",
+          opacity: hovered ? 1 : 0,
+          transition: "opacity 0.5s ease",
+        }}
+      />
+      {children}
+    </div>
+  );
+}
 
 export default function Home() {
   return (
@@ -159,35 +201,37 @@ export default function Home() {
             gap: "6px",
           }}
         >
-          <div style={{ overflow: "hidden", aspectRatio: "4/3" }}>
-            <img
+          <div style={{ aspectRatio: "4/3" }}>
+            <HoverFlipImage
               src={`${import.meta.env.BASE_URL}images/2025_PGTSND_PRODUCTIONS-09919.jpg`}
+              hoverSrc={`${import.meta.env.BASE_URL}images/catch-close-pgtsnd-bri-dwyer.jpeg`}
               alt="Woman filming a baby goat with a camera on a grassy farm field."
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
           </div>
-          <div style={{ overflow: "hidden", aspectRatio: "4/3" }}>
-            <img
+          <div style={{ aspectRatio: "4/3" }}>
+            <HoverFlipImage
               src={`${import.meta.env.BASE_URL}images/bri-and-team-at-camera-pgtsnd-productions.jpeg`}
+              hoverSrc={`${import.meta.env.BASE_URL}images/crabs-pelican-pgtsnd-bri-dwyer.jpeg`}
               alt="Two people looking at a camera in a video production environment."
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
           </div>
-          <div style={{ overflow: "hidden", aspectRatio: "4/3", position: "relative" }}>
-            <img
+          <div style={{ aspectRatio: "4/3", position: "relative" }}>
+            <HoverFlipImage
               src={`${import.meta.env.BASE_URL}images/2024_BRI_DWYER-02064.jpg`}
+              hoverSrc={`${import.meta.env.BASE_URL}images/net-hands-close-pgtsnd-bri-dwyer.jpeg`}
               alt="PGTSND Productions videographer filming on a commercial fishing vessel."
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                bottom: "16px",
-                right: "16px",
-              }}
             >
-              <ScrollBadge position="bottom-right" inline />
-            </div>
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "16px",
+                  right: "16px",
+                  zIndex: 2,
+                }}
+              >
+                <ScrollBadge position="bottom-right" inline />
+              </div>
+            </HoverFlipImage>
           </div>
         </div>
       </section>
