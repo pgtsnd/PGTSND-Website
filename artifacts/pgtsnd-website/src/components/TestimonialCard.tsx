@@ -16,7 +16,7 @@ export default function TestimonialCard({
       style={{
         position: "relative",
         background: "#000000",
-        border: "1px solid rgba(255,255,255,0.2)",
+        border: "2px solid #ffffff",
         padding: "40px 32px 32px",
       }}
     >
@@ -35,7 +35,7 @@ export default function TestimonialCard({
             height: "60px",
             borderRadius: "50%",
             objectFit: "cover",
-            border: "3px solid rgba(255,255,255,0.25)",
+            border: "none",
           }}
         />
       </div>
