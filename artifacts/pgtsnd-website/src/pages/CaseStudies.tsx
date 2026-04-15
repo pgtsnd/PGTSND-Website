@@ -39,7 +39,7 @@ const caseStudies = [
     description:
       "Sweeping aerials and on-the-ground production combined to tell the full story of one of Alaska's most remote fishing operations.",
     image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b7737613-01e6-491f-bb56-a3e38eb70d5f/boats-inlet-pgtsnd-bri-dwyer.jpeg",
+      `${import.meta.env.BASE_URL}images/boats-inlet-pgtsnd-bri-dwyer.jpeg`,
   },
 ];
 

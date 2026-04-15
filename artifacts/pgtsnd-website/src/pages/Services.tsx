@@ -8,7 +8,7 @@ const services = [
     description:
       "From concept to final cut, we manage every aspect of your video project. Whether you're documenting a day on the water, a harvest in the field, or a build on the floor — we capture it with precision and care.",
     image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/e243522b-de50-4eb9-ae36-3c618ea6ae5d/2024_BRI_DWYER-02064.jpg",
+      `${import.meta.env.BASE_URL}images/2024_BRI_DWYER-02064.jpg`,
   },
   {
     title: "Brand Films",
@@ -29,7 +29,7 @@ const services = [
     description:
       "Sweeping aerials that give scale and context to your environment and operations. We hold our FAA Part 107 certification and fly in complex coastal and remote conditions.",
     image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b7737613-01e6-491f-bb56-a3e38eb70d5f/boats-inlet-pgtsnd-bri-dwyer.jpeg",
+      `${import.meta.env.BASE_URL}images/boats-inlet-pgtsnd-bri-dwyer.jpeg`,
   },
 ];
 
@@ -95,7 +95,7 @@ export default function Services() {
       {/* Image Hero */}
       <section style={{ padding: "0", overflow: "hidden" }}>
         <img
-          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/ef5a6e91-5e5f-4a5f-80da-b09b16076688/net-hands-close-pgtsnd-bri-dwyer.jpeg"
+          src={`${import.meta.env.BASE_URL}images/net-hands-close-pgtsnd-bri-dwyer.jpeg`}
           alt="A person wearing an orange raincoat and gloves repairing a blue fishing net outdoors."
           style={{ width: "100%", height: "60vh", objectFit: "cover", display: "block" }}
         />

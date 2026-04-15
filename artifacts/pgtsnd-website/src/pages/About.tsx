@@ -96,7 +96,7 @@ export default function About() {
       {/* Big Image */}
       <section style={{ padding: "0 32px 80px", maxWidth: "1400px", margin: "0 auto" }}>
         <img
-          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/db4a1401-1cde-44f4-89db-c6db075a8369/2025_PGTSND_PRODUCTIONS-09919.jpg"
+          src={`${import.meta.env.BASE_URL}images/2025_PGTSND_PRODUCTIONS-09919.jpg`}
           alt="Woman filming a baby goat with a camera on a grassy farm field."
           style={{
             width: "100%",

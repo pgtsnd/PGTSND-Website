@@ -219,7 +219,7 @@ export default function Home() {
         >
           <div style={{ overflow: "hidden", aspectRatio: "4/3" }}>
             <img
-              src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/db4a1401-1cde-44f4-89db-c6db075a8369/2025_PGTSND_PRODUCTIONS-09919.jpg"
+              src={`${import.meta.env.BASE_URL}images/2025_PGTSND_PRODUCTIONS-09919.jpg`}
               alt="Woman filming a baby goat with a camera on a grassy farm field."
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
@@ -233,7 +233,7 @@ export default function Home() {
           </div>
           <div style={{ overflow: "hidden", aspectRatio: "4/3", position: "relative" }}>
             <img
-              src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/e243522b-de50-4eb9-ae36-3c618ea6ae5d/2024_BRI_DWYER-02064.jpg"
+              src={`${import.meta.env.BASE_URL}images/2024_BRI_DWYER-02064.jpg`}
               alt="PGTSND Productions videographer filming on a commercial fishing vessel."
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
@@ -357,7 +357,7 @@ export default function Home() {
           <div style={{ position: "relative", overflow: "visible" }}>
             <div style={{ aspectRatio: "4 / 3", overflow: "hidden" }}>
               <img
-                src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b7737613-01e6-491f-bb56-a3e38eb70d5f/boats-inlet-pgtsnd-bri-dwyer.jpeg"
+                src={`${import.meta.env.BASE_URL}images/boats-inlet-pgtsnd-bri-dwyer.jpeg`}
                 alt="An aerial view of a river winding through a dense forest with trees on both sides, and two boats traveling downstream."
                 style={{
                   width: "100%",
@@ -607,7 +607,7 @@ export default function Home() {
         <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", margin: "0 auto" }}>
           <div style={{ marginBottom: "24px" }}>
             <img
-              src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/ca4eed01-9d7f-45f5-9e2f-e8a659284610/pgtsnd-drone.webp"
+              src={`${import.meta.env.BASE_URL}images/pgtsnd-drone.png`}
               alt="Drone illustration"
               style={{
                 width: "160px",
