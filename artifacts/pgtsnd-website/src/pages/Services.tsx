@@ -334,6 +334,7 @@ export default function Services() {
         style={{
           position: "relative",
           minHeight: "80vh",
+          marginBottom: "80px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
