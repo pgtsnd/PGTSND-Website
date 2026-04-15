@@ -2,6 +2,20 @@ import { useState, type ReactNode } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 
+interface Task {
+  name: string;
+  start: number;
+  width: number;
+  status: "complete" | "active" | "upcoming";
+  assignee?: string;
+  dependency?: string;
+}
+
+interface Phase {
+  name: string;
+  tasks: Task[];
+}
+
 const projects = [
   {
     id: 1,
@@ -9,20 +23,71 @@ const projects = [
     client: "Net Your Problem",
     startDate: "Mar 1",
     endDate: "May 15",
+    totalWeeks: 11,
     team: [
       { name: "Bri Dwyer", role: "Director / Producer", initials: "BD" },
       { name: "Marcus Cole", role: "Cinematographer", initials: "MC" },
       { name: "Jamie Lin", role: "Editor", initials: "JL" },
       { name: "Alex Torres", role: "Colorist", initials: "AT" },
-    ],
-    phases: [
-      { name: "Pre-Production", start: 0, width: 18, status: "complete" },
-      { name: "Production", start: 20, width: 20, status: "complete" },
-      { name: "Post-Production", start: 42, width: 28, status: "active" },
-      { name: "Client Review", start: 72, width: 14, status: "upcoming" },
-      { name: "Final Delivery", start: 88, width: 12, status: "upcoming" },
+      { name: "Kandice M.", role: "Project Manager", initials: "KM" },
     ],
     currentPosition: 62,
+    phases: [
+      {
+        name: "Pre-Production",
+        tasks: [
+          { name: "Creative Brief & Treatment", start: 0, width: 8, status: "complete", assignee: "BD" },
+          { name: "Storyboard & Shot List", start: 5, width: 7, status: "complete", assignee: "BD" },
+          { name: "Location Scouting", start: 6, width: 6, status: "complete", assignee: "MC" },
+          { name: "Talent / Crew Scheduling", start: 8, width: 6, status: "complete", assignee: "KM" },
+          { name: "Equipment & Permits", start: 10, width: 6, status: "complete", assignee: "KM" },
+          { name: "Client Kickoff Call", start: 2, width: 3, status: "complete", assignee: "BD" },
+        ],
+      },
+      {
+        name: "Production",
+        tasks: [
+          { name: "Day 1 — Dock & Harbor", start: 18, width: 4, status: "complete", assignee: "MC" },
+          { name: "Day 2 — On the Water", start: 22, width: 4, status: "complete", assignee: "MC" },
+          { name: "Day 3 — Processing Facility", start: 26, width: 4, status: "complete", assignee: "MC" },
+          { name: "Day 4 — Interview + B-Roll", start: 30, width: 4, status: "complete", assignee: "BD" },
+          { name: "Drone / Aerial Footage", start: 20, width: 10, status: "complete", assignee: "MC" },
+          { name: "Audio Recording / VO", start: 32, width: 5, status: "complete", assignee: "BD" },
+        ],
+      },
+      {
+        name: "Post-Production",
+        tasks: [
+          { name: "Ingest & Organize Footage", start: 38, width: 4, status: "complete", assignee: "JL" },
+          { name: "Rough Cut Assembly", start: 42, width: 6, status: "complete", assignee: "JL" },
+          { name: "Sound Design & Mix", start: 46, width: 8, status: "active", assignee: "JL" },
+          { name: "Color Grading", start: 50, width: 8, status: "active", assignee: "AT" },
+          { name: "Motion Graphics & Titles", start: 52, width: 6, status: "active", assignee: "JL" },
+          { name: "Music Composition", start: 44, width: 10, status: "active", assignee: "BD" },
+          { name: "Fine Cut v1", start: 56, width: 5, status: "upcoming", assignee: "JL" },
+          { name: "Fine Cut v2 + Revisions", start: 61, width: 5, status: "upcoming", assignee: "JL" },
+        ],
+      },
+      {
+        name: "Client Review",
+        tasks: [
+          { name: "Internal QC Review", start: 66, width: 3, status: "upcoming", assignee: "BD" },
+          { name: "Client Review — v1", start: 69, width: 5, status: "upcoming", assignee: "KM" },
+          { name: "Revision Round", start: 74, width: 4, status: "upcoming", assignee: "JL" },
+          { name: "Client Review — Final", start: 78, width: 4, status: "upcoming", assignee: "KM" },
+          { name: "Sign-Off & Approval", start: 82, width: 3, status: "upcoming", assignee: "KM" },
+        ],
+      },
+      {
+        name: "Final Delivery",
+        tasks: [
+          { name: "Master Export (16:9)", start: 86, width: 3, status: "upcoming", assignee: "JL" },
+          { name: "Social Cuts (9:16, 1:1)", start: 86, width: 4, status: "upcoming", assignee: "JL" },
+          { name: "Asset Upload & Archival", start: 90, width: 4, status: "upcoming", assignee: "KM" },
+          { name: "Client Handoff", start: 94, width: 3, status: "upcoming", assignee: "KM" },
+        ],
+      },
+    ] as Phase[],
     sections: {
       treatment: "A 3-minute brand documentary showcasing Net Your Problem's sustainable fishing practices in the Pacific Northwest. The film follows the crew through a full harvest cycle — from pre-dawn boat launch through the sorting process and final delivery. Tone: gritty, authentic, hopeful. We're leaning into the human element — calloused hands, early morning fog, the rhythm of physical work. The final cut will serve as a hero piece for their website and investor deck.",
       storyboard: [
@@ -54,18 +119,63 @@ const projects = [
     client: "Net Your Problem",
     startDate: "Apr 1",
     endDate: "Jun 2",
+    totalWeeks: 9,
     team: [
       { name: "Bri Dwyer", role: "Director / Producer", initials: "BD" },
       { name: "Sam Reeves", role: "Cinematographer", initials: "SR" },
-    ],
-    phases: [
-      { name: "Pre-Production", start: 0, width: 16, status: "complete" },
-      { name: "Production", start: 18, width: 24, status: "active" },
-      { name: "Post-Production", start: 44, width: 30, status: "upcoming" },
-      { name: "Client Review", start: 76, width: 12, status: "upcoming" },
-      { name: "Final Delivery", start: 90, width: 10, status: "upcoming" },
+      { name: "Jamie Lin", role: "Editor", initials: "JL" },
     ],
     currentPosition: 30,
+    phases: [
+      {
+        name: "Pre-Production",
+        tasks: [
+          { name: "Creative Brief", start: 0, width: 6, status: "complete", assignee: "BD" },
+          { name: "Storyboard", start: 3, width: 5, status: "complete", assignee: "BD" },
+          { name: "Shot List & Moodboard", start: 5, width: 5, status: "complete", assignee: "SR" },
+          { name: "Product Styling Plan", start: 8, width: 5, status: "complete", assignee: "BD" },
+          { name: "Logistics & Crew", start: 10, width: 4, status: "complete", assignee: "BD" },
+        ],
+      },
+      {
+        name: "Production",
+        tasks: [
+          { name: "Studio Setup & Lighting", start: 16, width: 3, status: "complete", assignee: "SR" },
+          { name: "Product Macro Shots", start: 19, width: 5, status: "active", assignee: "SR" },
+          { name: "Warehouse / Processing Shots", start: 22, width: 6, status: "active", assignee: "SR" },
+          { name: "Drone — Fleet at Golden Hour", start: 26, width: 4, status: "upcoming", assignee: "SR" },
+          { name: "Slow-Mo Water Elements", start: 28, width: 4, status: "upcoming", assignee: "SR" },
+        ],
+      },
+      {
+        name: "Post-Production",
+        tasks: [
+          { name: "Ingest & Selects", start: 34, width: 3, status: "upcoming", assignee: "JL" },
+          { name: "Assembly Cut", start: 37, width: 5, status: "upcoming", assignee: "JL" },
+          { name: "Sound Design", start: 40, width: 6, status: "upcoming", assignee: "JL" },
+          { name: "Color Grade", start: 42, width: 5, status: "upcoming", assignee: "JL" },
+          { name: "Logo Sting & Tagline", start: 44, width: 4, status: "upcoming", assignee: "JL" },
+          { name: "60-sec Master Cut", start: 48, width: 4, status: "upcoming", assignee: "JL" },
+        ],
+      },
+      {
+        name: "Client Review",
+        tasks: [
+          { name: "Internal QC", start: 54, width: 3, status: "upcoming", assignee: "BD" },
+          { name: "Client Review", start: 57, width: 5, status: "upcoming", assignee: "BD" },
+          { name: "Revisions", start: 62, width: 4, status: "upcoming", assignee: "JL" },
+          { name: "Final Approval", start: 66, width: 3, status: "upcoming", assignee: "BD" },
+        ],
+      },
+      {
+        name: "Final Delivery",
+        tasks: [
+          { name: "Export All Formats", start: 70, width: 3, status: "upcoming", assignee: "JL" },
+          { name: "Trade Show Package", start: 70, width: 4, status: "upcoming", assignee: "JL" },
+          { name: "Client Handoff", start: 74, width: 3, status: "upcoming", assignee: "BD" },
+        ],
+      },
+    ] as Phase[],
     sections: {
       treatment: "60-second product launch teaser for Net Your Problem's new sustainable sablefish line. Fast-paced, energetic, designed for social media and trade show screens. Opens with a dramatic macro reveal of the product, then pulls back to show the scale of the operation. Ends with the tagline and logo sting.",
       storyboard: [
@@ -90,16 +200,38 @@ export default function ClientProjects() {
   const { t } = useTheme();
   const [selectedProject, setSelectedProject] = useState(projects[0]);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>(
+    Object.fromEntries(projects[0].phases.map((p) => [p.name, true]))
+  );
 
   const toggleSection = (key: string) => {
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const phaseColors: Record<string, string> = {
-    complete: "rgba(120,200,120,0.7)",
-    active: t.accent,
-    upcoming: t.border,
+  const togglePhase = (name: string) => {
+    setExpandedPhases((prev) => ({ ...prev, [name]: !prev[name] }));
   };
+
+  const taskBarColor = (status: string) => {
+    if (status === "complete") return t.text;
+    if (status === "active") return t.text;
+    return t.border;
+  };
+
+  const taskBarOpacity = (status: string) => {
+    if (status === "complete") return 0.6;
+    if (status === "active") return 1;
+    return 1;
+  };
+
+  const totalTasks = selectedProject.phases.reduce((s, p) => s + p.tasks.length, 0);
+  const completeTasks = selectedProject.phases.reduce((s, p) => s + p.tasks.filter((tk) => tk.status === "complete").length, 0);
+  const activeTasks = selectedProject.phases.reduce((s, p) => s + p.tasks.filter((tk) => tk.status === "active").length, 0);
+  const overallProgress = Math.round(((completeTasks + activeTasks * 0.5) / totalTasks) * 100);
+
+  const weekLabels: string[] = [];
+  const totalWeeks = selectedProject.totalWeeks;
+  for (let i = 1; i <= totalWeeks; i++) weekLabels.push(`W${i}`);
 
   const sectionButton = (key: string, label: string, icon: ReactNode) => (
     <button
@@ -137,7 +269,11 @@ export default function ClientProjects() {
           {projects.map((p) => (
             <button
               key={p.id}
-              onClick={() => { setSelectedProject(p); setExpandedSections({}); }}
+              onClick={() => {
+                setSelectedProject(p);
+                setExpandedSections({});
+                setExpandedPhases(Object.fromEntries(p.phases.map((ph) => [ph.name, true])));
+              }}
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: selectedProject.id === p.id ? 600 : 400,
@@ -158,43 +294,244 @@ export default function ClientProjects() {
         <div style={{ marginBottom: "40px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.textTertiary }}>Schedule</h2>
-            <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textMuted }}>{selectedProject.startDate} — {selectedProject.endDate}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textMuted }}>{selectedProject.startDate} — {selectedProject.endDate}</span>
+              <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary }}>{overallProgress}% complete</span>
+            </div>
           </div>
 
-          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px", padding: "24px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-              {["Week 1-2", "Week 3-4", "Week 5-6", "Week 7-8", "Week 9-10", "Week 11-12"].map((label) => (
-                <span key={label} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
-              ))}
-            </div>
-
-            {selectedProject.phases.map((phase, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: "10px", gap: "16px" }}>
-                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: phase.status === "active" ? 600 : 400, fontSize: "12px", color: phase.status === "upcoming" ? t.textMuted : t.textSecondary, width: "140px", flexShrink: 0 }}>
-                  {phase.name}
-                </span>
-                <div style={{ flex: 1, height: "28px", position: "relative", background: t.hoverBg, borderRadius: "4px" }}>
-                  <div style={{ position: "absolute", left: `${phase.start}%`, width: `${phase.width}%`, height: "100%", background: phaseColors[phase.status], borderRadius: "4px", display: "flex", alignItems: "center", paddingLeft: "10px" }}>
-                    {phase.status === "active" && (
-                      <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "9px", color: t.accentText, textTransform: "uppercase", letterSpacing: "0.05em" }}>NOW</span>
-                    )}
-                  </div>
-                </div>
+          <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+            {[
+              { label: "Total Tasks", value: totalTasks },
+              { label: "Complete", value: completeTasks },
+              { label: "In Progress", value: activeTasks },
+              { label: "Upcoming", value: totalTasks - completeTasks - activeTasks },
+            ].map((stat) => (
+              <div key={stat.label} style={{ padding: "12px 16px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "8px", flex: 1, textAlign: "center" }}>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "2px" }}>{stat.value}</p>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{stat.label}</p>
               </div>
             ))}
+          </div>
 
-            <div style={{ position: "relative", height: "20px", marginTop: "8px", marginLeft: "156px" }}>
-              <div style={{ position: "absolute", left: `${selectedProject.currentPosition}%`, top: "0", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <svg width="10" height="10" viewBox="0 0 10 10"><polygon points="5,0 10,10 0,10" fill="rgba(255,200,60,0.8)" /></svg>
-                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "9px", color: "rgba(255,200,60,0.8)", marginTop: "2px", textTransform: "uppercase" }}>Today</span>
+          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px", overflow: "hidden" }}>
+            <div style={{ display: "flex", borderBottom: `1px solid ${t.border}` }}>
+              <div style={{ width: "220px", flexShrink: 0, padding: "10px 16px", display: "flex", alignItems: "center" }}>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Task</span>
+              </div>
+              <div style={{ width: "50px", flexShrink: 0, padding: "10px 4px", textAlign: "center" }}>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Who</span>
+              </div>
+              <div style={{ flex: 1, display: "flex", position: "relative" }}>
+                {weekLabels.map((w, i) => (
+                  <div key={w} style={{ flex: 1, padding: "10px 0", textAlign: "center", borderLeft: i > 0 ? `1px solid ${t.borderSubtle}` : "none" }}>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.textMuted }}>{w}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "20px", marginTop: "20px", paddingTop: "16px", borderTop: `1px solid ${t.borderSubtle}` }}>
-              {[{ color: "rgba(120,200,120,0.7)", label: "Complete" }, { color: t.accent, label: "In Progress" }, { color: t.border, label: "Upcoming" }].map((legend) => (
-                <div key={legend.label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div style={{ width: "12px", height: "12px", borderRadius: "3px", background: legend.color }} />
-                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>{legend.label}</span>
+            {selectedProject.phases.map((phase) => {
+              const phaseComplete = phase.tasks.every((tk) => tk.status === "complete");
+              const phaseActive = phase.tasks.some((tk) => tk.status === "active");
+              const isExpanded = expandedPhases[phase.name] !== false;
+
+              return (
+                <div key={phase.name}>
+                  <div
+                    onClick={() => togglePhase(phase.name)}
+                    style={{
+                      display: "flex",
+                      borderBottom: `1px solid ${t.border}`,
+                      cursor: "pointer",
+                      background: t.hoverBg,
+                    }}
+                  >
+                    <div style={{ width: "220px", flexShrink: 0, padding: "10px 16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2" style={{ transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s ease", flexShrink: 0 }}>
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                      <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", color: t.text }}>{phase.name}</span>
+                      <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.textMuted }}>({phase.tasks.length})</span>
+                    </div>
+                    <div style={{ width: "50px", flexShrink: 0, padding: "10px 4px", textAlign: "center" }}>
+                      <span style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 600,
+                        fontSize: "9px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        color: phaseComplete ? t.textTertiary : phaseActive ? t.text : t.textMuted,
+                        background: phaseComplete ? t.activeNav : phaseActive ? t.activeNav : "transparent",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}>
+                        {phaseComplete ? "Done" : phaseActive ? "Now" : "—"}
+                      </span>
+                    </div>
+                    <div style={{ flex: 1, display: "flex", position: "relative" }}>
+                      {weekLabels.map((_, i) => (
+                        <div key={i} style={{ flex: 1, borderLeft: i > 0 ? `1px solid ${t.borderSubtle}` : "none" }} />
+                      ))}
+                      {!isExpanded && (
+                        <>
+                          {phase.tasks.map((task, ti) => {
+                            const barLeft = (task.start / 100) * 100;
+                            const barWidth = (task.width / 100) * 100;
+                            return (
+                              <div
+                                key={ti}
+                                style={{
+                                  position: "absolute",
+                                  left: `${barLeft}%`,
+                                  width: `${barWidth}%`,
+                                  height: "4px",
+                                  top: "50%",
+                                  transform: "translateY(-50%)",
+                                  background: taskBarColor(task.status),
+                                  opacity: taskBarOpacity(task.status),
+                                  borderRadius: "2px",
+                                }}
+                              />
+                            );
+                          })}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {isExpanded && phase.tasks.map((task, ti) => (
+                    <div
+                      key={ti}
+                      style={{
+                        display: "flex",
+                        borderBottom: `1px solid ${t.borderSubtle}`,
+                      }}
+                    >
+                      <div style={{ width: "220px", flexShrink: 0, padding: "8px 16px 8px 36px", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{
+                          width: "8px",
+                          height: "8px",
+                          borderRadius: "50%",
+                          border: task.status === "complete" ? "none" : `1.5px solid ${task.status === "active" ? t.text : t.textMuted}`,
+                          background: task.status === "complete" ? t.text : "transparent",
+                          flexShrink: 0,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}>
+                          {task.status === "complete" && (
+                            <svg width="5" height="5" viewBox="0 0 24 24" fill="none" stroke={t.accentText} strokeWidth="4"><polyline points="20 6 9 17 4 12" /></svg>
+                          )}
+                        </div>
+                        <span style={{
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: task.status === "active" ? 600 : 400,
+                          fontSize: "11px",
+                          color: task.status === "upcoming" ? t.textMuted : task.status === "active" ? t.text : t.textSecondary,
+                          textDecoration: task.status === "complete" ? "none" : "none",
+                        }}>
+                          {task.name}
+                        </span>
+                      </div>
+                      <div style={{ width: "50px", flexShrink: 0, padding: "8px 4px", textAlign: "center" }}>
+                        <span style={{
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: 600,
+                          fontSize: "9px",
+                          color: t.textMuted,
+                          background: t.hoverBg,
+                          padding: "2px 5px",
+                          borderRadius: "3px",
+                        }}>
+                          {task.assignee}
+                        </span>
+                      </div>
+                      <div style={{ flex: 1, position: "relative", display: "flex" }}>
+                        {weekLabels.map((_, i) => (
+                          <div key={i} style={{ flex: 1, borderLeft: i > 0 ? `1px solid ${t.borderSubtle}` : "none" }} />
+                        ))}
+                        <div
+                          style={{
+                            position: "absolute",
+                            left: `${(task.start / 100) * 100}%`,
+                            width: `${(task.width / 100) * 100}%`,
+                            height: "6px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: taskBarColor(task.status),
+                            opacity: taskBarOpacity(task.status),
+                            borderRadius: "3px",
+                          }}
+                        >
+                          {task.status === "active" && (
+                            <div style={{
+                              position: "absolute",
+                              right: "-3px",
+                              top: "-3px",
+                              width: "12px",
+                              height: "12px",
+                              borderRadius: "50%",
+                              background: t.text,
+                              border: `2px solid ${t.bgCard}`,
+                            }} />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+
+            <div style={{ display: "flex", borderTop: `1px solid ${t.border}` }}>
+              <div style={{ width: "270px", flexShrink: 0 }} />
+              <div style={{ flex: 1, position: "relative", height: "28px" }}>
+                <div
+                  style={{
+                    position: "absolute",
+                    left: `${selectedProject.currentPosition}%`,
+                    top: "0",
+                    bottom: "0",
+                    width: "1px",
+                    background: t.text,
+                    opacity: 0.3,
+                    zIndex: 2,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: `${selectedProject.currentPosition}%`,
+                    top: "50%",
+                    transform: "translate(-50%, -50%)",
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 700,
+                    fontSize: "8px",
+                    color: t.accentText,
+                    background: t.text,
+                    padding: "2px 8px",
+                    borderRadius: "3px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    zIndex: 3,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Today
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "20px", padding: "12px 16px", borderTop: `1px solid ${t.border}` }}>
+              {[
+                { icon: <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: t.text }} />, label: "Complete" },
+                { icon: <div style={{ width: "8px", height: "8px", borderRadius: "50%", border: `1.5px solid ${t.text}` }} />, label: "In Progress" },
+                { icon: <div style={{ width: "8px", height: "8px", borderRadius: "50%", border: `1.5px solid ${t.textMuted}` }} />, label: "Upcoming" },
+              ].map((legend) => (
+                <div key={legend.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  {legend.icon}
+                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "10px", color: t.textMuted }}>{legend.label}</span>
                 </div>
               ))}
             </div>
