@@ -1,11 +1,19 @@
-export default function ScrollBadge({ position = "bottom-left" }: { position?: "bottom-left" | "bottom-right" }) {
-  const style: React.CSSProperties = {
-    position: "absolute",
-    bottom: "40px",
-    ...(position === "bottom-right" ? { right: "40px" } : { left: "40px" }),
-    width: "80px",
-    height: "80px",
-  };
+export default function ScrollBadge({
+  position = "bottom-left",
+  inline = false,
+}: {
+  position?: "bottom-left" | "bottom-right";
+  inline?: boolean;
+}) {
+  const style: React.CSSProperties = inline
+    ? { width: "80px", height: "80px", position: "relative" as const }
+    : {
+        position: "absolute" as const,
+        bottom: "40px",
+        ...(position === "bottom-right" ? { right: "40px" } : { left: "40px" }),
+        width: "80px",
+        height: "80px",
+      };
 
   return (
     <div style={style}>

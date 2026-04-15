@@ -4,12 +4,12 @@ import logo from "@assets/logo.webp";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [location] = useLocation();
+  const [, navigate] = useLocation();
 
   const navLinks = [
     { href: "/", label: "Home" },
-    { href: "/services", label: "Services" },
     { href: "/about", label: "About" },
+    { href: "/services", label: "Services" },
     { href: "/case-studies", label: "Case Studies" },
     { href: "/contact", label: "Contact" },
   ];
@@ -79,7 +79,6 @@ export default function Header() {
             background: "#000000",
             display: "flex",
             flexDirection: "column",
-            padding: "24px 32px",
           }}
         >
           <div
@@ -87,7 +86,7 @@ export default function Header() {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              marginBottom: "60px",
+              padding: "24px 32px",
             }}
           >
             <Link href="/" onClick={() => setMenuOpen(false)}>
@@ -105,9 +104,9 @@ export default function Header() {
                 border: "none",
                 cursor: "pointer",
                 color: "#ffffff",
-                fontSize: "32px",
+                fontSize: "28px",
                 lineHeight: 1,
-                padding: "4px",
+                padding: "8px",
               }}
             >
               ✕
@@ -116,50 +115,39 @@ export default function Header() {
 
           <nav
             style={{
+              flex: 1,
               display: "flex",
               flexDirection: "column",
-              gap: "8px",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "12px",
             }}
           >
             {navLinks.map((link) => (
-              <Link
+              <a
                 key={link.href}
                 href={link.href}
-                onClick={() => setMenuOpen(false)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMenuOpen(false);
+                  navigate(link.href);
+                }}
                 style={{
                   fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 900,
-                  fontSize: "clamp(36px, 6vw, 72px)",
-                  textTransform: "uppercase",
-                  letterSpacing: "-0.02em",
-                  lineHeight: 1.05,
-                  color: location === link.href ? "#ffffff" : "rgba(255,255,255,0.4)",
-                  transition: "color 0.2s",
+                  fontWeight: 500,
+                  fontSize: "32px",
+                  letterSpacing: "0.01em",
+                  lineHeight: 1.6,
+                  color: "#ffffff",
+                  textDecoration: "none",
                   display: "block",
+                  textAlign: "center",
                 }}
               >
                 {link.label}
-              </Link>
+              </a>
             ))}
           </nav>
-
-          <div style={{ marginTop: "auto", paddingBottom: "16px" }}>
-            <a
-              href="https://www.instagram.com/pgtsndproductions/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 600,
-                fontSize: "13px",
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                color: "rgba(255,255,255,0.5)",
-              }}
-            >
-              Instagram
-            </a>
-          </div>
         </div>
       )}
     </>

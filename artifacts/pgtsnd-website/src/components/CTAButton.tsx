@@ -4,18 +4,21 @@ interface CTAButtonProps {
   href: string;
   label: string;
   external?: boolean;
+  variant?: "dark" | "light";
 }
 
-export default function CTAButton({ href, label, external }: CTAButtonProps) {
+export default function CTAButton({ href, label, external, variant = "dark" }: CTAButtonProps) {
+  const isDark = variant === "dark";
+
   const buttonStyle: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
     gap: "16px",
-    background: "#000000",
-    border: "2px solid #ffffff",
+    background: isDark ? "#000000" : "#ffffff",
+    border: isDark ? "2px solid #ffffff" : "2px solid #ffffff",
     borderRadius: "999px",
     padding: "12px 28px 12px 14px",
-    color: "#ffffff",
+    color: isDark ? "#ffffff" : "#000000",
     fontFamily: "'Montserrat', sans-serif",
     fontWeight: 700,
     fontSize: "13px",
@@ -23,7 +26,6 @@ export default function CTAButton({ href, label, external }: CTAButtonProps) {
     letterSpacing: "0.1em",
     cursor: "pointer",
     textDecoration: "none",
-    transition: "background 0.2s, color 0.2s",
     whiteSpace: "nowrap",
   };
 
@@ -36,8 +38,8 @@ export default function CTAButton({ href, label, external }: CTAButtonProps) {
         width: "36px",
         height: "36px",
         borderRadius: "50%",
-        background: "#ffffff",
-        color: "#000000",
+        background: isDark ? "#ffffff" : "#000000",
+        color: isDark ? "#000000" : "#ffffff",
         flexShrink: 0,
       }}
     >
