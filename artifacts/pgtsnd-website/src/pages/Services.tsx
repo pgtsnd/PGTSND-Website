@@ -89,15 +89,7 @@ export default function Services() {
           <CTAButton href="/contact" label="Work With Us" />
         </div>
 
-        <div
-          style={{
-            position: "absolute",
-            bottom: "40px",
-            right: "40px",
-          }}
-        >
-          <ScrollBadge position="bottom-right" />
-        </div>
+        <ScrollBadge position="bottom-right" />
       </section>
 
       {/* Image Hero */}
