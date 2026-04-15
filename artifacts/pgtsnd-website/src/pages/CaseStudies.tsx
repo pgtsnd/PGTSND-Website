@@ -5,22 +5,22 @@ import Footer from "../components/Footer";
 
 const f = (s: React.CSSProperties): React.CSSProperties => ({ fontFamily: "'Montserrat', sans-serif", ...s });
 
+const BASE = import.meta.env.BASE_URL;
+
 const caseStudies = [
   {
     client: "Alaska Bering Sea Crabbers",
     category: "Documentary + Photography",
     description:
       "Documenting a season of commercial crabbing required us to be fully embedded with the crew — early mornings, rough seas, and all. The result was an authentic portrait of the industry.",
-    image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/e8f0c233-3e66-4424-af76-721f2754573d/gloves-close-bri-dwyer-pgtsnd-alaska-berring.jpeg",
+    image: `${BASE}images/catch-close-pgtsnd-bri-dwyer.jpeg`,
   },
   {
     client: "Net Your Problem",
     category: "Brand Film",
     description:
       "A commercial fishing technology startup needed compelling video assets to present at industry conferences and help recruit new partners.",
-    image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/3d1c1f4e-8f0a-4e37-b7e0-2a10b38f5d7a/fisherman-net-pgtsnd-bri-dwyer.jpeg",
+    image: `${BASE}images/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg`,
   },
   {
     client: "Green Juju",
@@ -35,16 +35,14 @@ const caseStudies = [
     category: "On-Location Photography",
     description:
       "Sweeping on-location production combined to tell the full story of the hard-working crews behind Pacific Coast's commercial fishing operations.",
-    image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/1b8f7e3a-4d2c-4a9e-b6f3-8c5e2d1a7b4f/fisherman-yellow-jacket-pgtsnd.jpeg",
+    image: `${BASE}images/crabs-pelican-pgtsnd-bri-dwyer.jpeg`,
   },
   {
     client: "Vallation Outerwear",
     category: "Brand Campaign",
     description:
       "From the start, PGTSND worked with Vallation on their goals for what they wanted to accomplish, and within the parameters they set.",
-    image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/7a3b2c1d-5e4f-4a8b-9c6d-3f2e1a0b9c8d/boat-spray-pgtsnd.jpeg",
+    image: `${BASE}images/foggy-fishing-coast-pgtsnd.jpeg`,
   },
   {
     client: "NW Sablefish",
@@ -59,16 +57,15 @@ const caseStudies = [
     category: "Documentary Photography",
     description:
       "An incredible collection of images from the Puget Sound commercial Dungeness fishery, capturing the gear, grit, and community behind the catch.",
-    image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/4c5d6e7f-8a9b-4c1d-2e3f-5a6b7c8d9e0f/fishing-nets-colorful-pgtsnd.jpeg",
+    image: `${BASE}images/boats-inlet-pgtsnd-bri-dwyer.jpeg`,
   },
 ];
 
-function GalleryCard({ study }: { study: typeof caseStudies[0] }) {
+function GalleryCard({ study, height }: { study: typeof caseStudies[0]; height: string }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div
-      style={{ position: "relative", overflow: "hidden", cursor: "pointer" }}
+      style={{ position: "relative", overflow: "hidden", cursor: "pointer", height }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -80,19 +77,19 @@ function GalleryCard({ study }: { study: typeof caseStudies[0] }) {
           height: "100%",
           objectFit: "cover",
           display: "block",
-          transition: "transform 0.5s ease",
-          transform: hovered ? "scale(1.04)" : "scale(1)",
+          transition: "transform 0.6s ease",
+          transform: hovered ? "scale(1.03)" : "scale(1)",
         }}
       />
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(0,0,0,0.6)",
+          background: "rgba(0,0,0,0.55)",
           display: "flex",
           flexDirection: "column",
           justifyContent: "flex-end",
-          padding: "40px",
+          padding: "48px",
           opacity: hovered ? 1 : 0,
           transition: "opacity 0.35s ease",
         }}
@@ -103,27 +100,27 @@ function GalleryCard({ study }: { study: typeof caseStudies[0] }) {
           textTransform: "uppercase",
           letterSpacing: "0.15em",
           color: "rgba(255,255,255,0.6)",
-          marginBottom: "8px",
+          marginBottom: "10px",
         })}>
           {study.category}
         </p>
         <h3 style={f({
           fontWeight: 900,
-          fontSize: "clamp(24px, 3vw, 36px)",
+          fontSize: "clamp(28px, 3.5vw, 44px)",
           textTransform: "uppercase",
           letterSpacing: "-0.02em",
           lineHeight: 1,
           color: "#ffffff",
-          marginBottom: "12px",
+          marginBottom: "14px",
         })}>
           {study.client}
         </h3>
         <p style={f({
           fontWeight: 400,
-          fontSize: "14px",
-          color: "rgba(255,255,255,0.8)",
+          fontSize: "15px",
+          color: "rgba(255,255,255,0.85)",
           lineHeight: 1.7,
-          maxWidth: "400px",
+          maxWidth: "480px",
         })}>
           {study.description}
         </p>
@@ -192,50 +189,36 @@ export default function CaseStudies() {
         <ScrollBadge position="bottom-left" />
       </section>
 
-      {/* Gallery Grid */}
-      <section style={{ padding: "0 40px 40px" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "12px",
-          }}
-        >
-          {/* Row 1: two side by side */}
-          <div style={{ aspectRatio: "4 / 3" }}>
-            <GalleryCard study={caseStudies[0]} />
-          </div>
-          <div style={{ aspectRatio: "4 / 3" }}>
-            <GalleryCard study={caseStudies[1]} />
-          </div>
+      {/* Gallery Grid — full-bleed massive images */}
+      <section style={{ padding: "0 10px" }}>
+        {/* Row 1: two side by side */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
+          <GalleryCard study={caseStudies[0]} height="50vh" />
+          <GalleryCard study={caseStudies[1]} height="50vh" />
+        </div>
 
-          {/* Row 2: one full width */}
-          <div style={{ gridColumn: "1 / -1", aspectRatio: "2.2 / 1" }}>
-            <GalleryCard study={caseStudies[2]} />
-          </div>
+        {/* Row 2: one full width */}
+        <div style={{ marginBottom: "10px" }}>
+          <GalleryCard study={caseStudies[2]} height="65vh" />
+        </div>
 
-          {/* Row 3: two side by side */}
-          <div style={{ aspectRatio: "4 / 3" }}>
-            <GalleryCard study={caseStudies[3]} />
-          </div>
-          <div style={{ aspectRatio: "4 / 3" }}>
-            <GalleryCard study={caseStudies[4]} />
-          </div>
+        {/* Row 3: two side by side */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
+          <GalleryCard study={caseStudies[3]} height="55vh" />
+          <GalleryCard study={caseStudies[4]} height="55vh" />
+        </div>
 
-          {/* Row 4: two side by side */}
-          <div style={{ aspectRatio: "4 / 3" }}>
-            <GalleryCard study={caseStudies[5]} />
-          </div>
-          <div style={{ aspectRatio: "4 / 3" }}>
-            <GalleryCard study={caseStudies[6]} />
-          </div>
+        {/* Row 4: two side by side */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+          <GalleryCard study={caseStudies[5]} height="55vh" />
+          <GalleryCard study={caseStudies[6]} height="55vh" />
         </div>
       </section>
 
       {/* Bottom CTA */}
       <section
         style={{
-          padding: "120px 80px 160px",
+          padding: "160px 80px 180px",
           textAlign: "center",
           display: "flex",
           flexDirection: "column",
