@@ -1,34 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-
-  --font-sans: var(--app-font-sans);
-}
-
-:root {
-  --background: 0 0% 0%;
-  --foreground: 0 0% 100%;
-  --border: 0 0% 20%;
-  --input: 0 0% 20%;
-  --ring: 0 0% 100%;
-  --primary: 0 0% 100%;
-  --primary-foreground: 0 0% 0%;
-
-  --app-font-sans: 'Montserrat', sans-serif;
-  --radius: 0px;
-}
 
 @layer base {
   * {
@@ -62,36 +33,9 @@
   }
 }
 
-@layer utilities {
-  .pgtsnd-heading {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: -0.02em;
-    line-height: 0.9;
-  }
-
-  .pgtsnd-body {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 400;
-  }
-
-  .pgtsnd-label {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-}
-
 @keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .animate-spin-slow {
