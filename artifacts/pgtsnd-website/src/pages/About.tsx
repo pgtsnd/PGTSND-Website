@@ -105,6 +105,113 @@ const caseStudyImages = [
 
 const f = (s: React.CSSProperties): React.CSSProperties => ({ fontFamily: "'Montserrat', sans-serif", ...s });
 
+const heroWords = [
+  {
+    text: "Resilient",
+    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/e8f0c233-3e66-4424-af76-721f2754573d/gloves-close-bri-dwyer-pgtsnd-alaska-berring.jpeg",
+    position: { top: "5%", left: "55%", width: "40%", height: "90%" },
+  },
+  {
+    text: "Roots,",
+    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/93006ba2-8cb2-4602-994e-d06460bddefb/nw-sablefish-pgtsnd-photography-7.jpeg",
+    position: { top: "0%", left: "50%", width: "45%", height: "95%" },
+  },
+  {
+    text: "Steady",
+    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f2eeee17-7f28-4cb4-b4f1-e153742b789e/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg",
+    position: { top: "10%", left: "25%", width: "45%", height: "85%" },
+  },
+  {
+    text: "Stories",
+    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d9460e68-5cd2-4c0f-94e1-1882061a71e3/green-juju-dog-kitchen-pgtsnd.jpeg",
+    position: { top: "5%", left: "15%", width: "42%", height: "90%" },
+  },
+];
+
+function HeroSection() {
+  const [activeWord, setActiveWord] = useState<number | null>(null);
+
+  return (
+    <section
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: "120px 80px 100px",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {heroWords.map((word, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            ...word.position,
+            opacity: activeWord === i ? 1 : 0,
+            transform: activeWord === i ? "scale(1)" : "scale(0.95)",
+            transition: "opacity 0.5s ease, transform 0.6s ease",
+            pointerEvents: "none",
+            zIndex: 1,
+          }}
+        >
+          <img
+            src={word.image}
+            alt=""
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
+        </div>
+      ))}
+      <h1
+        style={f({
+          fontWeight: 900,
+          fontSize: "clamp(48px, 9.5vw, 130px)",
+          textTransform: "uppercase",
+          letterSpacing: "-0.03em",
+          lineHeight: 0.95,
+          color: "#ffffff",
+          whiteSpace: "nowrap",
+          position: "relative",
+          zIndex: 2,
+        })}
+      >
+        <span style={{ display: "inline" }}>
+          {heroWords.slice(0, 2).map((word, i) => (
+            <span
+              key={i}
+              onMouseEnter={() => setActiveWord(i)}
+              onMouseLeave={() => setActiveWord(null)}
+              style={{ cursor: "default" }}
+            >
+              {word.text}{i === 0 ? " " : ""}
+            </span>
+          ))}
+        </span>
+        <br />
+        <span style={{ display: "inline" }}>
+          {heroWords.slice(2).map((word, i) => (
+            <span
+              key={i + 2}
+              onMouseEnter={() => setActiveWord(i + 2)}
+              onMouseLeave={() => setActiveWord(null)}
+              style={{ cursor: "default" }}
+            >
+              {word.text}{i === 0 ? " " : ""}
+            </span>
+          ))}
+        </span>
+      </h1>
+      <ScrollBadge position="bottom-left" />
+    </section>
+  );
+}
+
 function useScrollProgress(ref: React.RefObject<HTMLElement | null>) {
   const [progress, setProgress] = useState(0);
   const onScroll = useCallback(() => {
@@ -137,33 +244,7 @@ export default function About() {
   return (
     <div style={{ background: "#000000", minHeight: "100vh" }}>
       {/* 1. Hero — "RESILIENT ROOTS, STEADY STORIES" */}
-      <section
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "120px 80px 100px",
-          position: "relative",
-        }}
-      >
-        <h1
-          style={f({
-            fontWeight: 900,
-            fontSize: "clamp(48px, 9.5vw, 130px)",
-            textTransform: "uppercase",
-            letterSpacing: "-0.03em",
-            lineHeight: 0.95,
-            color: "#ffffff",
-            whiteSpace: "nowrap",
-          })}
-        >
-          Resilient Roots,
-          <br />
-          Steady Stories
-        </h1>
-        <ScrollBadge position="bottom-left" />
-      </section>
+      <HeroSection />
 
       {/* 2. Mission statement — large bold heading + body copy */}
       <section
