@@ -370,7 +370,7 @@ export default function About() {
       {/* 7. Final CTA */}
       <section
         style={{
-          padding: "120px 80px 80px",
+          padding: "120px 80px 160px",
           textAlign: "center",
         }}
       >
