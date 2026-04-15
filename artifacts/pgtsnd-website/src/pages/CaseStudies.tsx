@@ -16,47 +16,47 @@ const caseStudies = [
     image: `${BASE}images/catch-close-pgtsnd-bri-dwyer.jpeg`,
   },
   {
-    client: "Net Your Problem",
-    category: "Brand Film",
+    client: "Vallation Outerwear",
+    category: "Photography",
     description:
-      "A commercial fishing technology startup needed compelling video assets to present at industry conferences and help recruit new partners.",
+      "From the start, PGTSND worked with Vallation on their goals for what they wanted to accomplish, and within the parameters they set.",
     image: `${BASE}images/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg`,
   },
   {
     client: "Green Juju",
-    category: "Brand Film + Photography",
+    category: "Full Production Suite +",
     description:
       "Green Juju needed a refreshed digital presence to reflect their growth and mission. We developed a full suite of video and photography assets.",
     image:
       "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d9460e68-5cd2-4c0f-94e1-1882061a71e3/green-juju-dog-kitchen-pgtsnd.jpeg",
   },
   {
+    client: "Net Your Problem",
+    category: "Brand Film",
+    description:
+      "A commercial fishing technology startup needed compelling video assets to present at industry conferences and help recruit new partners.",
+    image: `${BASE}images/crabs-pelican-pgtsnd-bri-dwyer.jpeg`,
+  },
+  {
     client: "Pacific Coast Fisheries",
     category: "On-Location Photography",
     description:
       "Sweeping on-location production combined to tell the full story of the hard-working crews behind Pacific Coast's commercial fishing operations.",
-    image: `${BASE}images/crabs-pelican-pgtsnd-bri-dwyer.jpeg`,
-  },
-  {
-    client: "Vallation Outerwear",
-    category: "Brand Campaign",
-    description:
-      "From the start, PGTSND worked with Vallation on their goals for what they wanted to accomplish, and within the parameters they set.",
     image: `${BASE}images/foggy-fishing-coast-pgtsnd.jpeg`,
   },
   {
-    client: "NW Sablefish",
-    category: "Full Production Suite",
+    client: "Lodge @ 58 North",
+    category: "Video Production | Photography",
     description:
-      "A complete visual overhaul for NW Sablefish — from on-the-water photography to plated culinary shots that showcase the product at every stage.",
+      "A complete visual overhaul — from on-the-water photography to plated culinary shots that showcase the product at every stage.",
     image:
       "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/93006ba2-8cb2-4602-994e-d06460bddefb/nw-sablefish-pgtsnd-photography-7.jpeg",
   },
   {
-    client: "Puget Sound Fisheries",
+    client: "NW Sablefish",
     category: "Documentary Photography",
     description:
-      "An incredible collection of images from the Puget Sound commercial Dungeness fishery, capturing the gear, grit, and community behind the catch.",
+      "An incredible collection of images capturing the gear, grit, and community behind the catch.",
     image: `${BASE}images/boats-inlet-pgtsnd-bri-dwyer.jpeg`,
   },
 ];
@@ -85,44 +85,34 @@ function GalleryCard({ study, height }: { study: typeof caseStudies[0]; height: 
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(0,0,0,0.55)",
+          background: "rgba(0,0,0,0.5)",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-end",
-          padding: "48px",
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
           opacity: hovered ? 1 : 0,
           transition: "opacity 0.35s ease",
         }}
       >
-        <p style={f({
-          fontWeight: 600,
-          fontSize: "11px",
-          textTransform: "uppercase",
-          letterSpacing: "0.15em",
-          color: "rgba(255,255,255,0.6)",
-          marginBottom: "10px",
-        })}>
-          {study.category}
-        </p>
         <h3 style={f({
           fontWeight: 900,
           fontSize: "clamp(28px, 3.5vw, 44px)",
           textTransform: "uppercase",
           letterSpacing: "-0.02em",
-          lineHeight: 1,
+          lineHeight: 1.1,
           color: "#ffffff",
-          marginBottom: "14px",
+          marginBottom: "16px",
         })}>
           {study.client}
         </h3>
         <p style={f({
           fontWeight: 400,
-          fontSize: "15px",
-          color: "rgba(255,255,255,0.85)",
-          lineHeight: 1.7,
-          maxWidth: "480px",
+          fontSize: "14px",
+          color: "rgba(255,255,255,0.7)",
+          letterSpacing: "0.03em",
         })}>
-          {study.description}
+          {study.category}
         </p>
       </div>
     </div>
