@@ -377,13 +377,13 @@ export default function About() {
         <h2
           style={f({
             fontWeight: 900,
-            fontSize: "clamp(28px, 4vw, 48px)",
+            fontSize: "clamp(32px, 5vw, 56px)",
             fontStyle: "italic",
             textTransform: "uppercase",
-            letterSpacing: "-0.01em",
+            letterSpacing: "-0.02em",
             lineHeight: 1.1,
             color: "#ffffff",
-            maxWidth: "900px",
+            maxWidth: "1100px",
             margin: "0 auto 48px",
           })}
         >
