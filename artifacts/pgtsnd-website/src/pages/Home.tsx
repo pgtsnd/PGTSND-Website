@@ -432,7 +432,7 @@ export default function Home() {
       </section>
 
       {/* ===== SOCIAL / INSTAGRAM SECTION ===== */}
-      <section style={{ padding: "360px 80px 260px", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ padding: "360px 80px 180px", maxWidth: "1400px", margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
@@ -526,13 +526,12 @@ export default function Home() {
       <section
         style={{
           position: "relative",
-          padding: "200px 80px",
+          padding: "120px 80px",
           textAlign: "center",
           overflow: "hidden",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          minHeight: "80vh",
         }}
       >
         <div
