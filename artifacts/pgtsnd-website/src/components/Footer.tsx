@@ -21,7 +21,7 @@ export default function Footer() {
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
-          padding: "100px 80px 40px",
+          padding: "80px 80px 48px",
         }}
       >
         <div
@@ -143,19 +143,20 @@ export default function Footer() {
 
         <div
           style={{
-            marginTop: "80px",
-            paddingTop: "32px",
+            marginTop: "48px",
+            paddingTop: "24px",
             borderTop: "1px solid rgba(255,255,255,0.08)",
-            textAlign: "left",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <p
             style={{
               fontFamily: "'Montserrat', sans-serif",
               fontWeight: 400,
-              fontSize: "12px",
-              color: "rgba(255,255,255,0.35)",
-              lineHeight: 2,
+              fontSize: "11px",
+              color: "rgba(255,255,255,0.3)",
             }}
           >
             &copy;PGTSND Productions 2025 | Seattle, Washington
@@ -164,16 +165,25 @@ export default function Footer() {
             style={{
               fontFamily: "'Montserrat', sans-serif",
               fontWeight: 400,
-              fontSize: "12px",
-              color: "rgba(255,255,255,0.35)",
-              lineHeight: 2,
+              fontSize: "11px",
+              color: "rgba(255,255,255,0.3)",
             }}
           >
-            <Link href="/terms" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>
+            <Link
+              href="/terms"
+              style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", transition: "color 0.2s ease" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
+            >
               Terms &amp; Conditions
             </Link>
             {" | "}
-            <Link href="/privacy" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>
+            <Link
+              href="/privacy"
+              style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", transition: "color 0.2s ease" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
+            >
               Privacy Policy
             </Link>
           </p>
