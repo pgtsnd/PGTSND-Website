@@ -1,4 +1,3 @@
-import { Link } from "wouter";
 import CTAButton from "../components/CTAButton";
 import ScrollBadge from "../components/ScrollBadge";
 import Footer from "../components/Footer";
@@ -184,58 +183,23 @@ export default function Home() {
           >
             Production built for working industries
           </h2>
-          <p
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 400,
-              fontSize: "16px",
-              color: "rgba(255,255,255,0.7)",
-              lineHeight: 1.7,
-              paddingTop: "8px",
-            }}
-          >
-            We handle the logistics, the craft, and the storytelling from planning through post, so your message lands strong and is ready to use.
-          </p>
+          <div>
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 400,
+                fontSize: "16px",
+                color: "rgba(255,255,255,0.7)",
+                lineHeight: 1.7,
+                paddingTop: "8px",
+                marginBottom: "40px",
+              }}
+            >
+              We handle the logistics, the craft, and the storytelling from planning through post, so your message lands strong and is ready to use.
+            </p>
+            <CTAButton href="/services" label="What We Do" />
+          </div>
         </div>
-        <div style={{ textAlign: "center", marginTop: "48px" }}>
-          <CTAButton href="/services" label="What We Do" />
-        </div>
-      </section>
-
-      {/* ===== FULL-WIDTH "WHAT WE DO" BUTTON ===== */}
-      <section style={{ padding: "0 32px 80px", maxWidth: "1400px", margin: "0 auto" }}>
-        <Link
-          href="/services"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "40px",
-            width: "100%",
-            padding: "28px 40px",
-            border: "2px solid rgba(255,255,255,0.3)",
-            borderRadius: "999px",
-            background: "transparent",
-            textDecoration: "none",
-            cursor: "pointer",
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-          <span
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 500,
-              fontSize: "clamp(18px, 3vw, 28px)",
-              textTransform: "uppercase",
-              letterSpacing: "0.15em",
-              color: "#ffffff",
-            }}
-          >
-            What We Do
-          </span>
-        </Link>
       </section>
 
       {/* ===== THREE PHOTOS STRIP ===== */}
