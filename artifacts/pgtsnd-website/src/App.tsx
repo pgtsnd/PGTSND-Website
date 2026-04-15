@@ -31,6 +31,7 @@ import TeamAssets from "@/pages/TeamAssets";
 import TeamCrew from "@/pages/TeamCrew";
 import TeamSettings from "@/pages/TeamSettings";
 import CaseStudyDetail from "@/pages/case-studies/CaseStudyDetail";
+import AlaskaBeringSeaCrabbers from "@/pages/case-studies/AlaskaBeringSeaCrabbers";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import NotFound from "@/pages/not-found";
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/team/crew" component={TeamCrew} />
       <Route path="/team/settings" component={TeamSettings} />
       <Route path="/team" component={TeamLogin} />
+      <Route path="/case-studies/alaska-bering-sea-crabbers" component={AlaskaBeringSeaCrabbers} />
       <Route>
         {() => (
           <>
