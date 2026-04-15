@@ -58,7 +58,7 @@ function ServiceCategory({
           <div
             key={i}
             style={{
-              borderLeft: "2px solid rgba(255,255,255,0.25)",
+              borderLeft: "3px solid rgba(255,255,255,0.5)",
               paddingLeft: "28px",
               paddingTop: "4px",
               paddingBottom: "4px",
@@ -256,6 +256,7 @@ export default function Services() {
           { label: "Design:", desc: "Logos, graphics, icon suites, branded visuals" },
           { label: "Websites:", desc: "Design, build, and launch with integrated visuals" },
         ]}
+        cta={{ href: "/contact", label: "Start A Project" }}
       />
 
       {/* 4. Messaging & Content */}
@@ -311,7 +312,7 @@ export default function Services() {
             <div
               key={i}
               style={{
-                borderLeft: "2px solid rgba(255,255,255,0.25)",
+                borderLeft: "3px solid rgba(255,255,255,0.5)",
                 paddingLeft: "28px",
                 paddingTop: "4px",
                 paddingBottom: "4px",
