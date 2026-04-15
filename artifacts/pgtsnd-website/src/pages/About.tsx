@@ -1,7 +1,47 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import CTAButton from "../components/CTAButton";
 import ScrollBadge from "../components/ScrollBadge";
 import Footer from "../components/Footer";
+
+function CaseStudyCard({ img }: { img: { src: string; alt: string; title: string; subtitle: string } }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <Link href="/case-studies" style={{ textDecoration: "none", display: "block" }}>
+      <div
+        style={{ position: "relative", overflow: "hidden", cursor: "pointer" }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        <img
+          src={img.src}
+          alt={img.alt}
+          style={{ width: "100%", height: "440px", objectFit: "cover", display: "block", transition: "transform 0.4s ease", transform: hovered ? "scale(1.05)" : "scale(1)" }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            opacity: hovered ? 1 : 0,
+            transition: "opacity 0.3s ease",
+          }}
+        >
+          <h3 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "clamp(20px, 2.5vw, 32px)", textTransform: "uppercase", color: "#ffffff", textAlign: "center", lineHeight: 1.1, marginBottom: "16px", padding: "0 20px" }}>
+            {img.title}
+          </h3>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "15px", fontStyle: "italic", color: "rgba(255,255,255,0.9)", textAlign: "center" }}>
+            {img.subtitle}
+          </p>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 const teamMembers = [
   {
@@ -268,15 +308,7 @@ export default function About() {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "40px" }}>
           {caseStudyImages.map((img) => (
-            <Link key={img.title} href="/case-studies" style={{ textDecoration: "none", display: "block" }}>
-              <div style={{ position: "relative", overflow: "hidden" }}>
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  style={{ width: "100%", height: "440px", objectFit: "cover", display: "block" }}
-                />
-              </div>
-            </Link>
+            <CaseStudyCard key={img.title} img={img} />
           ))}
         </div>
 
