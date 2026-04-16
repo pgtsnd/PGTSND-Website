@@ -27,14 +27,14 @@ export default function AlaskaWhitefishTrawlers() {
           </div>
         </section>
 
-        {/* Website Screenshot - 16:9 Scrollable */}
+        {/* Website Screenshot - Wide Scrollable */}
         <section style={{ padding: "0 40px 40px" }}>
           <div style={{
             overflow: "hidden",
             overflowY: "auto",
             borderRadius: "4px",
             border: "2px solid rgba(255,255,255,0.15)",
-            aspectRatio: "16 / 9",
+            aspectRatio: "21 / 9",
             background: "#ffffff",
           }}>
             <img
