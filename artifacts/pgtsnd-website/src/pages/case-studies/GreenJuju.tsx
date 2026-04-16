@@ -616,10 +616,11 @@ function SnackCutoutSlideIn() {
       if (!ref.current) return;
       const rect = ref.current.getBoundingClientRect();
       const viewH = window.innerHeight;
-      // 0 when section top is at viewport bottom, 1 by the time the
-      // section is well into view so the image is fully settled before
-      // it starts scrolling off the top.
-      const p = (1 - rect.top / viewH) * 2.2;
+      // 0 when the section top first enters the viewport, 1 when the
+      // section bottom reaches the viewport bottom (i.e. the footer is
+      // just appearing). This makes the animation play across the whole
+      // scroll-through of the section instead of finishing early.
+      const p = (viewH - rect.top) / rect.height;
       setProgress(Math.max(0, Math.min(1, p)));
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -627,8 +628,10 @@ function SnackCutoutSlideIn() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const translate = (1 - progress) * 40;
-  const brightness = 0.55 + progress * 0.45;
+  // Slide DOWN from above so only the top is briefly clipped during the
+  // animation — the bottom of the image is always fully visible.
+  const translate = -(1 - progress) * 25;
+  const brightness = 0.6 + progress * 0.4;
 
   return (
     <section ref={ref} style={{ padding: "0", overflow: "hidden" }}>
