@@ -135,7 +135,7 @@ export default function AlaskaBeringSeaCrabbers() {
           </div>
         </section>
 
-        {/* Hero Video Placeholder */}
+        {/* Hero Video Placeholder + Testimonial */}
         <section style={{ padding: "0 80px", position: "relative" }}>
           <ScrollBadge position="bottom-left" bottomOffset={-58} />
           <div style={{ width: "100%", aspectRatio: "16 / 9", overflow: "hidden", position: "relative", background: "#111" }}>
@@ -149,33 +149,22 @@ export default function AlaskaBeringSeaCrabbers() {
                 <svg width="22" height="26" viewBox="0 0 18 22" fill="white"><polygon points="0,0 18,11 0,22" /></svg>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* ABSC Logo / Branding Image + Testimonial */}
-        <section style={{ padding: "40px 80px 0", position: "relative" }}>
-          <div style={{ width: "100%", height: "65vh", overflow: "hidden" }}>
-            <img
-              src={"/images/case-studies/absc/ABSC-200.jpg"}
-              alt="Alaska Bering Sea Crabbers"
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
-          </div>
-          <div style={{ maxWidth: "440px", position: "relative", marginTop: "-100px", marginLeft: "40px", zIndex: 2 }}>
-            <div style={{ width: "64px", height: "64px", borderRadius: "50%", overflow: "hidden", marginBottom: "-32px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
-              <img
-                src={"/images/case-studies/absc/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"}
-                alt="Jamie Goen"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </div>
-            <div style={{ border: "2px solid rgba(255,255,255,0.5)", padding: "48px 32px 32px", background: "rgba(0,0,0,0.85)" }}>
-              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, marginBottom: "20px" })}>
-                &ldquo;Bri had an amazing vision for how to tell our story from various angles &mdash; showcasing the true grit, hard work, passion, and resilience that are the heart of our industry.&rdquo;
-              </p>
-              <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
-                Jamie Goen, Executive Director at ABSC
-              </p>
+            <div style={{ position: "absolute", bottom: "40px", left: "60px", maxWidth: "440px", zIndex: 2 }}>
+              <div style={{ width: "64px", height: "64px", borderRadius: "50%", overflow: "hidden", marginBottom: "-32px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
+                <img
+                  src={"/images/case-studies/absc/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"}
+                  alt="Jamie Goen"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              </div>
+              <div style={{ border: "2px solid rgba(255,255,255,0.5)", padding: "48px 32px 32px", background: "rgba(0,0,0,0.85)" }}>
+                <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, marginBottom: "20px" })}>
+                  &ldquo;Bri had an amazing vision for how to tell our story from various angles &mdash; showcasing the true grit, hard work, passion, and resilience that are the heart of our industry.&rdquo;
+                </p>
+                <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
+                  Jamie Goen, Executive Director at ABSC
+                </p>
+              </div>
             </div>
           </div>
         </section>
