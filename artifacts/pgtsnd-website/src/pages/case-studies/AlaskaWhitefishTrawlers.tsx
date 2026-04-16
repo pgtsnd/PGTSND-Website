@@ -28,7 +28,7 @@ export default function AlaskaWhitefishTrawlers() {
         </section>
 
         {/* Website Screenshot - Wide Scrollable + Laptop Overlay */}
-        <section style={{ padding: "0 40px 0", marginBottom: "330px", position: "relative" }}>
+        <section style={{ padding: "0 40px 0", marginBottom: "255px", position: "relative" }}>
           <div style={{ position: "relative" }}>
             <div style={{
               overflow: "hidden",
