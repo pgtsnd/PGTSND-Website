@@ -14,6 +14,9 @@ export interface Organization {
   phone?: string | null;
   website?: string | null;
   notes?: string | null;
+  driveFolderId?: string | null;
+  slackChannelId?: string | null;
+  stripeCustomerId?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

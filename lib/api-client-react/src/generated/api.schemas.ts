@@ -82,6 +82,9 @@ export interface Organization {
   phone?: string | null;
   website?: string | null;
   notes?: string | null;
+  driveFolderId?: string | null;
+  slackChannelId?: string | null;
+  stripeCustomerId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -93,6 +96,9 @@ export interface CreateOrganization {
   phone?: string;
   website?: string;
   notes?: string;
+  driveFolderId?: string;
+  slackChannelId?: string;
+  stripeCustomerId?: string;
 }
 
 export interface UpdateOrganization {
@@ -102,6 +108,9 @@ export interface UpdateOrganization {
   phone?: string;
   website?: string;
   notes?: string;
+  driveFolderId?: string;
+  slackChannelId?: string;
+  stripeCustomerId?: string;
 }
 
 export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus];

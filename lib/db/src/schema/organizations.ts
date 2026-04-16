@@ -13,6 +13,9 @@ export const organizationsTable = pgTable("organizations", {
   phone: varchar("phone", { length: 50 }),
   website: text("website"),
   notes: text("notes"),
+  driveFolderId: text("drive_folder_id"),
+  slackChannelId: varchar("slack_channel_id", { length: 255 }),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()

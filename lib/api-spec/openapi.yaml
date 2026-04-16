@@ -1100,6 +1100,15 @@ components:
         notes:
           type: string
           nullable: true
+        driveFolderId:
+          type: string
+          nullable: true
+        slackChannelId:
+          type: string
+          nullable: true
+        stripeCustomerId:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -1127,6 +1136,12 @@ components:
           type: string
         notes:
           type: string
+        driveFolderId:
+          type: string
+        slackChannelId:
+          type: string
+        stripeCustomerId:
+          type: string
       required:
         - name
 
@@ -1144,6 +1159,12 @@ components:
         website:
           type: string
         notes:
+          type: string
+        driveFolderId:
+          type: string
+        slackChannelId:
+          type: string
+        stripeCustomerId:
           type: string
 
     Project:

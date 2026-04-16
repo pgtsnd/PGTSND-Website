@@ -134,6 +134,9 @@ export const ListOrganizationsResponseItem = zod.object({
   phone: zod.string().nullish(),
   website: zod.string().nullish(),
   notes: zod.string().nullish(),
+  driveFolderId: zod.string().nullish(),
+  slackChannelId: zod.string().nullish(),
+  stripeCustomerId: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -151,6 +154,9 @@ export const CreateOrganizationBody = zod.object({
   phone: zod.string().optional(),
   website: zod.string().optional(),
   notes: zod.string().optional(),
+  driveFolderId: zod.string().optional(),
+  slackChannelId: zod.string().optional(),
+  stripeCustomerId: zod.string().optional(),
 });
 
 /**
@@ -168,6 +174,9 @@ export const GetOrganizationResponse = zod.object({
   phone: zod.string().nullish(),
   website: zod.string().nullish(),
   notes: zod.string().nullish(),
+  driveFolderId: zod.string().nullish(),
+  slackChannelId: zod.string().nullish(),
+  stripeCustomerId: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -186,6 +195,9 @@ export const UpdateOrganizationBody = zod.object({
   phone: zod.string().optional(),
   website: zod.string().optional(),
   notes: zod.string().optional(),
+  driveFolderId: zod.string().optional(),
+  slackChannelId: zod.string().optional(),
+  stripeCustomerId: zod.string().optional(),
 });
 
 export const UpdateOrganizationResponse = zod.object({
@@ -196,6 +208,9 @@ export const UpdateOrganizationResponse = zod.object({
   phone: zod.string().nullish(),
   website: zod.string().nullish(),
   notes: zod.string().nullish(),
+  driveFolderId: zod.string().nullish(),
+  slackChannelId: zod.string().nullish(),
+  stripeCustomerId: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });

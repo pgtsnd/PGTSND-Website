@@ -13,4 +13,7 @@ export interface UpdateOrganization {
   phone?: string;
   website?: string;
   notes?: string;
+  driveFolderId?: string;
+  slackChannelId?: string;
+  stripeCustomerId?: string;
 }
