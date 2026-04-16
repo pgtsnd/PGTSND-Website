@@ -285,8 +285,8 @@ export default function GreenJuju() {
         <section style={{ padding: "0 80px 120px", position: "relative" }}>
           <div style={{ width: "100%", overflow: "hidden", position: "relative" }}>
             <img
-              src={"/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg"}
-              alt="Green Juju Products"
+              src={"/images/case-studies/green-juju/green-juju-snack-cutout-pgtsnd.png"}
+              alt="Green Juju product containers"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
             <div style={{ position: "absolute", bottom: "20px", right: "20px" }}>
