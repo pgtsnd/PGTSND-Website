@@ -603,28 +603,67 @@ function SnackCutoutSlideIn() {
 }
 
 function VeggieScrollBar() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const img = imgRef.current;
+    if (!section || !img) return;
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const rect = section.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const total = vh + rect.height;
+      const scrolled = vh - rect.top;
+      const progress = Math.max(0, Math.min(1, scrolled / total));
+      const maxShift = Math.max(0, img.scrollWidth - section.clientWidth);
+      img.style.transform = `translateX(${-maxShift * progress}px)`;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", update);
+    img.addEventListener("load", update);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", update);
+      img.removeEventListener("load", update);
+    };
+  }, []);
+
   return (
-    <section style={{ padding: "0", position: "relative" }}>
+    <section ref={sectionRef} style={{ padding: "0", position: "relative" }}>
       <div
         style={{
           width: "100%",
-          height: "100vh",
-          overflowX: "auto",
-          overflowY: "hidden",
+          height: "42vh",
+          overflow: "hidden",
           background: "#000",
         }}
       >
         <img
+          ref={imgRef}
           src={"/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg"}
           alt="Green Juju Products"
           style={{
             width: "auto",
             height: "100%",
+            maxWidth: "none",
             display: "block",
+            willChange: "transform",
           }}
         />
       </div>
-      <div style={{ position: "absolute", bottom: "60px", right: "60px" }}>
+      <div style={{ position: "absolute", bottom: "30px", right: "30px" }}>
         <ScrollBadge position="bottom-right" inline />
       </div>
     </section>
