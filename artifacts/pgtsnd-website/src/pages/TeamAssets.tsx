@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
+import { AssetsSkeleton, ErrorState, SkeletonCard } from "../components/TeamLoadingStates";
 import {
   useDashboardData,
   useProjectDeliverables,
@@ -14,6 +15,8 @@ import {
 function useAllDeliverables(projects: Project[]) {
   const results = projects.map((p) => useProjectDeliverables(p.id));
   const isLoading = results.some((r) => r.isLoading);
+  const isError = results.some((r) => r.isError);
+  const refetch = () => results.forEach((r) => r.refetch());
   const deliverables: (Deliverable & { projectName: string })[] = [];
   results.forEach((r, i) => {
     if (r.data) {
@@ -22,25 +25,33 @@ function useAllDeliverables(projects: Project[]) {
       }
     }
   });
-  return { deliverables, isLoading };
+  return { deliverables, isLoading, isError, refetch };
 }
 
 export default function TeamAssets() {
   const { t } = useTheme();
   const { isLoading: authLoading } = useTeamAuth();
-  const { projects, isLoading: dashLoading } = useDashboardData();
+  const { projects, isLoading: dashLoading, isError: dashError, refetch: refetchDash } = useDashboardData();
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
   const activeProjects = projects.filter((p) => p.status !== "archived");
-  const { deliverables, isLoading: delLoading } = useAllDeliverables(activeProjects);
+  const { deliverables, isLoading: delLoading, isError: delError, refetch: refetchDel } = useAllDeliverables(activeProjects);
 
   if (authLoading || dashLoading) {
     return (
       <TeamLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={f({ fontWeight: 400, fontSize: "14px", color: t.textMuted })}>Loading assets...</p>
+        <AssetsSkeleton />
+      </TeamLayout>
+    );
+  }
+
+  if (dashError) {
+    return (
+      <TeamLayout>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState message="We couldn't load your asset library. Please check your connection and try again." onRetry={refetchDash} />
         </div>
       </TeamLayout>
     );
@@ -104,7 +115,13 @@ export default function TeamAssets() {
         </div>
 
         {delLoading ? (
-          <p style={f({ fontWeight: 400, fontSize: "14px", color: t.textMuted })}>Loading deliverables...</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+            <SkeletonCard height="100px" />
+            <SkeletonCard height="100px" />
+            <SkeletonCard height="100px" />
+          </div>
+        ) : delError ? (
+          <ErrorState message="We couldn't load deliverables for some projects." onRetry={refetchDel} />
         ) : filteredDeliverables.length === 0 ? (
           <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", padding: "48px", textAlign: "center" }}>
             <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" })}>No deliverables yet</p>

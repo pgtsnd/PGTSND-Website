@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
+import { ScheduleSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import {
   useDashboardData,
   formatPhase,
@@ -55,7 +56,7 @@ function getPhaseColor(phase: string, t: any) {
 export default function TeamSchedule() {
   const { t } = useTheme();
   const { isLoading: authLoading, userMap } = useTeamAuth();
-  const { projects, isLoading } = useDashboardData();
+  const { projects, isLoading, isError, refetch } = useDashboardData();
   const [view, setView] = useState<"timeline" | "upcoming">("timeline");
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
@@ -254,8 +255,16 @@ export default function TeamSchedule() {
   if (authLoading || isLoading) {
     return (
       <TeamLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={f({ fontWeight: 400, fontSize: "14px", color: t.textMuted })}>Loading schedule...</p>
+        <ScheduleSkeleton />
+      </TeamLayout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <TeamLayout>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState message="We couldn't load the schedule. Please check your connection and try again." onRetry={refetch} />
         </div>
       </TeamLayout>
     );

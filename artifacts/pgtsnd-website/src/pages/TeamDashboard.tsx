@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
+import { DashboardSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import {
   useDashboardData,
   formatPhase,
@@ -340,14 +341,22 @@ function ScheduleSection({ projects }: { projects: Project[] }) {
 export default function TeamDashboard() {
   const { t } = useTheme();
   const { currentUser, isLoading: authLoading } = useTeamAuth();
-  const { projects, users, isLoading } = useDashboardData();
+  const { projects, users, isLoading, isError, refetch } = useDashboardData();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
   if (authLoading || isLoading) {
     return (
       <TeamLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={f({ fontWeight: 400, fontSize: "14px", color: t.textMuted })}>Loading dashboard...</p>
+        <DashboardSkeleton />
+      </TeamLayout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <TeamLayout>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState message="We couldn't load your dashboard data. Please check your connection and try again." onRetry={refetch} />
         </div>
       </TeamLayout>
     );

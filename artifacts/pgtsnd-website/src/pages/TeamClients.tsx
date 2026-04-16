@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
+import { ClientsSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import {
   useDashboardData,
   formatStatus,
@@ -67,7 +68,7 @@ function fmtUsd(amount: number) {
 export default function TeamClients() {
   const { t } = useTheme();
   const { isLoading: authLoading, allUsers } = useTeamAuth();
-  const { projects, organizations, isLoading } = useDashboardData();
+  const { projects, organizations, isLoading, isError, refetch } = useDashboardData();
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
   const [clientTab, setClientTab] = useState<ClientTab>("overview");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -189,8 +190,16 @@ export default function TeamClients() {
   if (authLoading || isLoading) {
     return (
       <TeamLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={f({ fontWeight: 400, fontSize: "14px", color: t.textMuted })}>Loading clients...</p>
+        <ClientsSkeleton />
+      </TeamLayout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <TeamLayout>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState message="We couldn't load your client list. Please check your connection and try again." onRetry={refetch} />
         </div>
       </TeamLayout>
     );

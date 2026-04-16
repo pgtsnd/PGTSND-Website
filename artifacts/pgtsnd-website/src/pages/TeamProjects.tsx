@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
+import { ProjectsSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import {
   useDashboardData,
   formatPhase,
@@ -23,15 +24,23 @@ function mapStatusToFilter(status: string): FilterKey {
 export default function TeamProjects() {
   const { t } = useTheme();
   const { isLoading: authLoading } = useTeamAuth();
-  const { projects, isLoading } = useDashboardData();
+  const { projects, isLoading, isError, refetch } = useDashboardData();
   const [filter, setFilter] = useState<FilterKey>("all");
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
   if (authLoading || isLoading) {
     return (
       <TeamLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={f({ fontWeight: 400, fontSize: "14px", color: t.textMuted })}>Loading projects...</p>
+        <ProjectsSkeleton />
+      </TeamLayout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <TeamLayout>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState message="We couldn't load your projects. Please check your connection and try again." onRetry={refetch} />
         </div>
       </TeamLayout>
     );

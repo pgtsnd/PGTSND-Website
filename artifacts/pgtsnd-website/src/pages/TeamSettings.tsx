@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
+import { SettingsSkeleton, ErrorState } from "../components/TeamLoadingStates";
+import { useToast } from "../components/Toast";
 import { useUpdateProfile } from "../hooks/useTeamData";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -23,6 +25,7 @@ export default function TeamSettings() {
   const [saved, setSaved] = useState(false);
   const updateProfile = useUpdateProfile();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
   useEffect(() => {
@@ -42,7 +45,11 @@ export default function TeamSettings() {
           setSaved(true);
           queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
           queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+          toast("Profile updated", "success");
           setTimeout(() => setSaved(false), 2000);
+        },
+        onError: () => {
+          toast("Failed to update profile", "error");
         },
       },
     );
@@ -57,9 +64,7 @@ export default function TeamSettings() {
   if (authLoading) {
     return (
       <TeamLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={f({ fontWeight: 400, fontSize: "14px", color: t.textMuted })}>Loading settings...</p>
-        </div>
+        <SettingsSkeleton />
       </TeamLayout>
     );
   }
@@ -208,7 +213,8 @@ const integrationMeta: Record<string, { label: string; desc: string; fields: { k
 };
 
 function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
-  const { data: integrations, isLoading } = useIntegrations();
+  const { toast } = useToast();
+  const { data: integrations, isLoading, isError, refetch } = useIntegrations();
   const { data: vault } = useVaultStatus();
   const updateMutation = useUpdateIntegration();
   const disconnectMutation = useDisconnectIntegration();
@@ -238,6 +244,10 @@ function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
           setSaveMsg(type);
           setTimeout(() => setSaveMsg(null), 2000);
           setFormData((prev) => ({ ...prev, [type]: {} }));
+          toast(`${integrationMeta[type]?.label ?? type} connected`, "success");
+        },
+        onError: () => {
+          toast(`Failed to update ${integrationMeta[type]?.label ?? type}`, "error");
         },
       },
     );
@@ -247,6 +257,10 @@ function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
     disconnectMutation.mutate(type, {
       onSuccess: () => {
         setExpandedType(null);
+        toast(`${integrationMeta[type]?.label ?? type} disconnected`, "info");
+      },
+      onError: () => {
+        toast(`Failed to disconnect ${integrationMeta[type]?.label ?? type}`, "error");
       },
     });
   };
@@ -256,6 +270,16 @@ function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
       <div>
         <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Integrations</h2>
         <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>Loading...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div>
+        <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Integrations</h2>
+        <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "24px" })}>Connect external services to power billing, file storage, messaging, and contracts.</p>
+        <ErrorState message="Couldn't load integrations. Please try again." onRetry={refetch} />
       </div>
     );
   }

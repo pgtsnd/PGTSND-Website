@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { ThemeProvider } from "@/components/ThemeContext";
+import { ToastProvider } from "@/components/Toast";
 import { AuthProvider } from "@/lib/auth";
 import { TeamAuthProvider } from "@/contexts/TeamAuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -240,12 +241,14 @@ function App() {
   return (
     <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
       <ThemeProvider>
-        <AuthProvider>
-          <TeamAuthProvider>
-            <ScrollToTop />
-            <Router />
-          </TeamAuthProvider>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <TeamAuthProvider>
+              <ScrollToTop />
+              <Router />
+            </TeamAuthProvider>
+          </AuthProvider>
+        </ToastProvider>
       </ThemeProvider>
     </WouterRouter>
   );

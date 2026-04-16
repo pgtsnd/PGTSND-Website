@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
+import { CrewSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import {
   useDashboardData,
   type User,
@@ -57,7 +58,7 @@ const emptyForm: NewMemberForm = {
 export default function TeamCrew() {
   const { t } = useTheme();
   const { isLoading: authLoading, allUsers } = useTeamAuth();
-  const { projects, isLoading } = useDashboardData();
+  const { projects, isLoading, isError, refetch } = useDashboardData();
   const [expandedMember, setExpandedMember] = useState<string | null>(null);
   const [crewTab, setCrewTab] = useState<CrewTab>("profile");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -141,8 +142,16 @@ export default function TeamCrew() {
   if (authLoading || isLoading) {
     return (
       <TeamLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={f({ fontWeight: 400, fontSize: "14px", color: t.textMuted })}>Loading crew...</p>
+        <CrewSkeleton />
+      </TeamLayout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <TeamLayout>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState message="We couldn't load the crew list. Please check your connection and try again." onRetry={refetch} />
         </div>
       </TeamLayout>
     );

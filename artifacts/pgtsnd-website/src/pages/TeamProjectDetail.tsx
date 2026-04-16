@@ -4,6 +4,8 @@ import { Link, useRoute } from "wouter";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
+import { ProjectDetailSkeleton, ErrorState } from "../components/TeamLoadingStates";
+import { useToast } from "../components/Toast";
 import VideoPlayer from "../components/VideoPlayer";
 import VideoReviewPanel from "../components/VideoReviewPanel";
 import type { VideoComment } from "../components/VideoReviewPanel";
@@ -33,7 +35,7 @@ export default function TeamProjectDetail() {
   const [headerImageUrl, setHeaderImageUrl] = useState("");
   const updateProject = useUpdateProject();
 
-  const { project, members, tasks, deliverables, contracts, isLoading } =
+  const { project, members, tasks, deliverables, contracts, isLoading, isError, refetch } =
     useProjectWithDetails(projectId);
 
   useEffect(() => {
@@ -45,9 +47,20 @@ export default function TeamProjectDetail() {
   if (authLoading || isLoading) {
     return (
       <TeamLayout>
+        <ProjectDetailSkeleton />
+      </TeamLayout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <TeamLayout>
         <div style={{ padding: "40px 48px" }}>
-          <Link href="/team/projects" style={f({ fontWeight: 500, fontSize: "12px", color: t.textMuted, textDecoration: "none" })}>← Back to Projects</Link>
-          <p style={f({ fontWeight: 400, fontSize: "14px", color: t.textMuted, marginTop: "24px" })}>Loading project...</p>
+          <Link href="/team/projects" style={f({ fontWeight: 500, fontSize: "12px", color: t.textMuted, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "20px" })}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
+            Projects
+          </Link>
+          <ErrorState message="We couldn't load this project. Please check your connection and try again." onRetry={refetch} />
         </div>
       </TeamLayout>
     );
@@ -1110,6 +1123,7 @@ function AssetsTab({ projectId, projectName }: { projectId: string; projectName:
 
 function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[]; projectId: string }) {
   const { t } = useTheme();
+  const { toast } = useToast();
   const [selectedDeliverable, setSelectedDeliverable] = useState<Deliverable | null>(null);
   const [comments, setComments] = useState<VideoCommentWithReplies[]>([]);
   const [activeTimestamp, setActiveTimestamp] = useState<number | null>(null);
@@ -1178,8 +1192,11 @@ function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[
       await api.submitForReview(selectedDeliverable.id);
       setActionMsg("Pushed for client review!");
       setSelectedDeliverable({ ...selectedDeliverable, status: "in_review" });
+      toast("Deliverable pushed for client review", "success");
     } catch (err: unknown) {
-      setActionMsg(`Error: ${err instanceof Error ? err.message : "Failed"}`);
+      const msg = err instanceof Error ? err.message : "Failed";
+      setActionMsg(`Error: ${msg}`);
+      toast(`Failed to push for review: ${msg}`, "error");
     }
     setSubmittingAction(false);
   };
@@ -1191,8 +1208,11 @@ function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[
       const link = await api.createReviewLink(selectedDeliverable.id, 30);
       setReviewLinks((prev) => [...prev, link]);
       setShowShareLink(true);
+      toast("Share link created", "success");
     } catch (err: unknown) {
-      setActionMsg(`Error: ${err instanceof Error ? err.message : "Failed"}`);
+      const msg = err instanceof Error ? err.message : "Failed";
+      setActionMsg(`Error: ${msg}`);
+      toast(`Failed to create share link: ${msg}`, "error");
     }
     setSubmittingAction(false);
   };

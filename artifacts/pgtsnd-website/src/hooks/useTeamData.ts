@@ -108,6 +108,17 @@ export function useProjectWithDetails(projectId: string) {
     };
   });
 
+  const isError = project.isError || members.isError || tasks.isError || deliverables.isError || contracts.isError;
+  const error = project.error || members.error || tasks.error || deliverables.error || contracts.error;
+
+  const refetch = () => {
+    project.refetch();
+    members.refetch();
+    tasks.refetch();
+    deliverables.refetch();
+    contracts.refetch();
+  };
+
   return {
     project: project.data,
     members: enrichedMembers,
@@ -115,6 +126,9 @@ export function useProjectWithDetails(projectId: string) {
     deliverables: deliverables.data ?? [],
     contracts: contracts.data ?? [],
     isLoading: project.isLoading || members.isLoading || tasks.isLoading,
+    isError,
+    error,
+    refetch,
   };
 }
 
@@ -136,6 +150,15 @@ export function useDashboardData() {
     organizationName: p.organizationId ? orgMap.get(p.organizationId)?.name ?? "" : "",
   }));
 
+  const isError = projects.isError || orgs.isError || users.isError;
+  const error = projects.error || orgs.error || users.error;
+
+  const refetch = () => {
+    projects.refetch();
+    orgs.refetch();
+    users.refetch();
+  };
+
   return {
     projects: enrichedProjects,
     organizations: orgs.data ?? [],
@@ -143,6 +166,9 @@ export function useDashboardData() {
     orgMap,
     userMap,
     isLoading: projects.isLoading || orgs.isLoading || users.isLoading,
+    isError,
+    error,
+    refetch,
   };
 }
 

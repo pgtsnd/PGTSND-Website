@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
+import { MessagesSkeleton, ErrorState, SkeletonCard } from "../components/TeamLoadingStates";
+import { useToast } from "../components/Toast";
 import {
   useProjects,
   useProjectMessages,
@@ -15,7 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 export default function TeamMessages() {
   const { t } = useTheme();
   const { currentUser, userMap, isLoading: authLoading } = useTeamAuth();
-  const { data: projects, isLoading: projLoading } = useProjects();
+  const { data: projects, isLoading: projLoading, isError: projError, refetch: refetchProjects } = useProjects();
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [newMessage, setNewMessage] = useState("");
   const [showCompose, setShowCompose] = useState(false);
@@ -23,6 +25,7 @@ export default function TeamMessages() {
   const [searchFilter, setSearchFilter] = useState("");
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
   const activeProjects = (projects ?? []).filter((p: Project) => p.status !== "archived");
@@ -33,7 +36,7 @@ export default function TeamMessages() {
     }
   }, [activeProjects, selectedProjectId]);
 
-  const { data: messages, isLoading: msgsLoading } = useProjectMessages(selectedProjectId);
+  const { data: messages, isLoading: msgsLoading, isError: msgsError, refetch: refetchMsgs } = useProjectMessages(selectedProjectId);
   const sendMessageMutation = useSendMessage();
 
   const sortedMessages = [...(messages ?? [])].sort(
@@ -52,6 +55,10 @@ export default function TeamMessages() {
         onSuccess: () => {
           setNewMessage("");
           queryClient.invalidateQueries({ queryKey: [`/api/projects/${selectedProjectId}/messages`] });
+          toast("Message sent", "success");
+        },
+        onError: () => {
+          toast("Failed to send message", "error");
         },
       },
     );
@@ -66,8 +73,16 @@ export default function TeamMessages() {
   if (authLoading || projLoading) {
     return (
       <TeamLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={f({ fontWeight: 400, fontSize: "14px", color: t.textMuted })}>Loading messages...</p>
+        <MessagesSkeleton />
+      </TeamLayout>
+    );
+  }
+
+  if (projError) {
+    return (
+      <TeamLayout>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState message="We couldn't load your conversations. Please check your connection and try again." onRetry={refetchProjects} />
         </div>
       </TeamLayout>
     );
@@ -164,7 +179,21 @@ export default function TeamMessages() {
 
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
             {msgsLoading ? (
-              <p style={f({ fontWeight: 400, fontSize: "13px", color: t.textMuted })}>Loading messages...</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", justifyContent: "flex-end", flex: 1 }}>
+                <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                  <SkeletonCard height="52px" />
+                </div>
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <div style={{ width: "40%" }}><SkeletonCard height="48px" /></div>
+                </div>
+                <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                  <div style={{ width: "55%" }}><SkeletonCard height="52px" /></div>
+                </div>
+              </div>
+            ) : msgsError ? (
+              <div style={{ padding: "40px 0" }}>
+                <ErrorState message="Couldn't load messages for this project." onRetry={refetchMsgs} />
+              </div>
             ) : sortedMessages.length === 0 ? (
               <div style={{ textAlign: "center", padding: "60px 0" }}>
                 <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" })}>No messages yet</p>
