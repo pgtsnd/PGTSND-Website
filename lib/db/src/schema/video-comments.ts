@@ -1,0 +1,73 @@
+import {
+  pgTable,
+  text,
+  timestamp,
+  real,
+  index,
+} from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod/v4";
+import { randomUUID } from "crypto";
+import { deliverablesTable } from "./deliverables";
+import { usersTable } from "./users";
+
+export const videoCommentsTable = pgTable(
+  "video_comments",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => randomUUID()),
+    deliverableId: text("deliverable_id")
+      .notNull()
+      .references(() => deliverablesTable.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .references(() => usersTable.id),
+    authorName: text("author_name").notNull(),
+    timestampSeconds: real("timestamp_seconds").notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("video_comments_deliverable_idx").on(table.deliverableId),
+    index("video_comments_timestamp_idx").on(table.deliverableId, table.timestampSeconds),
+  ],
+);
+
+export const videoCommentRepliesTable = pgTable(
+  "video_comment_replies",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => randomUUID()),
+    commentId: text("comment_id")
+      .notNull()
+      .references(() => videoCommentsTable.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .references(() => usersTable.id),
+    authorName: text("author_name").notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("video_comment_replies_comment_idx").on(table.commentId),
+  ],
+);
+
+export const insertVideoCommentSchema = createInsertSchema(videoCommentsTable).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const selectVideoCommentSchema = createSelectSchema(videoCommentsTable);
+
+export const insertVideoCommentReplySchema = createInsertSchema(videoCommentRepliesTable).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const selectVideoCommentReplySchema = createSelectSchema(videoCommentRepliesTable);
+
+export type VideoComment = typeof videoCommentsTable.$inferSelect;
+export type InsertVideoComment = z.infer<typeof insertVideoCommentSchema>;
+export type VideoCommentReply = typeof videoCommentRepliesTable.$inferSelect;
+export type InsertVideoCommentReply = z.infer<typeof insertVideoCommentReplySchema>;

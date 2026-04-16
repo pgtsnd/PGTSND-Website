@@ -151,6 +151,40 @@ export interface UserProfile {
   organizationName: string | null;
 }
 
+export interface VideoCommentReplyData {
+  id: string;
+  commentId: string;
+  authorId: string | null;
+  authorName: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface VideoCommentWithReplies {
+  id: string;
+  deliverableId: string;
+  authorId: string | null;
+  authorName: string;
+  timestampSeconds: number;
+  content: string;
+  createdAt: string;
+  replies: VideoCommentReplyData[];
+}
+
+export interface ReviewLinkData {
+  id: string;
+  deliverableId: string;
+  token: string;
+  createdBy: string;
+  expiresAt: string | null;
+  createdAt: string;
+}
+
+export interface PublicReviewData {
+  deliverable: Deliverable;
+  comments: VideoCommentWithReplies[];
+}
+
 class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -241,4 +275,48 @@ export const api = {
 
   getProjectMessages: (projectId: string) =>
     apiFetch<Message[]>(`/projects/${projectId}/messages`),
+
+  getVideoComments: (deliverableId: string) =>
+    apiFetch<VideoCommentWithReplies[]>(`/deliverables/${deliverableId}/comments`),
+
+  addVideoComment: (deliverableId: string, timestampSeconds: number, content: string) =>
+    apiFetch<VideoCommentWithReplies>(`/deliverables/${deliverableId}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ timestampSeconds, content }),
+    }),
+
+  addVideoCommentReply: (commentId: string, content: string) =>
+    apiFetch<VideoCommentReplyData>(`/comments/${commentId}/replies`, {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    }),
+
+  createReviewLink: (deliverableId: string, expiresInDays?: number) =>
+    apiFetch<ReviewLinkData>(`/deliverables/${deliverableId}/review-links`, {
+      method: "POST",
+      body: JSON.stringify({ expiresInDays }),
+    }),
+
+  getReviewLinks: (deliverableId: string) =>
+    apiFetch<ReviewLinkData[]>(`/deliverables/${deliverableId}/review-links`),
+
+  getPublicReview: (token: string) =>
+    apiFetch<PublicReviewData>(`/public/review/${token}`),
+
+  addPublicComment: (token: string, timestampSeconds: number, content: string, authorName: string) =>
+    apiFetch<VideoCommentWithReplies>(`/public/review/${token}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ timestampSeconds, content, authorName }),
+    }),
+
+  addPublicCommentReply: (token: string, commentId: string, content: string, authorName: string) =>
+    apiFetch<VideoCommentReplyData>(`/public/review/${token}/comments/${commentId}/replies`, {
+      method: "POST",
+      body: JSON.stringify({ content, authorName }),
+    }),
+
+  submitForReview: (deliverableId: string) =>
+    apiFetch<Deliverable>(`/deliverables/${deliverableId}/submit-for-review`, {
+      method: "POST",
+    }),
 };

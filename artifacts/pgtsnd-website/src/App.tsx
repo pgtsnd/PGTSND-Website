@@ -44,6 +44,7 @@ import NetYourProblem from "@/pages/case-studies/NetYourProblem";
 import VallationOuterwear from "@/pages/case-studies/VallationOuterwear";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
+import SharedReview from "@/pages/SharedReview";
 import NotFound from "@/pages/not-found";
 
 function ScrollToTop() {
@@ -60,6 +61,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/auth/verify" component={AuthVerify} />
+      <Route path="/review/:token" component={SharedReview} />
 
       <Route path="/client-hub/dashboard">
         {() => (

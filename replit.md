@@ -42,6 +42,9 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
 - **review_reminders** — Tracks automated review reminders per deliverable (day 3, 5, 7+ daily), FK to deliverables
 - **invoices** — Billing invoices linked to projects with Stripe fields: `stripe_invoice_id`, `stripe_payment_intent_id`, `stripe_hosted_url`, `stripe_pdf_url`. Status: draft, sent, paid, overdue, void
 - **integration_settings** — External service configurations (Stripe, Google Drive, Slack, DocuSign) with encrypted config storage. Type enum: stripe, google_drive, slack, docusign
+- **video_comments** — Timestamped comments on deliverables: authorId, authorName, timestampSeconds, content. FK to deliverables and users
+- **video_comment_replies** — Threaded replies on video comments: authorId, authorName, content. FK to video_comments
+- **review_links** — Shareable review URLs with unique token, optional expiration. FK to deliverables and users
 
 ## API Architecture
 
@@ -72,7 +75,7 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
   - **Shot List** (`ProjectShotList.tsx`): `/client-hub/projects/:id/shotlist` — detailed scene-grouped table of all planned shots with type (Hero/B-Roll/Aerial/Macro/Slo-Mo/Interview), lens, camera movement, captured checkmarks, scene/type filters, progress bar
   - **Client Notes** (`ProjectNotes.tsx`): `/client-hub/projects/:id/notes` — pinned important notes + chronological timeline, client vs team attribution, tagged categories
   - **Assets** (`ClientAssets.tsx`): Shows only approved deliverables as asset cards, filterable by project, with type labels and version info
-  - **Video Review** (`ClientVideoReview.tsx`): Review interface with deliverable selector, approve/request-revision workflow buttons, feedback history, status labels
+  - **Video Review** (`ClientVideoReview.tsx`): Full video review system with custom HTML5 video player, timestamped comments (markers on timeline, click-to-jump), threaded replies, version selector, approve/request-revision workflow
   - **Contracts** (`ClientContracts.tsx`): DocuSign links for pending signatures; filterable (All/Pending/Signed); expandable details with project, type, amount, dates
   - **Billing** (`ClientBilling.tsx`): Derived from contract data — summary cards (Total Paid, Outstanding, Total Contracts), contract summary table, Stripe integration placeholder
 - **Theme System** (`ThemeContext.tsx`): Dark/light mode toggle in sidebar; dark mode uses `#111114` gray (not pure black), light mode uses `#f4f4f6`; all portal pages consume `useTheme()` with `t.*` token variables for backgrounds, text, borders, cards, modals
@@ -83,7 +86,7 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
   - **Hooks**: `useTeamData.ts` exports hooks (`useProjects`, `useOrganizations`, `useUsers`, `useProjectWithDetails`, `useDashboardData`, etc.) — all gated with `enabled: !!userId` from `useTeamAuth()`
   - **Owner Dashboard** (`TeamDashboard.tsx`): Personalized welcome, Pipeline phase counts, Crew Status, Revenue Snapshot — all from real project/user data
   - **Projects** (`TeamProjects.tsx`): Real project cards with status filters, progress bars, organization names
-  - **Project Workspace** (`TeamProjectDetail.tsx`): `/team/projects/:id` — 6-tab workspace with real tasks, deliverables, contracts, members
+  - **Project Workspace** (`TeamProjectDetail.tsx`): `/team/projects/:id` — 6-tab workspace with real tasks, deliverables, contracts, members; Review tab has video player with timestamped comments, push-to-client, shareable review links
   - **Clients** (`TeamClients.tsx`): `/team/clients` — Organization cards with project counts, revenue, expandable project lists
   - **Messages** (`TeamMessages.tsx`): `/team/messages` — Real messages grouped by project, send new messages via API
   - **Schedule** (`TeamSchedule.tsx`): `/team/schedule` — Timeline and Upcoming views from real project dates

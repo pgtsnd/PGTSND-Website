@@ -11,12 +11,15 @@ import messagesRouter from "./messages";
 import contractsRouter from "./contracts";
 import clientRouter from "./client";
 import integrationsRouter from "./integrations";
+import videoReviewRouter from "./video-review";
+import publicReviewRouter from "./public-review";
 import { authMiddleware } from "../middleware/auth";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(authRouter);
+router.use(publicReviewRouter);
 
 router.post("/webhooks/stripe", (req, res, next) => {
   req.url = "/webhooks/stripe";
@@ -38,5 +41,6 @@ router.use(messagesRouter);
 router.use(contractsRouter);
 router.use(clientRouter);
 router.use(integrationsRouter);
+router.use(videoReviewRouter);
 
 export default router;

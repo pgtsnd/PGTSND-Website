@@ -1,29 +1,38 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
-import { api, type Deliverable, type Review } from "../lib/api";
+import VideoPlayer from "../components/VideoPlayer";
+import VideoReviewPanel from "../components/VideoReviewPanel";
+import type { VideoComment } from "../components/VideoReviewPanel";
+import { api, type Deliverable, type VideoCommentWithReplies } from "../lib/api";
 
 export default function ClientVideoReview() {
   const { t } = useTheme();
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [selectedDeliverable, setSelectedDeliverable] = useState<Deliverable | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [comments, setComments] = useState<VideoCommentWithReplies[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [activeTimestamp, setActiveTimestamp] = useState<number | null>(null);
+  const [seekTo, setSeekTo] = useState<number | null>(null);
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
 
   useEffect(() => {
     api
       .getClientDeliverables()
       .then((data) => {
-        const pendingOrReview = data.filter(
+        const videoDeliverables = data.filter((d) => d.type === "video");
+        const pendingOrReview = videoDeliverables.filter(
           (d) => d.status === "in_review" || d.status === "pending",
         );
-        const allDeliverables = [...pendingOrReview, ...data.filter(
-          (d) => d.status !== "in_review" && d.status !== "pending",
-        )];
+        const allDeliverables = [
+          ...pendingOrReview,
+          ...videoDeliverables.filter(
+            (d) => d.status !== "in_review" && d.status !== "pending",
+          ),
+        ];
         setDeliverables(allDeliverables);
         if (pendingOrReview.length > 0) {
           setSelectedDeliverable(pendingOrReview[0]);
@@ -31,67 +40,101 @@ export default function ClientVideoReview() {
           setSelectedDeliverable(allDeliverables[0]);
         }
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
+      .catch((err: unknown) =>
+        setError(err instanceof Error ? err.message : "Failed to load"),
+      )
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     if (!selectedDeliverable) return;
     api
-      .getDeliverableReviews(selectedDeliverable.id)
-      .then(setReviews)
-      .catch(() => setReviews([]));
+      .getVideoComments(selectedDeliverable.id)
+      .then(setComments)
+      .catch(() => setComments([]));
   }, [selectedDeliverable?.id]);
 
   const handleApprove = async () => {
     if (!selectedDeliverable) return;
     setSubmitting(true);
     try {
-      await api.approveDeliverable(selectedDeliverable.id, comment || undefined);
+      await api.approveDeliverable(selectedDeliverable.id);
       setActionMessage("Approved successfully!");
       const updated = { ...selectedDeliverable, status: "approved" };
       setSelectedDeliverable(updated);
       setDeliverables((prev) =>
-        prev.map((d) => d.id === selectedDeliverable.id ? updated : d),
+        prev.map((d) => (d.id === selectedDeliverable.id ? updated : d)),
       );
-      setComment("");
     } catch (err: unknown) {
-      setActionMessage(`Error: ${err instanceof Error ? err.message : "Failed"}`);
+      setActionMessage(
+        `Error: ${err instanceof Error ? err.message : "Failed"}`,
+      );
     }
     setSubmitting(false);
   };
 
   const handleRequestRevision = async () => {
-    if (!selectedDeliverable || !comment.trim()) {
-      setActionMessage("Please provide feedback for the revision request.");
-      return;
-    }
+    if (!selectedDeliverable) return;
+    const revisionComment = comments.length > 0
+      ? "Revision requested - see timestamped comments for details"
+      : "Revision requested";
     setSubmitting(true);
     try {
-      await api.requestRevision(selectedDeliverable.id, comment);
+      await api.requestRevision(selectedDeliverable.id, revisionComment);
       setActionMessage("Revision requested.");
       const updated = { ...selectedDeliverable, status: "revision_requested" };
       setSelectedDeliverable(updated);
       setDeliverables((prev) =>
-        prev.map((d) => d.id === selectedDeliverable.id ? updated : d),
+        prev.map((d) => (d.id === selectedDeliverable.id ? updated : d)),
       );
-      setComment("");
     } catch (err: unknown) {
-      setActionMessage(`Error: ${err instanceof Error ? err.message : "Failed"}`);
+      setActionMessage(
+        `Error: ${err instanceof Error ? err.message : "Failed"}`,
+      );
     }
     setSubmitting(false);
   };
 
-  function timeAgo(date: string | Date) {
-    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
-    if (seconds < 60) return "just now";
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes} min ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
-  }
+  const handleAddComment = useCallback(
+    async (timestampSeconds: number, content: string) => {
+      if (!selectedDeliverable) return;
+      const comment = await api.addVideoComment(
+        selectedDeliverable.id,
+        timestampSeconds,
+        content,
+      );
+      setComments((prev) => [...prev, comment].sort((a, b) => a.timestampSeconds - b.timestampSeconds));
+      setActiveTimestamp(null);
+    },
+    [selectedDeliverable],
+  );
+
+  const handleAddReply = useCallback(
+    async (commentId: string, content: string) => {
+      const reply = await api.addVideoCommentReply(commentId, content);
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId ? { ...c, replies: [...c.replies, reply] } : c,
+        ),
+      );
+    },
+    [],
+  );
+
+  const handleCommentClick = useCallback((comment: VideoComment) => {
+    setSeekTo(comment.timestampSeconds);
+    setTimeout(() => setSeekTo(null), 100);
+  }, []);
+
+  const handleMarkerClick = useCallback(
+    (id: string) => {
+      const comment = comments.find((c) => c.id === id);
+      if (comment) {
+        handleCommentClick(comment);
+      }
+    },
+    [comments, handleCommentClick],
+  );
 
   const statusLabel = (s: string) => {
     const map: Record<string, string> = {
@@ -111,11 +154,28 @@ export default function ClientVideoReview() {
     return t.textMuted;
   };
 
+  const versions = selectedDeliverable
+    ? deliverables
+        .filter(
+          (d) =>
+            d.title === selectedDeliverable.title &&
+            d.projectId === selectedDeliverable.projectId,
+        )
+        .sort((a, b) => (a.version ?? "").localeCompare(b.version ?? ""))
+    : [];
+
   if (loading) {
     return (
       <ClientLayout>
         <div style={{ padding: "32px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: t.textTertiary }}>Loading...</p>
+          <p
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              color: t.textTertiary,
+            }}
+          >
+            Loading...
+          </p>
         </div>
       </ClientLayout>
     );
@@ -125,7 +185,14 @@ export default function ClientVideoReview() {
     return (
       <ClientLayout>
         <div style={{ padding: "32px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: "rgba(255,100,100,0.8)" }}>{error}</p>
+          <p
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              color: "rgba(255,100,100,0.8)",
+            }}
+          >
+            {error}
+          </p>
         </div>
       </ClientLayout>
     );
@@ -135,190 +202,328 @@ export default function ClientVideoReview() {
     return (
       <ClientLayout>
         <div style={{ padding: "32px 48px" }}>
-          <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "24px", color: t.text, marginBottom: "16px" }}>Review</h1>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "14px", color: t.textMuted }}>
-            No deliverables to review yet. Your team will push content here when it's ready.
+          <h1
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 800,
+              fontSize: "24px",
+              color: t.text,
+              marginBottom: "16px",
+            }}
+          >
+            Review
+          </h1>
+          <p
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 400,
+              fontSize: "14px",
+              color: t.textMuted,
+            }}
+          >
+            No video deliverables to review yet. Your team will push content
+            here when it's ready.
           </p>
         </div>
       </ClientLayout>
     );
   }
 
-  const isPending = selectedDeliverable && (selectedDeliverable.status === "in_review" || selectedDeliverable.status === "pending");
+  const isPending =
+    selectedDeliverable &&
+    (selectedDeliverable.status === "in_review" ||
+      selectedDeliverable.status === "pending");
 
   return (
     <ClientLayout>
       <div style={{ padding: "32px 48px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "24px",
+          }}
+        >
           <div>
-            <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "4px" }}>
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 400,
+                fontSize: "12px",
+                color: t.textMuted,
+                marginBottom: "4px",
+              }}
+            >
               {selectedDeliverable?.projectName}
             </p>
-            <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "24px", color: t.text }}>Review</h1>
+            <h1
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 800,
+                fontSize: "24px",
+                color: t.text,
+              }}
+            >
+              Video Review
+            </h1>
           </div>
           {isPending && (
             <div style={{ display: "flex", gap: "10px" }}>
               <button
                 onClick={handleRequestRevision}
                 disabled={submitting}
-                style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "12px", color: t.text, background: "transparent", border: `1px solid ${t.border}`, borderRadius: "8px", padding: "10px 20px", cursor: "pointer", opacity: submitting ? 0.5 : 1 }}
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "12px",
+                  color: t.text,
+                  background: "transparent",
+                  border: `1px solid ${t.border}`,
+                  borderRadius: "8px",
+                  padding: "10px 20px",
+                  cursor: "pointer",
+                  opacity: submitting ? 0.5 : 1,
+                }}
               >
                 Request Changes
               </button>
               <button
                 onClick={handleApprove}
                 disabled={submitting}
-                style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "12px", color: "#000000", background: "#60d060", border: "none", borderRadius: "8px", padding: "10px 20px", cursor: "pointer", opacity: submitting ? 0.5 : 1 }}
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "12px",
+                  color: "#000000",
+                  background: "#60d060",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "10px 20px",
+                  cursor: "pointer",
+                  opacity: submitting ? 0.5 : 1,
+                }}
               >
-                Approve This Draft
+                Approve
               </button>
             </div>
           )}
         </div>
 
         {actionMessage && (
-          <div style={{ padding: "12px 16px", background: actionMessage.startsWith("Error") ? "rgba(255,100,100,0.08)" : "rgba(96,208,96,0.08)", border: `1px solid ${actionMessage.startsWith("Error") ? "rgba(255,100,100,0.2)" : "rgba(96,208,96,0.2)"}`, borderRadius: "8px", marginBottom: "16px" }}>
-            <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "13px", color: actionMessage.startsWith("Error") ? "rgba(255,100,100,0.8)" : "rgba(96,208,96,0.8)" }}>{actionMessage}</p>
+          <div
+            style={{
+              padding: "12px 16px",
+              background: actionMessage.startsWith("Error")
+                ? "rgba(255,100,100,0.08)"
+                : "rgba(96,208,96,0.08)",
+              border: `1px solid ${actionMessage.startsWith("Error") ? "rgba(255,100,100,0.2)" : "rgba(96,208,96,0.2)"}`,
+              borderRadius: "8px",
+              marginBottom: "16px",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 500,
+                fontSize: "13px",
+                color: actionMessage.startsWith("Error")
+                  ? "rgba(255,100,100,0.8)"
+                  : "rgba(96,208,96,0.8)",
+              }}
+            >
+              {actionMessage}
+            </p>
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "32px" }}>
-          <div>
-            <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
-              {deliverables.filter((d) => d.status === "in_review" || d.status === "pending").map((d) => (
-                <button
-                  key={d.id}
-                  onClick={() => { setSelectedDeliverable(d); setActionMessage(null); }}
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: selectedDeliverable?.id === d.id ? 600 : 400,
-                    fontSize: "12px",
-                    color: selectedDeliverable?.id === d.id ? t.text : t.textMuted,
-                    background: selectedDeliverable?.id === d.id ? t.activeNav : "transparent",
-                    border: `1px solid ${selectedDeliverable?.id === d.id ? t.border : t.borderSubtle}`,
-                    borderRadius: "6px",
-                    padding: "8px 16px",
-                    cursor: "pointer",
-                  }}
-                >
-                  {d.title}
-                </button>
-              ))}
-            </div>
+        <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
+          {deliverables
+            .filter((d) => d.status === "in_review" || d.status === "pending")
+            .map((d) => (
+              <button
+                key={d.id}
+                onClick={() => {
+                  setSelectedDeliverable(d);
+                  setActionMessage(null);
+                  setActiveTimestamp(null);
+                }}
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: selectedDeliverable?.id === d.id ? 600 : 400,
+                  fontSize: "12px",
+                  color:
+                    selectedDeliverable?.id === d.id ? t.text : t.textMuted,
+                  background:
+                    selectedDeliverable?.id === d.id
+                      ? t.activeNav
+                      : "transparent",
+                  border: `1px solid ${selectedDeliverable?.id === d.id ? t.border : t.borderSubtle}`,
+                  borderRadius: "6px",
+                  padding: "8px 16px",
+                  cursor: "pointer",
+                }}
+              >
+                {d.title}
+              </button>
+            ))}
+        </div>
 
-            {selectedDeliverable && (
-              <div style={{ background: t.bgCard, borderRadius: "10px", border: `1px solid ${t.border}`, padding: "24px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
-                  <div>
-                    <h3 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "16px", color: t.text, marginBottom: "6px" }}>
-                      {selectedDeliverable.title}
-                    </h3>
-                    {selectedDeliverable.description && (
-                      <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textTertiary }}>
-                        {selectedDeliverable.description}
-                      </p>
-                    )}
-                  </div>
-                  <span style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 600,
-                    fontSize: "10px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    color: statusColor(selectedDeliverable.status),
-                    background: `${statusColor(selectedDeliverable.status)}12`,
-                    padding: "4px 12px",
-                    borderRadius: "4px",
-                  }}>
-                    {statusLabel(selectedDeliverable.status)}
-                  </span>
-                </div>
-
-                <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textMuted }}>Type:</span>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textSecondary }}>{selectedDeliverable.type}</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textMuted }}>Version:</span>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textSecondary }}>{selectedDeliverable.version || "v1"}</span>
-                  </div>
-                  {selectedDeliverable.submittedAt && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textMuted }}>Submitted:</span>
-                      <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textSecondary }}>
-                        {timeAgo(selectedDeliverable.submittedAt)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {selectedDeliverable.fileUrl && (
-                  <div style={{ marginTop: "16px", padding: "12px 16px", background: t.hoverBg, borderRadius: "8px" }}>
-                    <a href={selectedDeliverable.fileUrl} target="_blank" rel="noopener" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.text, textDecoration: "underline", textUnderlineOffset: "3px" }}>
-                      View File
-                    </a>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.textTertiary, marginBottom: "16px" }}>
-              Feedback
-            </h2>
-
-            {isPending && (
-              <div style={{ marginBottom: "16px" }}>
-                <textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Add your feedback..."
-                  style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.text, background: t.bgInput, border: `1px solid ${t.border}`, borderRadius: "8px", padding: "12px 14px", width: "100%", minHeight: "80px", resize: "none", outline: "none", boxSizing: "border-box" }}
-                />
-              </div>
-            )}
-
-            <div style={{ flex: 1, overflowY: "auto" }}>
-              {reviews.length === 0 && (
-                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textMuted }}>
-                  No feedback yet
-                </p>
-              )}
-              {reviews.map((review) => (
-                <div
-                  key={review.id}
-                  style={{ padding: "14px 0", borderBottom: `1px solid ${t.borderSubtle}` }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                    <span style={{
+        {selectedDeliverable && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: "24px" }}>
+            <div>
+              <div style={{ marginBottom: "12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <h3
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 700,
+                      fontSize: "16px",
+                      color: t.text,
+                    }}
+                  >
+                    {selectedDeliverable.title}
+                  </h3>
+                  <span
+                    style={{
                       fontFamily: "'Montserrat', sans-serif",
                       fontWeight: 600,
                       fontSize: "10px",
                       textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      color: statusColor(review.status),
-                      background: `${statusColor(review.status)}12`,
-                      padding: "2px 8px",
+                      letterSpacing: "0.06em",
+                      color: statusColor(selectedDeliverable.status),
+                      background: `${statusColor(selectedDeliverable.status)}12`,
+                      padding: "4px 12px",
                       borderRadius: "4px",
-                    }}>
-                      {statusLabel(review.status)}
-                    </span>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "10px", color: t.textMuted }}>
-                      {timeAgo(review.createdAt)}
-                    </span>
-                  </div>
-                  {review.comment && (
-                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textSecondary, lineHeight: 1.6 }}>
-                      {review.comment}
-                    </p>
-                  )}
+                    }}
+                  >
+                    {statusLabel(selectedDeliverable.status)}
+                  </span>
                 </div>
-              ))}
+                {versions.length > 1 && (
+                  <select
+                    value={selectedDeliverable.id}
+                    onChange={(e) => {
+                      const v = deliverables.find((d) => d.id === e.target.value);
+                      if (v) {
+                        setSelectedDeliverable(v);
+                        setActiveTimestamp(null);
+                      }
+                    }}
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 500,
+                      fontSize: "11px",
+                      color: t.text,
+                      background: t.bgCard,
+                      border: `1px solid ${t.border}`,
+                      borderRadius: "6px",
+                      padding: "6px 10px",
+                      cursor: "pointer",
+                      outline: "none",
+                    }}
+                  >
+                    {versions.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.version || "v1"}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {selectedDeliverable.fileUrl ? (
+                <VideoPlayer
+                  src={selectedDeliverable.fileUrl}
+                  markers={comments.map((c) => ({
+                    id: c.id,
+                    timestampSeconds: c.timestampSeconds,
+                  }))}
+                  onTimeClick={(seconds) => setActiveTimestamp(seconds)}
+                  onMarkerClick={handleMarkerClick}
+                  seekTo={seekTo}
+                />
+              ) : (
+                <div
+                  style={{
+                    background: t.bgCard,
+                    border: `1px solid ${t.border}`,
+                    borderRadius: "10px",
+                    padding: "80px 24px",
+                    textAlign: "center",
+                  }}
+                >
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={t.textMuted}
+                    strokeWidth="1.5"
+                    style={{ marginBottom: "12px" }}
+                  >
+                    <polygon points="23 7 16 12 23 17 23 7" />
+                    <rect x="1" y="5" width="15" height="14" rx="2" />
+                  </svg>
+                  <p
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 500,
+                      fontSize: "14px",
+                      color: t.textMuted,
+                    }}
+                  >
+                    No video file attached yet
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 400,
+                      fontSize: "12px",
+                      color: t.textMuted,
+                      marginTop: "4px",
+                    }}
+                  >
+                    The team will upload the video when it's ready for review.
+                  </p>
+                </div>
+              )}
+
+              {selectedDeliverable.description && (
+                <p
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 400,
+                    fontSize: "12px",
+                    color: t.textMuted,
+                    marginTop: "12px",
+                  }}
+                >
+                  {selectedDeliverable.description}
+                </p>
+              )}
+            </div>
+
+            <div
+              style={{
+                background: t.bgCard,
+                border: `1px solid ${t.border}`,
+                borderRadius: "10px",
+                padding: "20px",
+                maxHeight: "calc(100vh - 200px)",
+                overflowY: "auto",
+              }}
+            >
+              <VideoReviewPanel
+                comments={comments}
+                onAddComment={handleAddComment}
+                onAddReply={handleAddReply}
+                onCommentClick={handleCommentClick}
+                activeTimestamp={activeTimestamp}
+              />
             </div>
           </div>
-        </div>
+        )}
       </div>
     </ClientLayout>
   );
