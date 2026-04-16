@@ -311,7 +311,9 @@ export default function AlaskaBeringSeaCrabbers() {
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 5vw, 56px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
               From sea to skyline, your story deserves to be told right.
             </h2>
-            <CTAButton href="/contact" label="Let's Talk" />
+            <div style={{ marginTop: "10px" }}>
+              <CTAButton href="/contact" label="Let's Talk" />
+            </div>
           </div>
         </section>
 
