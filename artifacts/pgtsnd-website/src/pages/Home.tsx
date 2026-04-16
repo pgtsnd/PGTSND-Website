@@ -105,8 +105,8 @@ export default function Home() {
       <section style={{ paddingTop: "100px", padding: "100px 0 0" }}>
         <div style={{ position: "relative" }}>
           <VideoPlaceholder
-            imageSrc={`${import.meta.env.BASE_URL}images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-1.jpeg`}
-            imageAlt="Port crane with dramatic clouds over Newport harbor"
+            imageSrc={`${import.meta.env.BASE_URL}images/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg`}
+            imageAlt="Fisherman lacing boots on a metal deck"
           />
           <div
             style={{
