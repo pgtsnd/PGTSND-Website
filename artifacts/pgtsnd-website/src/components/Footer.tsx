@@ -147,47 +147,65 @@ export default function Footer() {
             marginTop: "48px",
             paddingTop: "24px",
             borderTop: "1px solid rgba(255,255,255,0.08)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
           }}
         >
           <p
             style={{
               fontFamily: "'Montserrat', sans-serif",
               fontWeight: 400,
-              fontSize: "11px",
-              color: "rgba(255,255,255,0.3)",
+              fontSize: "10px",
+              color: "rgba(255,255,255,0.25)",
+              lineHeight: 1.7,
+              marginBottom: "16px",
+              maxWidth: "680px",
             }}
           >
-            &copy;PGTSND Productions 2025 | Seattle, Washington
+            By calling or texting PGTSND Productions, you agree to receive text messages related to your inquiry, including follow-ups to missed calls. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out and HELP for assistance.
           </p>
-          <p
+          <div
             style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 400,
-              fontSize: "11px",
-              color: "rgba(255,255,255,0.3)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            <Link
-              href="/terms"
-              style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", transition: "color 0.2s ease" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 400,
+                fontSize: "11px",
+                color: "rgba(255,255,255,0.3)",
+              }}
             >
-              Terms &amp; Conditions
-            </Link>
-            {" | "}
-            <Link
-              href="/privacy-policy"
-              style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", transition: "color 0.2s ease" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
+              &copy;PGTSND Productions 2025 | Seattle, Washington
+            </p>
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 400,
+                fontSize: "11px",
+                color: "rgba(255,255,255,0.3)",
+              }}
             >
-              Privacy Policy
-            </Link>
-          </p>
+              <Link
+                href="/terms"
+                style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", transition: "color 0.2s ease" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
+              >
+                Terms &amp; Conditions
+              </Link>
+              {" | "}
+              <Link
+                href="/privacy-policy"
+                style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", transition: "color 0.2s ease" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
+              >
+                Privacy Policy
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </footer>
