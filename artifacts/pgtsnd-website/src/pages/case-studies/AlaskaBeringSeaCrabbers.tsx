@@ -152,8 +152,8 @@ export default function AlaskaBeringSeaCrabbers() {
                 <svg width="22" height="26" viewBox="0 0 18 22" fill="white"><polygon points="0,0 18,11 0,22" /></svg>
               </div>
             </div>
-            <div style={{ position: "absolute", bottom: "40px", left: "60px", maxWidth: "440px", zIndex: 2 }}>
-              <div style={{ width: "64px", height: "64px", borderRadius: "50%", overflow: "hidden", marginBottom: "-32px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
+            <div style={{ position: "absolute", bottom: "-60px", left: "60px", maxWidth: "440px", zIndex: 2 }}>
+              <div style={{ width: "64px", height: "64px", borderRadius: "50%", overflow: "hidden", marginBottom: "-32px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
                 <img
                   src={"/images/case-studies/absc/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"}
                   alt="Jamie Goen"
