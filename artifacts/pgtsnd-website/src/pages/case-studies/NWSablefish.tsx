@@ -140,13 +140,6 @@ export default function NWSablefish() {
               </div>
             </div>
           </div>
-          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "200px", overflow: "hidden", pointerEvents: "none" }}>
-            <img
-              src={"/images/case-studies/nw-sablefish/sablefish-topo-blue2-1.png"}
-              alt=""
-              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", opacity: 0.4 }}
-            />
-          </div>
         </section>
 
         {/* Brand Identity Mockups - slides up over topo background */}
