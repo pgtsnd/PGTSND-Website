@@ -225,11 +225,19 @@ export default function AlaskaBeringSeaCrabbers() {
         </section>
 
         {/* Social Media Graphics */}
-        <section style={{ padding: "120px 120px 160px", position: "relative" }}>
-          <div style={{ position: "absolute", top: "100px", right: "80px", zIndex: 2 }}>
+        <section style={{ padding: "140px 0 160px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+            <img
+              src={"/images/case-studies/absc/ABSC-200.jpg"}
+              alt=""
+              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.25, filter: "saturate(0.6) brightness(0.4)" }}
+            />
+            <div style={{ position: "absolute", inset: 0, background: "rgba(15, 25, 45, 0.75)" }} />
+          </div>
+          <div style={{ position: "absolute", top: "24px", right: "40px", zIndex: 3 }}>
             <ScrollBadge position="bottom-right" inline />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
+          <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "40px", padding: "0 160px" }}>
             {socialGraphics.map((img, i) => (
               <div key={i} style={{ overflow: "hidden", borderRadius: "4px" }}>
                 <img src={img} alt="" style={{ width: "100%", height: "auto", display: "block" }} />
