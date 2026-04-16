@@ -1,3 +1,4 @@
+import { useState, useRef, useCallback, useEffect } from "react";
 import CTAButton from "../../components/CTAButton";
 import ScrollBadge from "../../components/ScrollBadge";
 import Footer from "../../components/Footer";
@@ -10,17 +11,16 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({
 
 const services = ["Video Production", "Photography"];
 
-const heroImage = "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-1.jpeg";
+const heroImage = "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-5.jpeg";
 
 const galleryImages = [
+  "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-6.jpeg",
   "/images/case-studies/net-your-problem/net-your-progblem-pgtsnd-photography-2.jpeg",
   "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-4.jpeg",
-  "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-5.jpeg",
-  "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-6.jpeg",
+  "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-1.jpeg",
   "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-7.jpeg",
   "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-8.jpeg",
   "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photgraphy-9.jpeg",
-  heroImage,
 ];
 
 const socialLinks = [
@@ -28,6 +28,127 @@ const socialLinks = [
   { label: "Visit Website", href: "https://www.netyourproblem.com" },
   { label: "Visit YouTube", href: "https://www.youtube.com/@netyourproblem" },
 ];
+
+function GalleryCarousel({ images }: { images: string[] }) {
+  const [current, setCurrent] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const len = images.length;
+
+  const wrap = (i: number) => ((i % len) + len) % len;
+
+  const goNext = useCallback(() => setCurrent((c) => c + 1), []);
+  const goPrev = useCallback(() => setCurrent((c) => c - 1), []);
+
+  const imageWidth = 70;
+  const gap = 1.5;
+
+  const visible = [-2, -1, 0, 1, 2].map((offset) => {
+    const idx = wrap(current + offset);
+    return { idx, offset, src: images[idx] };
+  });
+
+  return (
+    <section style={{ padding: "0 0 40px", position: "relative", overflow: "hidden" }}>
+      <div
+        ref={trackRef}
+        style={{
+          display: "flex",
+          gap: `${gap}vw`,
+          justifyContent: "center",
+          alignItems: "center",
+          height: "clamp(400px, 50vw, 680px)",
+          cursor: "grab",
+        }}
+        onMouseDown={(e) => {
+          isDragging.current = true;
+          startX.current = e.clientX;
+          if (trackRef.current) trackRef.current.style.cursor = "grabbing";
+        }}
+        onMouseMove={(e) => {
+          if (!isDragging.current) return;
+          if (Math.abs(e.clientX - startX.current) > 5) e.preventDefault();
+        }}
+        onMouseUp={(e) => {
+          if (!isDragging.current) return;
+          isDragging.current = false;
+          if (trackRef.current) trackRef.current.style.cursor = "grab";
+          const diff = e.clientX - startX.current;
+          if (diff < -60) goNext();
+          else if (diff > 60) goPrev();
+        }}
+        onMouseLeave={() => {
+          isDragging.current = false;
+          if (trackRef.current) trackRef.current.style.cursor = "grab";
+        }}
+      >
+        {visible.map(({ idx, offset, src }) => (
+          <div
+            key={`${current}-${offset}`}
+            onClick={() => { if (offset !== 0) setCurrent(current + offset); }}
+            style={{
+              minWidth: `${imageWidth}vw`,
+              height: "100%",
+              overflow: "hidden",
+              opacity: offset === 0 ? 1 : 0.4,
+              transition: "opacity 0.4s ease",
+              cursor: offset === 0 ? "default" : "pointer",
+              flexShrink: 0,
+            }}
+          >
+            <img
+              src={src}
+              alt=""
+              draggable={false}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", userSelect: "none" }}
+            />
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: "4px", justifyContent: "flex-end", padding: "20px 40px 0" }}>
+        <button
+          onClick={goPrev}
+          style={{
+            width: "40px",
+            height: "40px",
+            background: "rgba(255,255,255,0.9)",
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#000000",
+            fontSize: "18px",
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: 700,
+          }}
+        >
+          &#8592;
+        </button>
+        <button
+          onClick={goNext}
+          style={{
+            width: "40px",
+            height: "40px",
+            background: "rgba(255,255,255,0.9)",
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#000000",
+            fontSize: "18px",
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: 700,
+          }}
+        >
+          &#8594;
+        </button>
+      </div>
+    </section>
+  );
+}
 
 function VideoPlaceholder({ thumbnail, duration }: { thumbnail: string; duration: string }) {
   return (
@@ -51,11 +172,27 @@ function VideoPlaceholder({ thumbnail, duration }: { thumbnail: string; duration
 }
 
 export default function NetYourProblem() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [heroOffset, setHeroOffset] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!heroRef.current) return;
+      const rect = heroRef.current.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      const progress = 1 - (rect.top + rect.height) / (viewH + rect.height);
+      const clamped = Math.max(0, Math.min(1, progress));
+      setHeroOffset(clamped * 10);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
       <Header />
       <div style={{ background: "#000000", minHeight: "100vh" }}>
-        {/* Hero */}
         <section style={{ padding: "160px 80px 180px", textAlign: "center" }}>
           <h1 style={f({ fontWeight: 900, fontSize: "clamp(36px, 5vw, 64px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
             Net Your Problem X PGTSND
@@ -67,14 +204,15 @@ export default function NetYourProblem() {
           </div>
         </section>
 
-        {/* Hero Image with Testimonial Overlay */}
-        <section style={{ padding: "0 40px 40px", position: "relative" }}>
-          <div style={{ position: "relative", overflow: "visible" }}>
-            <img
-              src={heroImage}
-              alt="Net Your Problem - Aerial View"
-              style={{ width: "100%", height: "auto", display: "block" }}
-            />
+        <section style={{ padding: "0 0 40px", position: "relative" }}>
+          <div ref={heroRef} style={{ position: "relative", overflow: "visible" }}>
+            <div style={{ width: "100%", height: "clamp(340px, 40vw, 520px)", overflow: "hidden" }}>
+              <img
+                src={heroImage}
+                alt="Net Your Problem - Aerial View"
+                style={{ width: "115%", height: "100%", objectFit: "cover", objectPosition: "center center", display: "block", transform: `translateX(${-7.5 + heroOffset}%)`, willChange: "transform" }}
+              />
+            </div>
             <div style={{ position: "absolute", bottom: "-60px", left: "60px", maxWidth: "420px", zIndex: 2 }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
                 <img
@@ -84,7 +222,7 @@ export default function NetYourProblem() {
                 />
               </div>
               <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px", background: "rgba(0,0,0,0.85)" }}>
-                <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
+                <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
                   &ldquo;Bri is the mother in a fishing family. So when we decided to make a film highlighting a friend of ours, their multigenerational fishing family and their decision to recycle nets from their barn, there was no better choice.&rdquo;
                 </p>
                 <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
@@ -92,68 +230,47 @@ export default function NetYourProblem() {
                 </p>
               </div>
             </div>
-            <div style={{ position: "absolute", bottom: "40px", right: "60px" }}>
+            <div style={{ position: "absolute", bottom: "450px", right: "60px" }}>
               <ScrollBadge position="bottom-right" inline />
             </div>
           </div>
         </section>
 
-        {/* Inside Our Partnership + Video 1 */}
-        <section style={{ padding: "220px 80px 240px" }}>
-          <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff", marginBottom: "60px" })}>
+        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "start" }}>
+          <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1, color: "#ffffff" })}>
             Inside Our Partnership
           </h2>
+          <div>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "12px" })}>
+              Net Your Problem is tackling one of the fishing industry's biggest challenges: what to do with old nets once their original use life is through.
+            </p>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "12px" })}>
+              PGTSND brought that mission to life by developing and producing two unique brand films that show the positive impact of net recycling on both communities and the environment.
+            </p>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "12px" })}>
+              We showcased the unique partnership NYP has with coastal communities and the ports they operate in.
+            </p>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
+              Each piece was designed to educate, inspire, and connect, proving that visual storytelling can show how sustainability is not just a practical matter, but deeply human.
+            </p>
+          </div>
+        </section>
+
+        <section style={{ padding: "0 80px 230px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
-            <div>
-              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
-                Net Your Problem is tackling one of the fishing industry's biggest challenges: what to do with old nets once their original use life is through. PGTSND brought that mission to life by developing and producing two unique brand films that show the positive impact of net recycling on both communities and the environment.
-              </p>
-              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
-                We showcased the unique partnership NYP has with coastal communities and the ports they operate in.
-              </p>
-            </div>
             <VideoPlaceholder
               thumbnail={"/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-8.jpeg"}
               duration="05:04"
             />
-          </div>
-        </section>
-
-        {/* Video 2 + Text */}
-        <section style={{ padding: "0 80px 230px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
             <VideoPlaceholder
-              thumbnail={heroImage}
+              thumbnail={"/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-1.jpeg"}
               duration="07:49"
             />
-            <div>
-              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
-                In addition, we captured the story of a fishing family on Lopez Island, showing how piles of unused gear, left sitting for decades, can be given a new life through recycling.
-              </p>
-              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
-                Each piece was designed to educate, inspire, and connect, proving that visual storytelling can show how sustainability is not just a practical matter, but deeply human.
-              </p>
-            </div>
           </div>
         </section>
 
-        {/* Photo Gallery */}
-        <section style={{ padding: "0 40px 40px", position: "relative" }}>
-          <ScrollBadge position="bottom-left" bottomOffset={-58} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            {galleryImages.map((img, i) => (
-              <div key={i} style={{ overflow: "hidden", aspectRatio: "4 / 3" }}>
-                <img
-                  src={img}
-                  alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                />
-              </div>
-            ))}
-          </div>
-        </section>
+        <GalleryCarousel images={galleryImages} />
 
-        {/* Social Links */}
         <section style={{ padding: "40px 80px 80px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
             {socialLinks.map((link) => (
@@ -179,7 +296,6 @@ export default function NetYourProblem() {
           </div>
         </section>
 
-        {/* Bottom CTA */}
         <section style={{ padding: "200px 80px 200px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
           <div style={{ maxWidth: "480px" }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
@@ -190,7 +306,7 @@ export default function NetYourProblem() {
               />
             </div>
             <div style={{ border: "2px solid #ffffff", padding: "64px 40px 42px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "24px" })}>
+              <p style={f({ fontWeight: 400, fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "24px" })}>
                 &ldquo;Bri and her team make the whole process of making a film simple. They come up with interview questions and a shot list, and have let me be as picky as I want during the editing process. The films we've created with her have been remarkably useful for us at conferences and in helping to recruit new partners. We've also taken clips from the long form video to use in social media and they are some of our most successful posts.&rdquo;
               </p>
               <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
