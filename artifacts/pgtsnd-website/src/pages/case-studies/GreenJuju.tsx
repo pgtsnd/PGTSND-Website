@@ -294,16 +294,7 @@ export default function GreenJuju() {
 
         {/* Product Tubs + Testimonial */}
         <section style={{ padding: "0 80px 120px", position: "relative" }}>
-          <div style={{ width: "100%", overflow: "hidden", position: "relative" }}>
-            <img
-              src={"/images/case-studies/green-juju/green-juju-product-tubs-pgtsnd.png"}
-              alt="Green Juju product tubs"
-              style={{ width: "100%", height: "auto", display: "block" }}
-            />
-            <div style={{ position: "absolute", bottom: "20px", right: "20px" }}>
-              <ScrollBadge position="bottom-right" inline />
-            </div>
-          </div>
+          <ProductTubsSlideIn />
           <div style={{ maxWidth: "400px", position: "relative", marginTop: "-60px", marginLeft: "60px", zIndex: 2 }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
               <img
@@ -572,6 +563,47 @@ export default function GreenJuju() {
         <Footer />
       </div>
     </>
+  );
+}
+
+function ProductTubsSlideIn() {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      const p = 1 - rect.top / viewH;
+      setProgress(Math.max(0, Math.min(1, p)));
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const translate = (1 - progress) * 30;
+  const brightness = 0.7 + progress * 0.3;
+
+  return (
+    <div ref={ref} style={{ width: "100%", overflow: "hidden", position: "relative" }}>
+      <img
+        src={"/images/case-studies/green-juju/green-juju-product-tubs-pgtsnd.png"}
+        alt="Green Juju product tubs"
+        style={{
+          width: "100%",
+          height: "auto",
+          display: "block",
+          transform: `translateY(${translate}%)`,
+          filter: `brightness(${brightness})`,
+          willChange: "transform, filter",
+        }}
+      />
+      <div style={{ position: "absolute", bottom: "20px", right: "20px" }}>
+        <ScrollBadge position="bottom-right" inline />
+      </div>
+    </div>
   );
 }
 
