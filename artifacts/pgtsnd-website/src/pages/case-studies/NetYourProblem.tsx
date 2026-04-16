@@ -237,35 +237,37 @@ export default function NetYourProblem() {
         </section>
 
         <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "start" }}>
-          <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1, color: "#ffffff" })}>
-            Inside Our Partnership
-          </h2>
           <div>
+            <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1, color: "#ffffff", marginBottom: "80px" })}>
+              Inside Our Partnership
+            </h2>
             <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "12px" })}>
-              Net Your Problem is tackling one of the fishing industry's biggest challenges: what to do with old nets once their original use life is through.
-            </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "12px" })}>
-              PGTSND brought that mission to life by developing and producing two unique brand films that show the positive impact of net recycling on both communities and the environment.
-            </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "12px" })}>
-              We showcased the unique partnership NYP has with coastal communities and the ports they operate in.
+              Net Your Problem is tackling one of the fishing industry's biggest challenges: what to do with old nets once their original use life is through. PGTSND brought that mission to life by developing and producing two unique brand films that show the positive impact of net recycling on both communities and the environment.
             </p>
             <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
-              Each piece was designed to educate, inspire, and connect, proving that visual storytelling can show how sustainability is not just a practical matter, but deeply human.
+              We showcased the unique partnership NYP has with coastal communities and the ports they operate in.
             </p>
           </div>
+          <VideoPlaceholder
+            thumbnail={"/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-8.jpeg"}
+            duration="05:04"
+          />
         </section>
 
         <section style={{ padding: "0 80px 230px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
-            <VideoPlaceholder
-              thumbnail={"/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-8.jpeg"}
-              duration="05:04"
-            />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "start" }}>
             <VideoPlaceholder
               thumbnail={"/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-1.jpeg"}
               duration="07:49"
             />
+            <div>
+              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "12px" })}>
+                In addition, we captured the story of a fishing family on Lopez Island, showing how piles of unused gear, left sitting for decades, can be given a new life through recycling.
+              </p>
+              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
+                Each piece was designed to educate, inspire, and connect, proving that visual storytelling can show how sustainability is not just a practical matter, but deeply human.
+              </p>
+            </div>
           </div>
         </section>
 
