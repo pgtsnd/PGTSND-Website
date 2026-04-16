@@ -14,15 +14,18 @@ import {
   type Task,
   type Deliverable,
 } from "../hooks/useTeamData";
+import {
+  useListTaskItems,
+  useUpdateTaskItem,
+} from "@workspace/api-client-react";
 
-type Tab = "overview" | "tasks" | "files" | "review";
+type Tab = "overview" | "milestones" | "deliverables" | "assets" | "review";
 
 export default function TeamProjectDetail() {
   const { t } = useTheme();
   const [, params] = useRoute("/team/projects/:id");
   const projectId = params?.id || "";
   const [activeTab, setActiveTab] = useState<Tab>("overview");
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { isLoading: authLoading } = useTeamAuth();
 
   const { project, members, tasks, deliverables, contracts, isLoading } =
@@ -59,12 +62,12 @@ export default function TeamProjectDetail() {
   const doneTasks = tasks.filter((t: Task) => t.status === "done").length;
   const inProgressTasks = tasks.filter((t: Task) => t.status === "in_progress").length;
   const pendingDeliverables = deliverables.filter((d: Deliverable) => d.status === "in_review").length;
-  const unsignedContracts = contracts.filter((c) => c.status === "sent").length;
 
   const tabs: { key: Tab; label: string; badge?: string }[] = [
     { key: "overview", label: "Overview" },
-    { key: "tasks", label: "Tasks", badge: `${doneTasks}/${tasks.length}` },
-    { key: "files", label: "Deliverables", badge: `${deliverables.length}` },
+    { key: "milestones", label: "Milestones", badge: `${doneTasks}/${tasks.length}` },
+    { key: "deliverables", label: "Deliverables", badge: `${deliverables.length}` },
+    { key: "assets", label: "Assets" },
     { key: "review", label: "Review", badge: pendingDeliverables > 0 ? `${pendingDeliverables}` : undefined },
   ];
 
@@ -122,208 +125,28 @@ export default function TeamProjectDetail() {
         </div>
 
         {activeTab === "overview" && (
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "14px", marginBottom: "32px" }}>
-              {[
-                { label: "Progress", value: `${project.progress}%` },
-                { label: "Phase", value: formatPhase(project.phase) },
-                { label: "Tasks Done", value: `${doneTasks}/${tasks.length}` },
-                { label: "Budget", value: project.budget ? `$${project.budget.toLocaleString()}` : "—" },
-              ].map((stat) => (
-                <div key={stat.label} style={{
-                  background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
-                  padding: "20px",
-                }}>
-                  <p style={f({ fontWeight: 800, fontSize: "24px", color: t.text, marginBottom: "4px" })}>{stat.value}</p>
-                  <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" })}>{stat.label}</p>
-                </div>
-              ))}
-            </div>
-
-            <h3 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "12px" })}>
-              Team
-            </h3>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "32px" }}>
-              {members.map((m) => (
-                <div key={m.userId} style={{
-                  background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
-                  padding: "16px", display: "flex", alignItems: "center", gap: "12px",
-                }}>
-                  <div style={{
-                    width: "36px", height: "36px", borderRadius: "50%", background: t.activeNav,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    ...f({ fontWeight: 700, fontSize: "11px", color: t.textTertiary }),
-                  }}>{m.initials}</div>
-                  <div>
-                    <p style={f({ fontWeight: 600, fontSize: "13px", color: t.text })}>{m.name}</p>
-                    <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>{m.title || m.role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {contracts.length > 0 && (
-              <>
-                <h3 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "12px" })}>
-                  Contracts
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "32px" }}>
-                  {contracts.map((c) => (
-                    <div key={c.id} style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
-                      padding: "16px 20px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
-                      borderLeft: c.status === "sent" ? "3px solid rgba(255,200,60,0.8)" : `3px solid ${t.border}`,
-                    }}>
-                      <div>
-                        <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text })}>{c.title}</p>
-                        <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
-                          {c.type} · {c.amount ? `$${c.amount.toLocaleString()}` : "—"}
-                        </p>
-                      </div>
-                      <span style={f({
-                        fontWeight: 600, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.04em",
-                        color: c.status === "signed" ? t.accent : c.status === "sent" ? "rgba(255,200,60,0.9)" : t.textMuted,
-                        background: c.status === "signed" ? "rgba(255,255,255,0.06)" : c.status === "sent" ? "rgba(255,200,60,0.08)" : t.hoverBg,
-                        padding: "4px 12px", borderRadius: "4px",
-                      })}>{c.status}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {project.description && (
-              <>
-                <h3 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "12px" })}>
-                  Description
-                </h3>
-                <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px", padding: "20px" }}>
-                  <p style={f({ fontWeight: 400, fontSize: "13px", color: t.textSecondary, lineHeight: 1.6 })}>{project.description}</p>
-                </div>
-              </>
-            )}
-          </div>
+          <OverviewTab
+            project={project}
+            tasks={tasks}
+            doneTasks={doneTasks}
+            contracts={contracts}
+          />
         )}
 
-        {activeTab === "tasks" && (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <div>
-                <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Tasks</h2>
-                <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>
-                  {doneTasks} of {tasks.length} tasks complete · {inProgressTasks} in progress
-                </p>
-              </div>
-            </div>
-
-            <div style={{ height: "6px", background: t.border, borderRadius: "3px", overflow: "hidden", marginBottom: "24px" }}>
-              <div style={{ height: "100%", width: `${tasks.length > 0 ? (doneTasks / tasks.length) * 100 : 0}%`, background: t.accent, borderRadius: "3px", transition: "width 0.3s" }} />
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {tasks.map((task: Task) => {
-                const statusColors: Record<string, string> = {
-                  done: t.accent,
-                  in_progress: "rgba(255,200,60,0.8)",
-                  todo: t.textMuted,
-                  blocked: "#ff6b6b",
-                };
-                const statusLabels: Record<string, string> = {
-                  done: "Done",
-                  in_progress: "In Progress",
-                  todo: "To Do",
-                  blocked: "Blocked",
-                };
-                return (
-                  <div key={task.id} style={{
-                    display: "flex", alignItems: "center", gap: "14px",
-                    padding: "16px 20px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
-                    opacity: task.status === "done" ? 0.6 : 1,
-                  }}>
-                    <div style={{
-                      width: "18px", height: "18px", borderRadius: "4px",
-                      border: task.status === "done" ? "none" : `1.5px solid ${t.textMuted}`,
-                      background: task.status === "done" ? t.accent : "transparent",
-                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                    }}>
-                      {task.status === "done" && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={t.accentText} strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <p style={f({
-                        fontWeight: 600, fontSize: "13px", color: t.text,
-                        textDecoration: task.status === "done" ? "line-through" : "none",
-                      })}>{task.title}</p>
-                      {task.description && (
-                        <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>{task.description}</p>
-                      )}
-                    </div>
-                    <span style={f({
-                      fontWeight: 500, fontSize: "10px", textTransform: "uppercase",
-                      color: statusColors[task.status] ?? t.textMuted,
-                      background: task.status === "done" ? "rgba(255,255,255,0.04)" : t.hoverBg,
-                      padding: "4px 10px", borderRadius: "4px",
-                    })}>{statusLabels[task.status] ?? task.status}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        {activeTab === "milestones" && (
+          <MilestonesTab
+            tasks={tasks}
+            doneTasks={doneTasks}
+            inProgressTasks={inProgressTasks}
+          />
         )}
 
-        {activeTab === "files" && (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <div>
-                <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Deliverables</h2>
-                <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>
-                  {deliverables.length} deliverables for this project
-                </p>
-              </div>
-            </div>
-            <input ref={fileInputRef} type="file" multiple style={{ display: "none" }} />
+        {activeTab === "deliverables" && (
+          <DeliverablesTab deliverables={deliverables} />
+        )}
 
-            {deliverables.length === 0 ? (
-              <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", padding: "48px", textAlign: "center" }}>
-                <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" })}>No deliverables yet</p>
-                <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>Deliverables will appear here once created.</p>
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {deliverables.map((d: Deliverable) => {
-                  const statusColors: Record<string, string> = {
-                    approved: t.accent,
-                    in_review: "rgba(255,200,60,0.8)",
-                    draft: t.textMuted,
-                    pending: t.textMuted,
-                    revision_requested: "#ff6b6b",
-                  };
-                  return (
-                    <div key={d.id} style={{
-                      display: "flex", alignItems: "center", gap: "14px",
-                      padding: "16px 20px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
-                    }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5">
-                        {d.type === "video" ? <><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" /></> :
-                         d.type === "audio" ? <><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></> :
-                         <><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" /><polyline points="13 2 13 9 20 9" /></>}
-                      </svg>
-                      <div style={{ flex: 1 }}>
-                        <p style={f({ fontWeight: 600, fontSize: "13px", color: t.text })}>{d.title}</p>
-                        <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
-                          {d.type} {d.version ? `· ${d.version}` : ""}
-                        </p>
-                      </div>
-                      <span style={f({
-                        fontWeight: 500, fontSize: "10px", textTransform: "uppercase",
-                        color: statusColors[d.status] ?? t.textMuted,
-                        background: t.hoverBg, padding: "4px 10px", borderRadius: "4px",
-                      })}>{d.status.replace("_", " ")}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+        {activeTab === "assets" && (
+          <AssetsTab projectId={projectId} projectName={project.name} />
         )}
 
         {activeTab === "review" && (
@@ -331,6 +154,525 @@ export default function TeamProjectDetail() {
         )}
       </div>
     </TeamLayout>
+  );
+}
+
+function OverviewTab({ project, tasks, doneTasks, contracts }: {
+  project: any; tasks: Task[]; doneTasks: number; contracts: any[];
+}) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "14px", marginBottom: "32px" }}>
+        {[
+          { label: "Progress", value: `${project.progress}%` },
+          { label: "Phase", value: formatPhase(project.phase) },
+          { label: "Tasks Done", value: `${doneTasks}/${tasks.length}` },
+          { label: "Budget", value: project.budget ? `$${project.budget.toLocaleString()}` : "—" },
+        ].map((stat) => (
+          <div key={stat.label} style={{
+            background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
+            padding: "20px",
+          }}>
+            <p style={f({ fontWeight: 800, fontSize: "24px", color: t.text, marginBottom: "4px" })}>{stat.value}</p>
+            <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" })}>{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {contracts.length > 0 && (
+        <>
+          <h3 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "12px" })}>
+            Contracts
+          </h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "32px" }}>
+            {contracts.map((c: any) => (
+              <div key={c.id} style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "16px 20px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
+                borderLeft: c.status === "sent" ? "3px solid rgba(255,200,60,0.8)" : `3px solid ${t.border}`,
+              }}>
+                <div>
+                  <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text })}>{c.title}</p>
+                  <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+                    {c.type} · {c.amount ? `$${c.amount.toLocaleString()}` : "—"}
+                  </p>
+                </div>
+                <span style={f({
+                  fontWeight: 600, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.04em",
+                  color: c.status === "signed" ? t.accent : c.status === "sent" ? "rgba(255,200,60,0.9)" : t.textMuted,
+                  background: c.status === "signed" ? "rgba(255,255,255,0.06)" : c.status === "sent" ? "rgba(255,200,60,0.08)" : t.hoverBg,
+                  padding: "4px 12px", borderRadius: "4px",
+                })}>{c.status}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {project.description && (
+        <>
+          <h3 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "12px" })}>
+            Description
+          </h3>
+          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px", padding: "20px" }}>
+            <p style={f({ fontWeight: 400, fontSize: "13px", color: t.textSecondary, lineHeight: 1.6 })}>{project.description}</p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function MilestoneRow({ task }: { task: Task }) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const [expanded, setExpanded] = useState(false);
+  const { data: items, refetch } = useListTaskItems(task.id, {
+    query: { enabled: expanded },
+  });
+  const updateItem = useUpdateTaskItem();
+
+  const handleToggleItem = (itemId: string, currentCompleted: boolean) => {
+    updateItem.mutate(
+      { id: itemId, data: { completed: !currentCompleted } },
+      { onSuccess: () => refetch() },
+    );
+  };
+
+  const statusColors: Record<string, string> = {
+    done: t.accent,
+    in_progress: "rgba(255,200,60,0.8)",
+    todo: t.textMuted,
+    blocked: "#ff6b6b",
+  };
+  const statusLabels: Record<string, string> = {
+    done: "Done",
+    in_progress: "In Progress",
+    todo: "To Do",
+    blocked: "Blocked",
+  };
+
+  const completedItems = items?.filter((i: any) => i.completed).length ?? 0;
+  const totalItems = items?.length ?? 0;
+
+  return (
+    <div style={{
+      background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
+      overflow: "hidden",
+    }}>
+      <div
+        onClick={() => setExpanded(!expanded)}
+        style={{
+          display: "grid", gridTemplateColumns: "32px 1fr 120px 100px 100px",
+          alignItems: "center", gap: "12px",
+          padding: "14px 16px", cursor: "pointer",
+          borderBottom: expanded ? `1px solid ${t.border}` : "none",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {task.status === "done" ? (
+            <div style={{
+              width: "20px", height: "20px", borderRadius: "4px", background: t.accent,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={t.accentText} strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+            </div>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2"
+              style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          )}
+        </div>
+
+        <div>
+          <p style={f({
+            fontWeight: 600, fontSize: "13px", color: t.text,
+            textDecoration: task.status === "done" ? "line-through" : "none",
+            opacity: task.status === "done" ? 0.6 : 1,
+          })}>{task.title}</p>
+        </div>
+
+        <div>
+          <span style={f({
+            fontWeight: 500, fontSize: "10px", textTransform: "uppercase",
+            color: statusColors[task.status] ?? t.textMuted,
+            background: task.status === "done" ? "rgba(255,255,255,0.04)" : t.hoverBg,
+            padding: "4px 10px", borderRadius: "4px",
+          })}>{statusLabels[task.status] ?? task.status}</span>
+        </div>
+
+        <div>
+          {task.dueDate && (
+            <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+              {new Date(task.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            </p>
+          )}
+        </div>
+
+        <div style={{ textAlign: "right" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px", justifyContent: "flex-end" }}>
+            <div style={{ width: "40px", height: "3px", background: t.borderSubtle, borderRadius: "2px", overflow: "hidden" }}>
+              <div style={{ width: `${task.progress}%`, height: "100%", background: statusColors[task.status] ?? t.textMuted, borderRadius: "2px" }} />
+            </div>
+            <span style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted })}>{task.progress}%</span>
+          </div>
+        </div>
+      </div>
+
+      {expanded && (
+        <div style={{ padding: "0" }}>
+          {task.description && (
+            <div style={{ padding: "12px 16px 0 60px" }}>
+              <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, lineHeight: 1.5 })}>{task.description}</p>
+            </div>
+          )}
+
+          {items && items.length > 0 ? (
+            <div style={{ padding: "12px 16px 16px 60px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" })}>
+                  Sub-tasks
+                </p>
+                <span style={f({ fontWeight: 500, fontSize: "9px", color: t.textMuted })}>
+                  {completedItems}/{totalItems}
+                </span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                {items.map((item: any) => (
+                  <div
+                    key={item.id}
+                    onClick={(e) => { e.stopPropagation(); handleToggleItem(item.id, item.completed); }}
+                    style={{
+                      display: "flex", alignItems: "center", gap: "10px",
+                      padding: "8px 12px", borderRadius: "6px", cursor: "pointer",
+                      background: item.completed ? "rgba(255,255,255,0.01)" : "rgba(255,255,255,0.02)",
+                      border: `1px solid ${t.borderSubtle}`,
+                    }}
+                  >
+                    <div style={{
+                      width: "16px", height: "16px", borderRadius: "3px", flexShrink: 0,
+                      border: item.completed ? "none" : `1.5px solid ${t.textMuted}`,
+                      background: item.completed ? t.accent : "transparent",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "background 0.15s",
+                    }}>
+                      {item.completed && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.accentText} strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+                    </div>
+                    <span style={f({
+                      fontWeight: 400, fontSize: "12px",
+                      color: item.completed ? t.textMuted : t.textSecondary,
+                      textDecoration: item.completed ? "line-through" : "none",
+                    })}>{item.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : items && items.length === 0 ? (
+            <div style={{ padding: "12px 16px 16px 60px" }}>
+              <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>No sub-tasks for this milestone.</p>
+            </div>
+          ) : (
+            <div style={{ padding: "12px 16px 16px 60px" }}>
+              <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>Loading...</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MilestonesTab({ tasks, doneTasks, inProgressTasks }: {
+  tasks: Task[]; doneTasks: number; inProgressTasks: number;
+}) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div>
+          <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Milestones</h2>
+          <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>
+            {doneTasks} of {tasks.length} complete · {inProgressTasks} in progress
+          </p>
+        </div>
+      </div>
+
+      <div style={{ height: "6px", background: t.border, borderRadius: "3px", overflow: "hidden", marginBottom: "20px" }}>
+        <div style={{ height: "100%", width: `${tasks.length > 0 ? (doneTasks / tasks.length) * 100 : 0}%`, background: t.accent, borderRadius: "3px", transition: "width 0.3s" }} />
+      </div>
+
+      <div style={{
+        display: "grid", gridTemplateColumns: "32px 1fr 120px 100px 100px",
+        gap: "12px", padding: "8px 16px", marginBottom: "4px",
+      }}>
+        <div />
+        <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" })}>Milestone</p>
+        <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" })}>Status</p>
+        <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" })}>Due</p>
+        <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "right" })}>Progress</p>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        {tasks.map((task: Task) => (
+          <MilestoneRow key={task.id} task={task} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DeliverablesTab({ deliverables }: { deliverables: Deliverable[] }) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const statusColors: Record<string, string> = {
+    approved: t.accent,
+    in_review: "rgba(255,200,60,0.8)",
+    draft: t.textMuted,
+    pending: t.textMuted,
+    revision_requested: "#ff6b6b",
+  };
+  const statusLabels: Record<string, string> = {
+    draft: "Draft",
+    pending: "Pending",
+    in_review: "In Review",
+    approved: "Approved",
+    revision_requested: "Changes Requested",
+  };
+
+  const typeIcons: Record<string, JSX.Element> = {
+    video: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>,
+    audio: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>,
+    graphics: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>,
+    document: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" /><polyline points="13 2 13 9 20 9" /></svg>,
+    other: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" /><polyline points="13 2 13 9 20 9" /></svg>,
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: "20px" }}>
+        <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Deliverables</h2>
+        <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>
+          {deliverables.length} deliverables for this project
+        </p>
+      </div>
+
+      {deliverables.length === 0 ? (
+        <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", padding: "48px", textAlign: "center" }}>
+          <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" })}>No deliverables yet</p>
+          <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>Deliverables will appear here once created.</p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {deliverables.map((d: Deliverable) => {
+            const isExpanded = expandedId === d.id;
+            return (
+              <div key={d.id} style={{
+                background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
+                overflow: "hidden",
+              }}>
+                <div
+                  onClick={() => setExpandedId(isExpanded ? null : d.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "14px",
+                    padding: "16px 20px", cursor: "pointer",
+                  }}
+                >
+                  <div style={{ color: t.textMuted, flexShrink: 0 }}>
+                    {typeIcons[d.type] ?? typeIcons.other}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text })}>{d.title}</p>
+                    <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+                      {d.type} {d.version ? `· ${d.version}` : ""}
+                    </p>
+                  </div>
+                  <span style={f({
+                    fontWeight: 500, fontSize: "10px", textTransform: "uppercase",
+                    color: statusColors[d.status] ?? t.textMuted,
+                    background: t.hoverBg, padding: "4px 10px", borderRadius: "4px",
+                  })}>{statusLabels[d.status] ?? d.status}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2"
+                    style={{ transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.15s", flexShrink: 0 }}>
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+
+                {isExpanded && (
+                  <div style={{
+                    padding: "0 20px 20px 52px",
+                    borderTop: `1px solid ${t.borderSubtle}`,
+                  }}>
+                    <div style={{ paddingTop: "16px" }}>
+                      {d.description ? (
+                        <p style={f({ fontWeight: 400, fontSize: "13px", color: t.textSecondary, lineHeight: 1.6, marginBottom: "16px" })}>
+                          {d.description}
+                        </p>
+                      ) : (
+                        <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "16px" })}>
+                          No description provided.
+                        </p>
+                      )}
+
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+                        <div>
+                          <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" })}>Type</p>
+                          <p style={f({ fontWeight: 500, fontSize: "12px", color: t.text, textTransform: "capitalize" })}>{d.type}</p>
+                        </div>
+                        <div>
+                          <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" })}>Version</p>
+                          <p style={f({ fontWeight: 500, fontSize: "12px", color: t.text })}>{d.version || "v1"}</p>
+                        </div>
+                        <div>
+                          <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" })}>Submitted</p>
+                          <p style={f({ fontWeight: 500, fontSize: "12px", color: t.text })}>
+                            {d.submittedAt ? new Date(d.submittedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Not yet"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {d.fileUrl && (
+                        <div style={{ marginTop: "16px" }}>
+                          <a href={d.fileUrl} target="_blank" rel="noopener noreferrer" style={f({
+                            fontWeight: 600, fontSize: "11px", color: t.accent, textDecoration: "none",
+                            display: "inline-flex", alignItems: "center", gap: "6px",
+                          })}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                              <polyline points="15 3 21 3 21 9" />
+                              <line x1="10" y1="14" x2="21" y2="3" />
+                            </svg>
+                            Open file
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AssetsTab({ projectId, projectName }: { projectId: string; projectName: string }) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
+
+  const folders = [
+    { name: "Source Footage", icon: "film", count: 0 },
+    { name: "Exports", icon: "package", count: 0 },
+    { name: "Graphics & Stills", icon: "image", count: 0 },
+    { name: "Audio", icon: "music", count: 0 },
+    { name: "Documents", icon: "file", count: 0 },
+    { name: "Client Uploads", icon: "upload", count: 0 },
+  ];
+
+  const folderIcons: Record<string, JSX.Element> = {
+    film: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5"><rect x="2" y="2" width="20" height="20" rx="2" /><line x1="7" y1="2" x2="7" y2="22" /><line x1="17" y1="2" x2="17" y2="22" /><line x1="2" y1="12" x2="22" y2="12" /><line x1="2" y1="7" x2="7" y2="7" /><line x1="2" y1="17" x2="7" y2="17" /><line x1="17" y1="7" x2="22" y2="7" /><line x1="17" y1="17" x2="22" y2="17" /></svg>,
+    package: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21" /><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>,
+    image: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>,
+    music: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>,
+    file: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" /><polyline points="13 2 13 9 20 9" /></svg>,
+    upload: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>,
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div>
+          <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Assets</h2>
+          <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>
+            Project files and shared assets
+          </p>
+        </div>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          style={f({
+            fontWeight: 600, fontSize: "11px", color: t.accentText,
+            background: t.accent, border: "none", borderRadius: "6px",
+            padding: "8px 16px", cursor: "pointer",
+            display: "flex", alignItems: "center", gap: "6px",
+          })}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Upload Files
+        </button>
+        <input ref={fileInputRef} type="file" multiple style={{ display: "none" }} />
+      </div>
+
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); }}
+        style={{
+          border: `2px dashed ${dragOver ? t.accent : t.border}`,
+          borderRadius: "12px", padding: "32px", textAlign: "center",
+          marginBottom: "24px", transition: "border-color 0.2s",
+          background: dragOver ? "rgba(255,255,255,0.02)" : "transparent",
+        }}
+      >
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5" style={{ marginBottom: "8px" }}>
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+        <p style={f({ fontWeight: 600, fontSize: "13px", color: t.text, marginBottom: "4px" })}>
+          Drag & drop files here
+        </p>
+        <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+          or click Upload Files above
+        </p>
+      </div>
+
+      <h3 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "12px" })}>
+        Project Folders
+      </h3>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", marginBottom: "32px" }}>
+        {folders.map((folder) => (
+          <div key={folder.name} style={{
+            background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
+            padding: "20px", cursor: "pointer", display: "flex", alignItems: "center", gap: "14px",
+          }}>
+            {folderIcons[folder.icon]}
+            <div>
+              <p style={f({ fontWeight: 600, fontSize: "13px", color: t.text })}>{folder.name}</p>
+              <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>
+                {folder.count} files
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <h3 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "12px" })}>
+        Recent Files
+      </h3>
+      <div style={{
+        background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px",
+        padding: "40px", textAlign: "center",
+      }}>
+        <p style={f({ fontWeight: 600, fontSize: "13px", color: t.text, marginBottom: "4px" })}>No files uploaded yet</p>
+        <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+          Upload files to share with the team. Files will be organized into project folders automatically.
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -528,7 +870,7 @@ function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[
             <p style={ff({ fontWeight: 600, fontSize: "12px", color: t.text })}>Share Links</p>
             <button onClick={() => setShowShareLink(false)} style={{
               background: "none", border: "none", cursor: "pointer", color: t.textMuted, fontSize: "16px",
-            }}>×</button>
+            }}>x</button>
           </div>
           {reviewLinks.map((link) => (
             <div key={link.id} style={{
@@ -607,40 +949,34 @@ function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[
             {selectedDeliverable.fileUrl ? (
               <VideoPlayer
                 src={selectedDeliverable.fileUrl}
-                markers={comments.map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
-                onTimeClick={(seconds) => setActiveTimestamp(seconds)}
+                onTimeClick={(ts) => setActiveTimestamp(ts)}
+                seekTo={seekTo ?? undefined}
+                markers={comments.map((c) => ({
+                  id: c.id,
+                  timestampSeconds: c.timestampSeconds,
+                  label: c.content.slice(0, 30),
+                }))}
                 onMarkerClick={handleMarkerClick}
-                seekTo={seekTo}
               />
             ) : (
               <div style={{
-                background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
-                padding: "60px 24px", textAlign: "center",
+                background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px",
+                padding: "80px", textAlign: "center",
               }}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5" style={{ marginBottom: "8px" }}>
-                  <polygon points="23 7 16 12 23 17 23 7" />
-                  <rect x="1" y="5" width="15" height="14" rx="2" />
-                </svg>
-                <p style={ff({ fontWeight: 500, fontSize: "13px", color: t.textMuted })}>No video file attached</p>
-                <p style={ff({ fontWeight: 400, fontSize: "11px", color: t.textMuted, marginTop: "4px" })}>
-                  Upload a video file to this deliverable to enable review.
+                <p style={ff({ fontWeight: 500, fontSize: "13px", color: t.textMuted })}>
+                  No preview available for this deliverable.
                 </p>
               </div>
             )}
           </div>
 
-          <div style={{
-            background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
-            padding: "16px", maxHeight: "calc(100vh - 280px)", overflowY: "auto",
-          }}>
-            <VideoReviewPanel
-              comments={comments}
-              onAddComment={handleAddComment}
-              onAddReply={handleAddReply}
-              onCommentClick={handleCommentClick}
-              activeTimestamp={activeTimestamp}
-            />
-          </div>
+          <VideoReviewPanel
+            comments={comments as VideoComment[]}
+            onAddComment={handleAddComment}
+            onAddReply={handleAddReply}
+            onCommentClick={handleCommentClick}
+            activeTimestamp={activeTimestamp}
+          />
         </div>
       )}
     </div>

@@ -86,7 +86,7 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
   - **Hooks**: `useTeamData.ts` exports hooks (`useProjects`, `useOrganizations`, `useUsers`, `useProjectWithDetails`, `useDashboardData`, etc.) — all gated with `enabled: !!userId` where userId is derived from the JWT cookie session via `useAuth()`; API calls include `credentials: "include"` for automatic cookie auth
   - **Owner Dashboard** (`TeamDashboard.tsx`): Personalized welcome, Pipeline phase counts, Crew Status, Revenue Snapshot — all from real project/user data
   - **Projects** (`TeamProjects.tsx`): Real project cards with status filters, progress bars, organization names
-  - **Project Workspace** (`TeamProjectDetail.tsx`): `/team/projects/:id` — 6-tab workspace with real tasks, deliverables, contracts, members; Review tab has video player with timestamped comments, push-to-client, shareable review links
+  - **Project Workspace** (`TeamProjectDetail.tsx`): `/team/projects/:id` — 5-tab workspace: Overview (stats + contracts, no Team section), Milestones (spreadsheet-style expandable rows with sub-task checklists via task_items API), Deliverables (expandable cards with descriptions/metadata), Assets (drag-drop upload zone + project folder grid), Review (video player with timestamped comments, push-to-client, shareable review links)
   - **Clients** (`TeamClients.tsx`): `/team/clients` — Organization cards with project counts, revenue, expandable project lists
   - **Messages** (`TeamMessages.tsx`): `/team/messages` — Real messages grouped by project, send new messages via API
   - **Schedule** (`TeamSchedule.tsx`): `/team/schedule` — Timeline and Upcoming views from real project dates
