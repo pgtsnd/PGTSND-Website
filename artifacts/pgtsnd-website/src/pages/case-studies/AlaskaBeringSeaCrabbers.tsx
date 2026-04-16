@@ -247,7 +247,7 @@ export default function AlaskaBeringSeaCrabbers() {
         </section>
 
         {/* Photo Gallery */}
-        <section style={{ paddingTop: "75px", padding: "75px 40px 40px" }}>
+        <section style={{ padding: "125px 40px 40px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
             {galleryImages.map((img, i) => (
               <div key={i} style={{ overflow: "hidden", aspectRatio: "4 / 3" }}>
