@@ -135,22 +135,24 @@ export default function Contact() {
         {/* Full-Width Hero Image with Scroll Slide Effect */}
         <section
           ref={imageRef}
-          style={{ position: "relative", overflow: "hidden" }}
+          style={{ position: "relative", overflow: "visible" }}
         >
-          <img
-            src={`${import.meta.env.BASE_URL}images/foggy-fishing-coast-pgtsnd.jpeg`}
-            alt="Alaska wilderness"
-            style={{
-              width: "110%",
-              height: "45vh",
-              objectFit: "cover",
-              display: "block",
-              marginLeft: "-5%",
-              transform: `translate(${translateX}px, ${translateY}px) scale(1.05)`,
-              transition: "transform 0.1s linear",
-            }}
-          />
-          <div style={{ position: "absolute", top: "-55px", right: "20px", zIndex: 2 }}>
+          <div style={{ overflow: "hidden" }}>
+            <img
+              src={`${import.meta.env.BASE_URL}images/foggy-fishing-coast-pgtsnd.jpeg`}
+              alt="Alaska wilderness"
+              style={{
+                width: "110%",
+                height: "45vh",
+                objectFit: "cover",
+                display: "block",
+                marginLeft: "-5%",
+                transform: `translate(${translateX}px, ${translateY}px) scale(1.05)`,
+                transition: "transform 0.1s linear",
+              }}
+            />
+          </div>
+          <div style={{ position: "absolute", top: "-55px", right: "20px", zIndex: 10 }}>
             <ScrollBadge position="bottom-right" inline />
           </div>
         </section>
