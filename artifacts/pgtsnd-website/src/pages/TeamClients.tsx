@@ -187,6 +187,40 @@ export default function TeamClients() {
     refreshInvoices();
   };
 
+  const [copiedInvoiceId, setCopiedInvoiceId] = useState<string | null>(null);
+  const [linkLoadingId, setLinkLoadingId] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
+
+  const handleCopyPaymentLink = async (invoiceId: string) => {
+    setLinkLoadingId(invoiceId);
+    setLinkError(null);
+    try {
+      const baseUrl = `${window.location.origin}/client/billing`;
+      const successUrl = `${baseUrl}?payment=success`;
+      const cancelUrl = `${baseUrl}?payment=canceled`;
+      const result = await api.createCheckoutSession(invoiceId, successUrl, cancelUrl);
+      try {
+        await navigator.clipboard.writeText(result.url);
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = result.url;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopiedInvoiceId(invoiceId);
+      setTimeout(() => setCopiedInvoiceId((cur) => (cur === invoiceId ? null : cur)), 2000);
+    } catch (err: any) {
+      setLinkError(err?.message || "Failed to create payment link");
+      setTimeout(() => setLinkError(null), 4000);
+    } finally {
+      setLinkLoadingId(null);
+    }
+  };
+
   if (authLoading || isLoading) {
     return (
       <TeamLayout>
@@ -393,6 +427,10 @@ export default function TeamClients() {
                           handleMarkPaid={handleMarkPaid}
                           handleSendInvoice={handleSendInvoice}
                           handleVoidInvoice={handleVoidInvoice}
+                          handleCopyPaymentLink={handleCopyPaymentLink}
+                          copiedInvoiceId={copiedInvoiceId}
+                          linkLoadingId={linkLoadingId}
+                          linkError={linkError}
                           inputStyle={inputStyle}
                           labelStyle={labelStyle}
                         />
@@ -619,7 +657,7 @@ function ClientScope({ client, t, f }: { client: any; t: any; f: any }) {
   );
 }
 
-function ClientInvoices({ client, t, f, statusColor, showNewInvoice, setShowNewInvoice, invoiceForm, setInvoiceForm, invoiceSaving, invoiceError, handleCreateInvoice, handleMarkPaid, handleSendInvoice, handleVoidInvoice, inputStyle, labelStyle }: any) {
+function ClientInvoices({ client, t, f, statusColor, showNewInvoice, setShowNewInvoice, invoiceForm, setInvoiceForm, invoiceSaving, invoiceError, handleCreateInvoice, handleMarkPaid, handleSendInvoice, handleVoidInvoice, handleCopyPaymentLink, copiedInvoiceId, linkLoadingId, linkError, inputStyle, labelStyle }: any) {
   const allInvoices = (client.invoices as Invoice[]).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const paidInvoices = allInvoices.filter((i) => i.status === "paid");
   const pendingInvoices = allInvoices.filter((i) => i.status === "sent" || i.status === "draft");
@@ -742,6 +780,12 @@ function ClientInvoices({ client, t, f, statusColor, showNewInvoice, setShowNewI
         </div>
       )}
 
+      {linkError && (
+        <div style={{ marginBottom: "12px", padding: "8px 12px", background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.2)", borderRadius: "6px" }}>
+          <p style={f({ fontWeight: 500, fontSize: "11px", color: "rgba(255,100,80,0.95)" })}>{linkError}</p>
+        </div>
+      )}
+
       {allInvoices.length === 0 ? (
         <div style={{ padding: "32px", textAlign: "center" }}>
           <p style={f({ fontWeight: 400, fontSize: "13px", color: t.textMuted })}>No invoices yet</p>
@@ -749,7 +793,7 @@ function ClientInvoices({ client, t, f, statusColor, showNewInvoice, setShowNewI
       ) : (
         <div style={{ border: `1px solid ${t.borderSubtle}`, borderRadius: "8px", overflow: "hidden" }}>
           <div style={{
-            display: "grid", gridTemplateColumns: "100px 1fr 100px 100px 120px 130px",
+            display: "grid", gridTemplateColumns: "100px 1fr 100px 100px 120px 220px",
             padding: "8px 14px", borderBottom: `1px solid ${t.borderSubtle}`,
           }}>
             {["Status", "Description", "Number", "Amount", "Due", "Actions"].map((h) => (
@@ -760,7 +804,7 @@ function ClientInvoices({ client, t, f, statusColor, showNewInvoice, setShowNewI
             const projName = client.projects.find((p: Project) => p.id === inv.projectId)?.name ?? "";
             return (
               <div key={inv.id} style={{
-                display: "grid", gridTemplateColumns: "100px 1fr 100px 100px 120px 130px",
+                display: "grid", gridTemplateColumns: "100px 1fr 100px 100px 120px 220px",
                 padding: "10px 14px", borderBottom: `1px solid ${t.borderSubtle}`, alignItems: "center",
               }}>
                 <div>
@@ -783,7 +827,7 @@ function ClientInvoices({ client, t, f, statusColor, showNewInvoice, setShowNewI
                 <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, margin: 0 })}>
                   {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "-"}
                 </p>
-                <div style={{ display: "flex", gap: "4px" }}>
+                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
                   {inv.status === "draft" && (
                     <button
                       onClick={() => handleSendInvoice(inv.id)}
@@ -793,12 +837,34 @@ function ClientInvoices({ client, t, f, statusColor, showNewInvoice, setShowNewI
                     </button>
                   )}
                   {(inv.status === "sent" || inv.status === "overdue") && (
-                    <button
-                      onClick={() => handleMarkPaid(inv.id)}
-                      style={f({ fontWeight: 500, fontSize: "9px", color: "rgba(80,200,120,0.9)", background: "rgba(80,200,120,0.08)", border: "none", borderRadius: "4px", padding: "4px 8px", cursor: "pointer" })}
-                    >
-                      Mark Paid
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleCopyPaymentLink(inv.id)}
+                        disabled={linkLoadingId === inv.id}
+                        title="Create a Stripe Checkout link and copy it to the clipboard"
+                        style={f({
+                          fontWeight: 500, fontSize: "9px",
+                          color: copiedInvoiceId === inv.id ? "rgba(80,200,120,0.95)" : "rgba(180,140,255,0.95)",
+                          background: copiedInvoiceId === inv.id ? "rgba(80,200,120,0.08)" : "rgba(180,140,255,0.08)",
+                          border: "none", borderRadius: "4px", padding: "4px 8px",
+                          cursor: linkLoadingId === inv.id ? "wait" : "pointer",
+                          opacity: linkLoadingId === inv.id ? 0.7 : 1,
+                          display: "flex", alignItems: "center", gap: "4px",
+                        })}
+                      >
+                        {linkLoadingId === inv.id
+                          ? "Creating..."
+                          : copiedInvoiceId === inv.id
+                            ? "Copied!"
+                            : "Copy Payment Link"}
+                      </button>
+                      <button
+                        onClick={() => handleMarkPaid(inv.id)}
+                        style={f({ fontWeight: 500, fontSize: "9px", color: "rgba(80,200,120,0.9)", background: "rgba(80,200,120,0.08)", border: "none", borderRadius: "4px", padding: "4px 8px", cursor: "pointer" })}
+                      >
+                        Mark Paid
+                      </button>
+                    </>
                   )}
                   {inv.status !== "void" && inv.status !== "paid" && (
                     <button
