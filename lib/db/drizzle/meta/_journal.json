@@ -15,6 +15,13 @@
       "when": 1776340792047,
       "tag": "0001_overjoyed_albert_cleary",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776357575020,
+      "tag": "0002_blushing_butterfly",
+      "breakpoints": true
     }
   ]
 }

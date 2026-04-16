@@ -14,6 +14,8 @@ import {
 } from "@workspace/db";
 import { eq, and, inArray, desc, type SQL } from "drizzle-orm";
 import { requireRole } from "../middleware/auth";
+import * as driveService from "../services/google-drive";
+import * as slackService from "../services/slack";
 
 const router = Router();
 
@@ -243,10 +245,14 @@ router.get(
       .where(inArray(messagesTable.projectId, projectIds))
       .orderBy(messagesTable.createdAt);
 
-    const conversations = projects
-      .filter((p) => ["active", "in_progress", "review"].includes(p.status))
-      .map((project) => {
-        const projectMessages = messages
+    const slackEnabled = await slackService.isSlackConnected();
+    const activeProjects = projects.filter((p) =>
+      ["active", "in_progress", "review"].includes(p.status),
+    );
+
+    const conversations = await Promise.all(
+      activeProjects.map(async (project) => {
+        const dbMessages = messages
           .filter((m) => m.projectId === project.id)
           .map((m) => ({
             id: m.id,
@@ -259,6 +265,33 @@ router.get(
             createdAt: m.createdAt,
             isTeam: m.senderRole !== "client",
           }));
+
+        let projectMessages = dbMessages;
+        let slackBridged = false;
+
+        if (slackEnabled && project.slackChannelId) {
+          slackBridged = true;
+          const slackHistory = await slackService.getChannelHistory(
+            project.slackChannelId,
+            50,
+          );
+          const slackMsgs = slackHistory.map((m) => ({
+            id: `slack-${m.ts}`,
+            senderId: m.user || "slack",
+            senderName: "Slack",
+            senderInitials: "SL",
+            senderRole: "owner",
+            content: m.text,
+            read: true,
+            createdAt: new Date(parseFloat(m.ts) * 1000),
+            isTeam: true,
+          }));
+          projectMessages = slackMsgs.sort(
+            (a, b) =>
+              new Date(a.createdAt).getTime() -
+              new Date(b.createdAt).getTime(),
+          );
+        }
 
         const unreadCount = projectMessages.filter(
           (m) => !m.read && m.isTeam,
@@ -275,9 +308,12 @@ router.get(
             ? `${lastMsg.senderName}: ${lastMsg.content}`
             : "",
           lastMessageTime: lastMsg?.createdAt ?? project.createdAt,
+          slackBridged,
         };
-      })
-      .sort(
+      }),
+    );
+
+    conversations.sort(
         (a, b) =>
           new Date(b.lastMessageTime).getTime() -
           new Date(a.lastMessageTime).getTime(),
@@ -328,7 +364,98 @@ router.post(
       })
       .returning();
 
+    if (project.slackChannelId && (await slackService.isSlackConnected())) {
+      const [sender] = await db
+        .select({ name: usersTable.name, role: usersTable.role })
+        .from(usersTable)
+        .where(eq(usersTable.id, userId))
+        .limit(1);
+      const prefix = sender ? `*${sender.name}* (${sender.role}): ` : "";
+      await slackService
+        .sendMessage(project.slackChannelId, `${prefix}${content}`)
+        .catch((err) => console.error("Slack mirror failed:", err));
+    }
+
     res.status(201).json(message);
+  },
+);
+
+router.get(
+  "/client/drive-files",
+  requireRole("client", "owner", "partner"),
+  async (req, res) => {
+    const userId = req.user!.id;
+
+    if (!(await driveService.isDriveConnected())) {
+      res.json([]);
+      return;
+    }
+
+    const projects = await db
+      .select()
+      .from(projectsTable)
+      .where(userProjectsFilter(userId, req.user!.role));
+
+    const projectsWithFolders = projects.filter((p) => !!p.driveFolderId);
+    if (projectsWithFolders.length === 0) {
+      res.json([]);
+      return;
+    }
+
+    const results = await Promise.all(
+      projectsWithFolders.map(async (project) => {
+        const files = await driveService.listFiles(project.driveFolderId!);
+        return {
+          projectId: project.id,
+          projectName: project.name,
+          files,
+        };
+      }),
+    );
+
+    res.json(results.filter((r) => r.files.length > 0));
+  },
+);
+
+router.get(
+  "/client/drive-files/:fileId/download",
+  requireRole("client", "owner", "partner"),
+  async (req, res) => {
+    const userId = req.user!.id;
+
+    if (!(await driveService.isDriveConnected())) {
+      res.status(404).json({ error: "Drive not connected" });
+      return;
+    }
+
+    const file = await driveService.getFileMetadata(req.params.fileId);
+    if (!file) {
+      res.status(404).json({ error: "File not found" });
+      return;
+    }
+
+    const userProjects = await db
+      .select()
+      .from(projectsTable)
+      .where(userProjectsFilter(userId, req.user!.role));
+
+    const allowedFolderIds = new Set(
+      userProjects.map((p) => p.driveFolderId).filter((v): v is string => !!v),
+    );
+    const fileParents = file.parents ?? [];
+    const allowed = fileParents.some((p) => allowedFolderIds.has(p));
+
+    if (!allowed) {
+      res.status(403).json({ error: "Access denied" });
+      return;
+    }
+
+    const url = await driveService.getDownloadUrl(req.params.fileId);
+    if (!url) {
+      res.status(404).json({ error: "Download URL not available" });
+      return;
+    }
+    res.json({ url });
   },
 );
 

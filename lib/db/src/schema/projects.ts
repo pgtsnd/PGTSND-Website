@@ -49,6 +49,8 @@ export const projectsTable = pgTable(
     startDate: timestamp("start_date"),
     budget: integer("budget"),
     thumbnail: text("thumbnail"),
+    driveFolderId: text("drive_folder_id"),
+    slackChannelId: text("slack_channel_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()

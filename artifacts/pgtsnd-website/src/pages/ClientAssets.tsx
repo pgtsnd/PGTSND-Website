@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
-import { api, type Deliverable, type Project } from "../lib/api";
+import { api, type Deliverable, type Project, type DriveFolderGroup, type DriveFile } from "../lib/api";
 
 function formatShortDate(date: string | Date) {
   const d = new Date(date);
@@ -54,6 +54,7 @@ export default function ClientAssets() {
   const { t } = useTheme();
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [driveGroups, setDriveGroups] = useState<DriveFolderGroup[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
@@ -63,18 +64,39 @@ export default function ClientAssets() {
     Promise.all([
       api.getClientDeliverables(),
       api.getClientDashboard(),
+      api.getClientDriveFiles().catch(() => [] as DriveFolderGroup[]),
     ])
-      .then(([dels, dash]) => {
+      .then(([dels, dash, drive]) => {
         setDeliverables(dels);
         setProjects(dash.projects);
+        setDriveGroups(drive);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = selectedProject === "all"
+  const handleDownload = async (fileId: string, fallbackUrl: string) => {
+    try {
+      const { url } = await api.getClientDriveDownloadUrl(fileId);
+      window.open(url || fallbackUrl, "_blank", "noopener,noreferrer");
+    } catch {
+      window.open(fallbackUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const driveFilesFlat: { group: DriveFolderGroup; file: DriveFile }[] =
+    driveGroups.flatMap((g) => g.files.map((f) => ({ group: g, file: f })));
+
+  const filteredDeliverables = selectedProject === "all"
     ? deliverables
     : deliverables.filter((d) => d.projectId === selectedProject);
+
+  const filteredDriveFiles = selectedProject === "all"
+    ? driveFilesFlat
+    : driveFilesFlat.filter((d) => d.group.projectId === selectedProject);
+
+  const filtered = filteredDeliverables;
+  const totalCount = deliverables.length + driveFilesFlat.length;
 
   if (loading) {
     return (
@@ -102,7 +124,7 @@ export default function ClientAssets() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
           <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "24px", color: t.text }}>Assets</h1>
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            {deliverables.length > 0 && (
+            {totalCount > 0 && (
               <div style={{ display: "flex", border: `1px solid ${t.border}`, borderRadius: "6px", overflow: "hidden" }}>
                 {(["grid", "list"] as const).map((mode) => (
                   <button
@@ -144,10 +166,12 @@ export default function ClientAssets() {
               cursor: "pointer",
             }}
           >
-            All ({deliverables.length})
+            All ({totalCount})
           </button>
           {projects.map((p) => {
-            const count = deliverables.filter((d) => d.projectId === p.id).length;
+            const delCount = deliverables.filter((d) => d.projectId === p.id).length;
+            const driveCount = driveFilesFlat.filter((d) => d.group.projectId === p.id).length;
+            const count = delCount + driveCount;
             if (count === 0) return null;
             return (
               <button
@@ -171,7 +195,7 @@ export default function ClientAssets() {
           })}
         </div>
 
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && filteredDriveFiles.length === 0 ? (
           <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", padding: "48px", textAlign: "center" }}>
             <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" }}>No assets yet</p>
             <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textMuted }}>Deliverables will appear here as your team uploads them.</p>
@@ -204,6 +228,24 @@ export default function ClientAssets() {
                 </div>
               );
             })}
+            {filteredDriveFiles.map(({ group, file }) => (
+              <div key={`drive-${file.id}`} style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px", overflow: "hidden" }}>
+                <div style={{ height: "120px", background: file.thumbnailLink ? `url(${file.thumbnailLink}) center/cover no-repeat` : `linear-gradient(135deg, rgba(120,180,255,0.4) 0%, transparent 100%)`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                  {!file.thumbnailLink && (
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.7)" }}>Drive</span>
+                  )}
+                  <span style={{ position: "absolute", top: "8px", right: "8px", fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "9px", color: "rgba(120,180,255,0.9)", background: "rgba(120,180,255,0.12)", padding: "2px 8px", borderRadius: "4px" }}>Drive</span>
+                </div>
+                <div style={{ padding: "14px 16px" }}>
+                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, marginBottom: "6px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</p>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>{formatShortDate(file.modifiedTime)}</span>
+                    <a href={file.webViewLink} target="_blank" rel="noopener noreferrer" onClick={(e) => { e.preventDefault(); handleDownload(file.id, file.webViewLink); }} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "10px", color: t.accent, textDecoration: "none", textTransform: "uppercase", letterSpacing: "0.05em" }}>Download</a>
+                  </div>
+                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.tagText, background: t.tagBg, padding: "2px 8px", borderRadius: "4px" }}>{group.projectName}</span>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div style={{ background: t.bgCard, borderRadius: "10px", border: `1px solid ${t.border}`, overflow: "hidden" }}>
@@ -231,6 +273,22 @@ export default function ClientAssets() {
                 </div>
               );
             })}
+            {filteredDriveFiles.map(({ group, file }) => (
+              <div key={`drive-list-${file.id}`} style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 100px 40px", padding: "14px 20px", borderBottom: `1px solid ${t.borderSubtle}`, alignItems: "center" }}>
+                <div>
+                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, marginBottom: "2px" }}>{file.name}</p>
+                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.tagText, background: t.tagBg, padding: "2px 8px", borderRadius: "4px" }}>{group.projectName}</span>
+                </div>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "11px", color: t.textTertiary }}>Drive</span>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "10px", color: "rgba(120,180,255,0.9)", background: "rgba(120,180,255,0.12)", padding: "3px 10px", borderRadius: "4px", display: "inline-block", textAlign: "center" }}>Synced</span>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textMuted }}>{timeAgo(file.modifiedTime)}</p>
+                <div style={{ textAlign: "right" }}>
+                  <a href={file.webViewLink} target="_blank" rel="noopener noreferrer" onClick={(e) => { e.preventDefault(); handleDownload(file.id, file.webViewLink); }} title="Download" style={{ display: "inline-block" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.accent} strokeWidth="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                  </a>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

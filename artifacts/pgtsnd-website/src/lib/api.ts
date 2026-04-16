@@ -74,6 +74,24 @@ export interface Conversation {
   unreadCount: number;
   lastMessage: string;
   lastMessageTime: string;
+  slackBridged?: boolean;
+}
+
+export interface DriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  size?: string;
+  modifiedTime: string;
+  webViewLink: string;
+  webContentLink?: string;
+  thumbnailLink?: string;
+}
+
+export interface DriveFolderGroup {
+  projectId: string;
+  projectName: string;
+  files: DriveFile[];
 }
 
 export interface Deliverable {
@@ -251,6 +269,12 @@ export const api = {
     apiFetch<Deliverable[]>(`/projects/${projectId}/deliverables`),
 
   getClientDeliverables: () => apiFetch<Deliverable[]>("/client/deliverables"),
+
+  getClientDriveFiles: () =>
+    apiFetch<DriveFolderGroup[]>("/client/drive-files"),
+
+  getClientDriveDownloadUrl: (fileId: string) =>
+    apiFetch<{ url: string }>(`/client/drive-files/${fileId}/download`),
 
   approveDeliverable: (id: string, comment?: string) =>
     apiFetch<Review>(`/client/deliverables/${id}/approve`, {
