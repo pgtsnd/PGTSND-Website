@@ -153,6 +153,37 @@ export function useSendInvoice() {
   });
 }
 
+export interface DriveFolder {
+  id: string;
+  name: string;
+  parents?: string[];
+}
+
+export function useDriveFolders(enabled: boolean = true) {
+  const { user } = useAuth();
+  return useQuery<DriveFolder[]>({
+    queryKey: ["/api/integrations/drive/folders"],
+    queryFn: () => apiFetch("/integrations/drive/folders"),
+    enabled: !!user && enabled,
+    staleTime: 30000,
+  });
+}
+
+export interface SlackChannel {
+  id: string;
+  name: string;
+}
+
+export function useSlackChannels(enabled: boolean = true) {
+  const { user } = useAuth();
+  return useQuery<SlackChannel[]>({
+    queryKey: ["/api/integrations/slack/channels"],
+    queryFn: () => apiFetch("/integrations/slack/channels"),
+    enabled: !!user && enabled,
+    staleTime: 30000,
+  });
+}
+
 export function useVaultStatus() {
   const { user } = useAuth();
   return useQuery<VaultStatus>({

@@ -58,6 +58,31 @@ async function driveRequest(path: string, options: RequestInit = {}): Promise<Re
   });
 }
 
+export async function listFolders(parentId?: string): Promise<DriveFile[]> {
+  const config = await getDriveConfig();
+  if (!config) return [];
+
+  try {
+    const parent = parentId || "root";
+    const query = `'${parent}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
+    const fields = "files(id,name,mimeType,modifiedTime,webViewLink,parents)";
+    const res = await driveRequest(
+      `/files?q=${encodeURIComponent(query)}&fields=${encodeURIComponent(fields)}&orderBy=name&pageSize=100`,
+    );
+
+    if (!res.ok) {
+      console.error("Drive API error:", await res.text());
+      return [];
+    }
+
+    const data = (await res.json()) as { files: DriveFile[] };
+    return data.files || [];
+  } catch (err) {
+    console.error("Drive list folders error:", err);
+    return [];
+  }
+}
+
 export async function listFiles(folderId: string): Promise<DriveFile[]> {
   const config = await getDriveConfig();
   if (!config) return [];

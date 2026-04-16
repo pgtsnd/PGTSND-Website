@@ -229,6 +229,8 @@ export interface Project {
   startDate?: string | null;
   budget?: number | null;
   thumbnail?: string | null;
+  driveFolderId?: string | null;
+  slackChannelId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -268,6 +270,8 @@ export interface CreateProject {
   startDate?: string;
   budget?: number;
   thumbnail?: string;
+  driveFolderId?: string | null;
+  slackChannelId?: string | null;
 }
 
 export type UpdateProjectStatus =
@@ -305,6 +309,8 @@ export interface UpdateProject {
   startDate?: string;
   budget?: number;
   thumbnail?: string;
+  driveFolderId?: string | null;
+  slackChannelId?: string | null;
 }
 
 export interface ProjectMember {

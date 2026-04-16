@@ -24,6 +24,11 @@ import {
   useUpdateProject,
   useUpdateDeliverable,
 } from "@workspace/api-client-react";
+import {
+  useIntegrationStatus,
+  useDriveFolders,
+  useSlackChannels,
+} from "../hooks/useIntegrations";
 
 type Tab = "overview" | "milestones" | "deliverables" | "assets" | "review";
 
@@ -36,6 +41,7 @@ export default function TeamProjectDetail() {
   const [showHeaderImageModal, setShowHeaderImageModal] = useState(false);
   const [headerImageUrl, setHeaderImageUrl] = useState("");
   const updateProject = useUpdateProject();
+  const queryClient = useQueryClient();
 
   const { project, members, tasks, deliverables, contracts, isLoading, isError, refetch } =
     useProjectWithDetails(projectId);
@@ -90,8 +96,6 @@ export default function TeamProjectDetail() {
     { key: "assets", label: "Assets" },
     { key: "review", label: "Review", badge: pendingDeliverables > 0 ? `${pendingDeliverables}` : undefined },
   ];
-
-  const queryClient = useQueryClient();
 
   const handleSaveHeaderImage = () => {
     if (!headerImageUrl.trim()) return;
@@ -384,12 +388,205 @@ function OverviewTab({ project, tasks, doneTasks, contracts, projectId }: {
           <h3 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "12px" })}>
             Description
           </h3>
-          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px", padding: "20px" }}>
+          <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px", padding: "20px", marginBottom: "32px" }}>
             <p style={f({ fontWeight: 400, fontSize: "13px", color: t.textSecondary, lineHeight: 1.6 })}>{project.description}</p>
           </div>
         </>
       )}
+
+      <ProjectIntegrationsCard project={project} projectId={projectId} />
     </div>
+  );
+}
+
+function ProjectIntegrationsCard({ project, projectId }: { project: any; projectId: string }) {
+  const { t } = useTheme();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+
+  const { data: status } = useIntegrationStatus();
+  const driveConnected = !!status?.google_drive;
+  const slackConnected = !!status?.slack;
+
+  const { data: folders, isLoading: foldersLoading, isError: foldersError } = useDriveFolders(driveConnected);
+  const { data: channels, isLoading: channelsLoading, isError: channelsError } = useSlackChannels(slackConnected);
+
+  const updateProject = useUpdateProject();
+
+  const [driveValue, setDriveValue] = useState<string>(project.driveFolderId || "");
+  const [drivePasteMode, setDrivePasteMode] = useState<boolean>(
+    !!project.driveFolderId && !!folders && !folders.some((folder) => folder.id === project.driveFolderId),
+  );
+  const [slackValue, setSlackValue] = useState<string>(project.slackChannelId || "");
+
+  useEffect(() => {
+    setDriveValue(project.driveFolderId || "");
+  }, [project.driveFolderId]);
+
+  useEffect(() => {
+    setSlackValue(project.slackChannelId || "");
+  }, [project.slackChannelId]);
+
+  useEffect(() => {
+    if (project.driveFolderId && folders && !folders.some((folder) => folder.id === project.driveFolderId)) {
+      setDrivePasteMode(true);
+    }
+  }, [folders, project.driveFolderId]);
+
+  const driveDirty = (project.driveFolderId || "") !== driveValue.trim();
+  const slackDirty = (project.slackChannelId || "") !== slackValue.trim();
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}`] });
+    queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+  };
+
+  const errorMessage = (err: unknown, fallback: string) =>
+    err instanceof Error ? err.message : fallback;
+
+  const handleSaveDrive = () => {
+    updateProject.mutate(
+      { id: projectId, data: { driveFolderId: driveValue.trim() || null } },
+      {
+        onSuccess: () => { invalidate(); toast("Drive folder updated", "success"); },
+        onError: (err) => toast(errorMessage(err, "Failed to update Drive folder"), "error"),
+      },
+    );
+  };
+
+  const handleSaveSlack = () => {
+    updateProject.mutate(
+      { id: projectId, data: { slackChannelId: slackValue.trim() || null } },
+      {
+        onSuccess: () => { invalidate(); toast("Slack channel updated", "success"); },
+        onError: (err) => toast(errorMessage(err, "Failed to update Slack channel"), "error"),
+      },
+    );
+  };
+
+  const fieldLabel: React.CSSProperties = f({
+    fontWeight: 700, fontSize: "10px", textTransform: "uppercase",
+    letterSpacing: "0.08em", color: t.textMuted, marginBottom: "8px", display: "block",
+  });
+  const inputStyle: React.CSSProperties = {
+    width: "100%", padding: "9px 12px", borderRadius: "6px",
+    background: t.hoverBg, border: `1px solid ${t.border}`, color: t.text,
+    outline: "none", boxSizing: "border-box",
+    ...f({ fontWeight: 400, fontSize: "13px" }),
+  };
+  const primaryBtn = (disabled: boolean): React.CSSProperties => f({
+    fontWeight: 600, fontSize: "11px", color: t.accentText,
+    background: t.accent, border: "none", borderRadius: "6px",
+    padding: "8px 14px", cursor: disabled ? "not-allowed" : "pointer",
+    opacity: disabled ? 0.4 : 1,
+  });
+  const linkBtn: React.CSSProperties = f({
+    fontWeight: 500, fontSize: "11px", color: t.textMuted,
+    background: "transparent", border: "none", cursor: "pointer", padding: 0,
+    textDecoration: "underline",
+  });
+
+  return (
+    <>
+      <h3 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "12px" })}>
+        Integrations
+      </h3>
+      <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px", padding: "20px", marginBottom: "32px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+          <div>
+            <label style={fieldLabel}>Google Drive Folder</label>
+            {!driveConnected ? (
+              <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>
+                Google Drive isn't connected. Ask an owner to enable it under <Link href="/team/settings" style={{ color: t.accent, textDecoration: "none" }}>Settings → Integrations</Link>.
+              </p>
+            ) : (
+              <>
+                {!drivePasteMode ? (
+                  <select
+                    value={driveValue}
+                    onChange={(e) => setDriveValue(e.target.value)}
+                    disabled={foldersLoading}
+                    style={inputStyle}
+                  >
+                    <option value="">
+                      {foldersLoading ? "Loading folders…" : foldersError ? "Failed to load — try paste" : "— No folder selected —"}
+                    </option>
+                    {(folders || []).map((folder) => (
+                      <option key={folder.id} value={folder.id}>{folder.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    value={driveValue}
+                    onChange={(e) => setDriveValue(e.target.value)}
+                    placeholder="Paste folder ID from Drive URL"
+                    style={inputStyle}
+                  />
+                )}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "10px", gap: "8px" }}>
+                  <button onClick={() => setDrivePasteMode((v) => !v)} style={linkBtn} type="button">
+                    {drivePasteMode ? "Choose from list" : "Paste folder ID"}
+                  </button>
+                  <button
+                    onClick={handleSaveDrive}
+                    disabled={!driveDirty || updateProject.isPending}
+                    style={primaryBtn(!driveDirty || updateProject.isPending)}
+                    type="button"
+                  >
+                    {updateProject.isPending ? "Saving…" : "Save"}
+                  </button>
+                </div>
+                <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, marginTop: "8px" })}>
+                  Drives the Assets tab and Client Hub file listings.
+                </p>
+              </>
+            )}
+          </div>
+
+          <div>
+            <label style={fieldLabel}>Slack Channel</label>
+            {!slackConnected ? (
+              <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>
+                Slack isn't connected. Ask an owner to enable it under <Link href="/team/settings" style={{ color: t.accent, textDecoration: "none" }}>Settings → Integrations</Link>.
+              </p>
+            ) : (
+              <>
+                <select
+                  value={slackValue}
+                  onChange={(e) => setSlackValue(e.target.value)}
+                  disabled={channelsLoading}
+                  style={inputStyle}
+                >
+                  <option value="">
+                    {channelsLoading ? "Loading channels…" : channelsError ? "Failed to load channels" : "— No channel selected —"}
+                  </option>
+                  {(channels || []).map((channel) => (
+                    <option key={channel.id} value={channel.id}>#{channel.name}</option>
+                  ))}
+                  {slackValue && !(channels || []).some((c) => c.id === slackValue) && (
+                    <option value={slackValue}>{slackValue} (not in list)</option>
+                  )}
+                </select>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginTop: "10px" }}>
+                  <button
+                    onClick={handleSaveSlack}
+                    disabled={!slackDirty || updateProject.isPending}
+                    style={primaryBtn(!slackDirty || updateProject.isPending)}
+                    type="button"
+                  >
+                    {updateProject.isPending ? "Saving…" : "Save"}
+                  </button>
+                </div>
+                <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, marginTop: "8px" })}>
+                  Drives the Messages tab and Client Hub chat.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 

@@ -466,6 +466,8 @@ export const ListProjectsResponseItem = zod.object({
   startDate: zod.coerce.date().nullish(),
   budget: zod.number().nullish(),
   thumbnail: zod.string().nullish(),
+  driveFolderId: zod.string().nullish(),
+  slackChannelId: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -496,6 +498,8 @@ export const CreateProjectBody = zod.object({
   startDate: zod.coerce.date().optional(),
   budget: zod.number().optional(),
   thumbnail: zod.string().optional(),
+  driveFolderId: zod.string().nullish(),
+  slackChannelId: zod.string().nullish(),
 });
 
 /**
@@ -531,6 +535,8 @@ export const GetProjectResponse = zod.object({
   startDate: zod.coerce.date().nullish(),
   budget: zod.number().nullish(),
   thumbnail: zod.string().nullish(),
+  driveFolderId: zod.string().nullish(),
+  slackChannelId: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -564,6 +570,8 @@ export const UpdateProjectBody = zod.object({
   startDate: zod.coerce.date().optional(),
   budget: zod.number().optional(),
   thumbnail: zod.string().optional(),
+  driveFolderId: zod.string().nullish(),
+  slackChannelId: zod.string().nullish(),
 });
 
 export const UpdateProjectResponse = zod.object({
@@ -592,6 +600,8 @@ export const UpdateProjectResponse = zod.object({
   startDate: zod.coerce.date().nullish(),
   budget: zod.number().nullish(),
   thumbnail: zod.string().nullish(),
+  driveFolderId: zod.string().nullish(),
+  slackChannelId: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });

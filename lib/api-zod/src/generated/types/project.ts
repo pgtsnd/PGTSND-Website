@@ -21,6 +21,8 @@ export interface Project {
   startDate?: Date | null;
   budget?: number | null;
   thumbnail?: string | null;
+  driveFolderId?: string | null;
+  slackChannelId?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

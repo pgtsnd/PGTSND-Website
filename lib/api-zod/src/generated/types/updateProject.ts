@@ -20,4 +20,6 @@ export interface UpdateProject {
   startDate?: Date;
   budget?: number;
   thumbnail?: string;
+  driveFolderId?: string | null;
+  slackChannelId?: string | null;
 }

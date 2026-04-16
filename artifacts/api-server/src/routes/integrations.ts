@@ -397,6 +397,16 @@ router.post(
 );
 
 router.get(
+  "/integrations/drive/folders",
+  requireRole("owner", "partner"),
+  async (req, res) => {
+    const parentId = (req.query.parentId as string) || undefined;
+    const folders = await driveService.listFolders(parentId);
+    res.json(folders);
+  },
+);
+
+router.get(
   "/integrations/drive/files",
   requireRole("owner", "partner", "crew"),
   async (req, res) => {

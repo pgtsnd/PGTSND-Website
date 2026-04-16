@@ -1551,6 +1551,12 @@ components:
         thumbnail:
           type: string
           nullable: true
+        driveFolderId:
+          type: string
+          nullable: true
+        slackChannelId:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -1595,6 +1601,12 @@ components:
           type: integer
         thumbnail:
           type: string
+        driveFolderId:
+          type: string
+          nullable: true
+        slackChannelId:
+          type: string
+          nullable: true
       required:
         - name
 
@@ -1627,6 +1639,12 @@ components:
           type: integer
         thumbnail:
           type: string
+        driveFolderId:
+          type: string
+          nullable: true
+        slackChannelId:
+          type: string
+          nullable: true
 
     ProjectMember:
       type: object
