@@ -1,11 +1,12 @@
 import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
 import { Readable } from "stream";
-import { eq, and, like } from "drizzle-orm";
+import { eq, and, like, desc } from "drizzle-orm";
 import {
   db,
   usersTable,
   deliverablesTable,
   reviewLinksTable,
+  mediaUploadsTable,
 } from "@workspace/db";
 import { RequestUploadUrlBody, RequestUploadUrlResponse } from "@workspace/api-zod";
 import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
@@ -61,10 +62,19 @@ router.post(
       res.status(400).json({ error: "Missing or invalid required fields" });
       return;
     }
-    const ALLOWED_CONTENT_TYPES = new Set(["video/mp4", "video/webm"]);
+    const ALLOWED_CONTENT_TYPES = new Set([
+      "video/mp4",
+      "video/webm",
+      "video/quicktime",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "application/pdf",
+    ]);
     const MAX_UPLOAD_BYTES = 2 * 1024 * 1024 * 1024;
     if (!ALLOWED_CONTENT_TYPES.has(parsed.data.contentType)) {
-      res.status(400).json({ error: "Unsupported content type. Allowed: video/mp4, video/webm" });
+      res.status(400).json({ error: "Unsupported content type." });
       return;
     }
     if (parsed.data.size <= 0 || parsed.data.size > MAX_UPLOAD_BYTES) {
@@ -120,6 +130,147 @@ router.get(
 );
 
 /**
+ * POST /storage/media
+ * Register an uploaded media file in the media_uploads table so it can be
+ * listed in the team uploads page and served publicly to the website.
+ */
+const SAFE_MEDIA_CONTENT_TYPES = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+]);
+
+router.post(
+  "/storage/media",
+  teamUploaderGuard,
+  async (req: Request, res: Response) => {
+    const user = await loadSessionUser(req);
+    const body = req.body as {
+      objectPath?: string;
+      name?: string;
+      label?: string | null;
+      contentType?: string;
+      sizeBytes?: number;
+    };
+    if (
+      !body.objectPath ||
+      typeof body.objectPath !== "string" ||
+      !body.objectPath.startsWith("/objects/") ||
+      !body.name ||
+      !body.contentType ||
+      typeof body.sizeBytes !== "number" ||
+      body.sizeBytes <= 0
+    ) {
+      res.status(400).json({ error: "Invalid media metadata" });
+      return;
+    }
+    // Block registering a path that's already attached to a private deliverable —
+    // otherwise team members could expose private project assets via the public
+    // media-serving path.
+    const fileUrl = `/api/storage${body.objectPath}`;
+    const [existingDeliverable] = await db
+      .select({ id: deliverablesTable.id })
+      .from(deliverablesTable)
+      .where(eq(deliverablesTable.fileUrl, fileUrl))
+      .limit(1);
+    if (existingDeliverable) {
+      res.status(409).json({ error: "This object is attached to a private deliverable." });
+      return;
+    }
+    try {
+      // Verify the object actually exists in storage and pull its true size /
+      // content-type instead of trusting client metadata.
+      const objectFile = await objectStorageService.getObjectEntityFile(body.objectPath);
+      const [exists] = await objectFile.exists();
+      if (!exists) {
+        res.status(404).json({ error: "Object not found in storage." });
+        return;
+      }
+      const [meta] = await objectFile.getMetadata();
+      const trueContentType =
+        typeof meta.contentType === "string" && meta.contentType
+          ? meta.contentType
+          : body.contentType;
+      if (!SAFE_MEDIA_CONTENT_TYPES.has(trueContentType)) {
+        res.status(400).json({ error: "Unsupported content type." });
+        return;
+      }
+      const trueSize = typeof meta.size === "string" ? Number(meta.size) : Number(meta.size ?? 0);
+      const sizeBytes = Number.isFinite(trueSize) && trueSize > 0 ? trueSize : body.sizeBytes;
+
+      const [row] = await db
+        .insert(mediaUploadsTable)
+        .values({
+          objectPath: body.objectPath,
+          name: body.name.slice(0, 500),
+          label: body.label?.slice(0, 500) || null,
+          contentType: trueContentType,
+          sizeBytes,
+          uploadedBy: user?.id ?? null,
+        })
+        .onConflictDoNothing({ target: mediaUploadsTable.objectPath })
+        .returning();
+      if (!row) {
+        const [existing] = await db
+          .select()
+          .from(mediaUploadsTable)
+          .where(eq(mediaUploadsTable.objectPath, body.objectPath))
+          .limit(1);
+        res.json(existing);
+        return;
+      }
+      res.json(row);
+    } catch (error) {
+      if (error instanceof ObjectNotFoundError) {
+        res.status(404).json({ error: "Object not found in storage." });
+        return;
+      }
+      req.log.error({ err: error }, "Error registering media upload");
+      res.status(500).json({ error: "Failed to register media" });
+    }
+  },
+);
+
+/**
+ * GET /storage/media
+ * List all registered media uploads (team only).
+ */
+router.get(
+  "/storage/media",
+  teamUploaderGuard,
+  async (_req: Request, res: Response) => {
+    const rows = await db
+      .select()
+      .from(mediaUploadsTable)
+      .orderBy(desc(mediaUploadsTable.createdAt));
+    res.json({ items: rows });
+  },
+);
+
+/**
+ * DELETE /storage/media/:id
+ * Remove a media record (does not delete the underlying GCS object).
+ */
+router.delete(
+  "/storage/media/:id",
+  teamUploaderGuard,
+  async (req: Request, res: Response) => {
+    const id = req.params.id;
+    if (!id) {
+      res.status(400).json({ error: "Missing id" });
+      return;
+    }
+    await db.delete(mediaUploadsTable).where(eq(mediaUploadsTable.id, id));
+    res.json({ ok: true });
+  },
+);
+
+/**
  * GET /storage/objects/*
  * Serves a private object only if the caller has access to its owning
  * deliverable, either through:
@@ -136,6 +287,27 @@ router.get(
       const wildcardPath = Array.isArray(raw) ? raw.join("/") : raw;
       const objectPath = `/objects/${wildcardPath}`;
       const fileUrl = `/api/storage${objectPath}`;
+
+      // Public media uploads are served unconditionally — these are site
+      // assets registered by the team for use on the public website.
+      const [media] = await db
+        .select({ id: mediaUploadsTable.id })
+        .from(mediaUploadsTable)
+        .where(eq(mediaUploadsTable.objectPath, objectPath))
+        .limit(1);
+
+      if (media) {
+        const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
+        const response = await objectStorageService.downloadObject(objectFile, 3600);
+        res.status(response.status);
+        response.headers.forEach((value, key) => res.setHeader(key, value));
+        if (response.body) {
+          Readable.fromWeb(response.body as ReadableStream<Uint8Array>).pipe(res);
+        } else {
+          res.end();
+        }
+        return;
+      }
 
       const [deliverable] = await db
         .select({

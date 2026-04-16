@@ -33,6 +33,7 @@ import TeamMessages from "@/pages/TeamMessages";
 import TeamSchedule from "@/pages/TeamSchedule";
 import TeamCrew from "@/pages/TeamCrew";
 import TeamSettings from "@/pages/TeamSettings";
+import TeamUploads from "@/pages/TeamUploads";
 import AuthVerify from "@/pages/AuthVerify";
 import CaseStudyDetail from "@/pages/case-studies/CaseStudyDetail";
 import AlaskaBeringSeaCrabbers from "@/pages/case-studies/AlaskaBeringSeaCrabbers";
@@ -196,6 +197,13 @@ function Router() {
         {() => (
           <ProtectedRoute allowedRoles={OWNER_ROLES} redirectTo="/team/dashboard">
             <TeamClients />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/team/uploads">
+        {() => (
+          <ProtectedRoute allowedRoles={OWNER_ROLES} redirectTo="/team/dashboard">
+            <TeamUploads />
           </ProtectedRoute>
         )}
       </Route>
