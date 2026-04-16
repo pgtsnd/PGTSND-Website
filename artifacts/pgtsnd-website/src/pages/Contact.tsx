@@ -98,7 +98,7 @@ export default function Contact() {
     const body = [
       `Name: ${formData.firstName} ${formData.lastName}`,
       `Email: ${formData.email}`,
-      formData.phone ? `Phone: ${formData.phone}` : "",
+      `Phone: ${formData.phone}`,
       formData.website ? `Website: ${formData.website}` : "",
       selectedService ? `Service: ${serviceOptions.find((s) => s.id === selectedService)?.label}` : "",
       "",
@@ -221,11 +221,12 @@ export default function Contact() {
                   </div>
 
                   <div style={{ marginBottom: "32px" }}>
-                    <label style={labelStyle}>Phone</label>
+                    <label style={labelStyle}>Phone <span style={requiredMark}>*</span></label>
                     <input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required
                       style={inputStyle}
                     />
                   </div>
