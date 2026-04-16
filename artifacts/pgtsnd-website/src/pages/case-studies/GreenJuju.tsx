@@ -626,7 +626,7 @@ function VeggieScrollBar() {
       const viewH = window.innerHeight;
       const progress = 1 - (rect.top + rect.height) / (viewH + rect.height);
       const clamped = Math.max(0, Math.min(1, progress));
-      setOffset(clamped * 10);
+      setOffset(clamped * 20);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
@@ -636,17 +636,17 @@ function VeggieScrollBar() {
   return (
     <section style={{ padding: "0", position: "relative" }}>
       <div ref={sectionRef} style={{ position: "relative", overflow: "visible" }}>
-        <div style={{ width: "100%", height: "clamp(340px, 40vw, 520px)", overflow: "hidden", background: "#000" }}>
+        <div style={{ width: "100%", height: "clamp(280px, 32vw, 420px)", overflow: "hidden", background: "#000" }}>
           <img
             src={"/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg"}
             alt="Green Juju Products"
             style={{
-              width: "115%",
+              width: "145%",
               height: "100%",
               objectFit: "cover",
               objectPosition: "center center",
               display: "block",
-              transform: `translateX(${-7.5 + offset}%)`,
+              transform: `translateX(${-30 + offset}%)`,
               willChange: "transform",
             }}
           />
