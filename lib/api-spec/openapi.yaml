@@ -1626,6 +1626,35 @@ components:
         slackChannelId:
           type: string
           nullable: true
+        projectType:
+          type: string
+          nullable: true
+        priority:
+          type: string
+        scope:
+          type: string
+          nullable: true
+        goals:
+          type: string
+          nullable: true
+        targetAudience:
+          type: string
+          nullable: true
+        deliverablesPlan:
+          type: string
+          nullable: true
+        shootLocation:
+          type: string
+          nullable: true
+        keyContact:
+          type: string
+          nullable: true
+        referenceLinks:
+          type: string
+          nullable: true
+        internalNotes:
+          type: string
+          nullable: true
       required:
         - name
 
@@ -1662,6 +1691,35 @@ components:
           type: string
           nullable: true
         slackChannelId:
+          type: string
+          nullable: true
+        projectType:
+          type: string
+          nullable: true
+        priority:
+          type: string
+        scope:
+          type: string
+          nullable: true
+        goals:
+          type: string
+          nullable: true
+        targetAudience:
+          type: string
+          nullable: true
+        deliverablesPlan:
+          type: string
+          nullable: true
+        shootLocation:
+          type: string
+          nullable: true
+        keyContact:
+          type: string
+          nullable: true
+        referenceLinks:
+          type: string
+          nullable: true
+        internalNotes:
           type: string
           nullable: true
 

@@ -272,6 +272,16 @@ export interface CreateProject {
   thumbnail?: string;
   driveFolderId?: string | null;
   slackChannelId?: string | null;
+  projectType?: string | null;
+  priority?: string;
+  scope?: string | null;
+  goals?: string | null;
+  targetAudience?: string | null;
+  deliverablesPlan?: string | null;
+  shootLocation?: string | null;
+  keyContact?: string | null;
+  referenceLinks?: string | null;
+  internalNotes?: string | null;
 }
 
 export type UpdateProjectStatus =
@@ -311,6 +321,16 @@ export interface UpdateProject {
   thumbnail?: string;
   driveFolderId?: string | null;
   slackChannelId?: string | null;
+  projectType?: string | null;
+  priority?: string;
+  scope?: string | null;
+  goals?: string | null;
+  targetAudience?: string | null;
+  deliverablesPlan?: string | null;
+  shootLocation?: string | null;
+  keyContact?: string | null;
+  referenceLinks?: string | null;
+  internalNotes?: string | null;
 }
 
 export interface ProjectMember {

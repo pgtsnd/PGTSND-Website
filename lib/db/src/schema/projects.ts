@@ -51,6 +51,16 @@ export const projectsTable = pgTable(
     thumbnail: text("thumbnail"),
     driveFolderId: text("drive_folder_id"),
     slackChannelId: text("slack_channel_id"),
+    projectType: varchar("project_type", { length: 80 }),
+    priority: varchar("priority", { length: 20 }).notNull().default("normal"),
+    scope: text("scope"),
+    goals: text("goals"),
+    targetAudience: text("target_audience"),
+    deliverablesPlan: text("deliverables_plan"),
+    shootLocation: text("shoot_location"),
+    keyContact: varchar("key_contact", { length: 200 }),
+    referenceLinks: text("reference_links"),
+    internalNotes: text("internal_notes"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()

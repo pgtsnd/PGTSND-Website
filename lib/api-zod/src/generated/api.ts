@@ -500,6 +500,16 @@ export const CreateProjectBody = zod.object({
   thumbnail: zod.string().optional(),
   driveFolderId: zod.string().nullish(),
   slackChannelId: zod.string().nullish(),
+  projectType: zod.string().nullish(),
+  priority: zod.string().optional(),
+  scope: zod.string().nullish(),
+  goals: zod.string().nullish(),
+  targetAudience: zod.string().nullish(),
+  deliverablesPlan: zod.string().nullish(),
+  shootLocation: zod.string().nullish(),
+  keyContact: zod.string().nullish(),
+  referenceLinks: zod.string().nullish(),
+  internalNotes: zod.string().nullish(),
 });
 
 /**
@@ -572,6 +582,16 @@ export const UpdateProjectBody = zod.object({
   thumbnail: zod.string().optional(),
   driveFolderId: zod.string().nullish(),
   slackChannelId: zod.string().nullish(),
+  projectType: zod.string().nullish(),
+  priority: zod.string().optional(),
+  scope: zod.string().nullish(),
+  goals: zod.string().nullish(),
+  targetAudience: zod.string().nullish(),
+  deliverablesPlan: zod.string().nullish(),
+  shootLocation: zod.string().nullish(),
+  keyContact: zod.string().nullish(),
+  referenceLinks: zod.string().nullish(),
+  internalNotes: zod.string().nullish(),
 });
 
 export const UpdateProjectResponse = zod.object({

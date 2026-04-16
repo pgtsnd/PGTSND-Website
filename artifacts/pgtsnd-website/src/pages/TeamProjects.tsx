@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
 import { ProjectsSkeleton, ErrorState } from "../components/TeamLoadingStates";
+import NewProjectWizard from "../components/NewProjectWizard";
 import {
   useDashboardData,
   formatPhase,
@@ -26,6 +27,8 @@ export default function TeamProjects() {
   const { isLoading: authLoading } = useTeamAuth();
   const { projects, isLoading, isError, refetch } = useDashboardData();
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [, navigate] = useLocation();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
   if (authLoading || isLoading) {
@@ -61,11 +64,15 @@ export default function TeamProjects() {
       <div style={{ padding: "40px 48px", maxWidth: "1200px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
           <h1 style={f({ fontWeight: 800, fontSize: "24px", color: t.text })}>Projects</h1>
-          <button style={f({
-            fontWeight: 600, fontSize: "12px", color: t.accentText,
-            background: t.accent, border: "none", borderRadius: "6px", padding: "10px 20px", cursor: "pointer",
-            display: "flex", alignItems: "center", gap: "8px",
-          })}>
+          <button
+            onClick={() => setWizardOpen(true)}
+            data-testid="new-project-btn"
+            style={f({
+              fontWeight: 600, fontSize: "12px", color: t.accentText,
+              background: t.accent, border: "none", borderRadius: "6px", padding: "10px 20px", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: "8px",
+            })}
+          >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
             New Project
           </button>
@@ -152,6 +159,13 @@ export default function TeamProjects() {
           })}
         </div>
       </div>
+      <NewProjectWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onCreated={(id) => {
+          if (id) navigate(`/team/projects/${id}`);
+        }}
+      />
     </TeamLayout>
   );
 }

@@ -16,6 +16,10 @@ import { validateAndSend, validateAndSendArray } from "../middleware/validate-re
 
 const router = Router();
 
+function stripForClient<T extends { internalNotes?: unknown }>(p: T): T {
+  return { ...p, internalNotes: null } as T;
+}
+
 router.get("/projects", async (req, res) => {
   const user = req.user!;
 
@@ -50,7 +54,7 @@ router.get("/projects", async (req, res) => {
       .select()
       .from(projectsTable)
       .where(eq(projectsTable.clientId, user.id));
-    validateAndSendArray(res, selectProjectSchema, projects);
+    validateAndSendArray(res, selectProjectSchema, projects.map(stripForClient));
     return;
   }
 
@@ -72,7 +76,8 @@ router.get(
       return;
     }
 
-    validateAndSend(res, selectProjectSchema, project);
+    const out = req.user?.role === "client" ? stripForClient(project) : project;
+    validateAndSend(res, selectProjectSchema, out);
   },
 );
 
