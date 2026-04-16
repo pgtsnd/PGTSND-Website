@@ -362,7 +362,7 @@ export default function Services() {
           <img
             src="/images/site/pgtsnd-camera.webp"
             alt="Camera illustration"
-            style={{ width: "140px", height: "auto", margin: "0 auto 40px", display: "block", opacity: 0.9 }}
+            style={{ width: "360px", height: "auto", margin: "0 auto 40px", display: "block", opacity: 0.9 }}
           />
           <h2
             style={f({
