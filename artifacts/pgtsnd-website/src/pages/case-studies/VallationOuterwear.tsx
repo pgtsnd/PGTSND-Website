@@ -190,7 +190,7 @@ export default function VallationOuterwear() {
               <img
                 src={heroImage}
                 alt="Vallation Outerwear - On the Water"
-                style={{ width: "140%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", marginLeft: "-20%", transform: `translateX(${-heroOffset + 5}%)`, willChange: "transform" }}
+                style={{ width: "140%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", marginLeft: "-20%", transform: `translateX(${heroOffset - 5}%)`, willChange: "transform" }}
               />
             </div>
             <div style={{ position: "absolute", bottom: "-60px", left: "60px", maxWidth: "420px", zIndex: 2 }}>
