@@ -300,7 +300,7 @@ export default function NWSablefish() {
         </section>
 
         {/* Identity Guide + The Big Picture */}
-        <section style={{ padding: "80px 80px 120px", display: "grid", gridTemplateColumns: "1.4fr 1.6fr", gap: "80px", alignItems: "stretch" }}>
+        <section style={{ padding: "80px 80px 120px", display: "grid", gridTemplateColumns: "2fr 1fr", gap: "80px", alignItems: "stretch" }}>
           <div style={{ position: "relative" }}>
             <div
               style={{
