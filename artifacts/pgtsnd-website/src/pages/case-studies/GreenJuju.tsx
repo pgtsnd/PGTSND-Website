@@ -658,9 +658,10 @@ function VeggieScrollBar() {
       <div
         style={{
           width: "100%",
-          height: "42vh",
+          height: "320px",
           overflow: "hidden",
           background: "#000",
+          position: "relative",
         }}
       >
         <img
@@ -668,10 +669,14 @@ function VeggieScrollBar() {
           src={"/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg"}
           alt="Green Juju Products"
           style={{
-            width: "auto",
-            height: "100%",
+            position: "absolute",
+            top: "50%",
+            left: 0,
+            width: "260vw",
+            height: "auto",
             maxWidth: "none",
             display: "block",
+            transform: "translate3d(0, -50%, 0)",
             willChange: "transform",
           }}
         />
