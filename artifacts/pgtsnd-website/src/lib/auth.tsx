@@ -105,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore
     }
+    localStorage.removeItem("team-user-id");
     setUser(null);
   };
 

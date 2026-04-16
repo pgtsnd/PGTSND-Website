@@ -33,13 +33,6 @@ export async function authMiddleware(
     }
   }
 
-  if (!userId && process.env.NODE_ENV === "development") {
-    const headerUserId = req.headers["x-user-id"] as string;
-    if (headerUserId) {
-      userId = headerUserId;
-    }
-  }
-
   if (!userId) {
     res.status(401).json({ error: "Authentication required" });
     return;

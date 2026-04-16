@@ -1,14 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTeamAuth } from "../contexts/TeamAuthContext";
+import { useAuth } from "../lib/auth";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "") + "/api";
 
-async function apiFetch(path: string, options: RequestInit = {}, userId?: string) {
+async function apiFetch(path: string, options: RequestInit = {}) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string> || {}),
   };
-  if (userId) headers["x-user-id"] = userId;
 
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
@@ -59,26 +58,25 @@ export interface InvoiceData {
 }
 
 export function useIntegrationStatus() {
-  const { userId } = useTeamAuth();
+  const { user } = useAuth();
   return useQuery<IntegrationStatus>({
     queryKey: ["/api/integrations/status"],
-    queryFn: () => apiFetch("/integrations/status", {}, userId || undefined),
-    enabled: !!userId,
+    queryFn: () => apiFetch("/integrations/status"),
+    enabled: !!user,
     staleTime: 60000,
   });
 }
 
 export function useIntegrations() {
-  const { userId } = useTeamAuth();
+  const { user } = useAuth();
   return useQuery<IntegrationSetting[]>({
     queryKey: ["/api/integrations"],
-    queryFn: () => apiFetch("/integrations", {}, userId || undefined),
-    enabled: !!userId,
+    queryFn: () => apiFetch("/integrations"),
+    enabled: !!user,
   });
 }
 
 export function useUpdateIntegration() {
-  const { userId } = useTeamAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -86,7 +84,7 @@ export function useUpdateIntegration() {
       apiFetch(`/integrations/${type}`, {
         method: "PUT",
         body: JSON.stringify({ enabled, config }),
-      }, userId || undefined),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/integrations/status"] });
@@ -95,12 +93,11 @@ export function useUpdateIntegration() {
 }
 
 export function useDisconnectIntegration() {
-  const { userId } = useTeamAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (type: string) =>
-      apiFetch(`/integrations/${type}`, { method: "DELETE" }, userId || undefined),
+      apiFetch(`/integrations/${type}`, { method: "DELETE" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/integrations/status"] });
@@ -109,16 +106,15 @@ export function useDisconnectIntegration() {
 }
 
 export function useProjectInvoices(projectId: string) {
-  const { userId } = useTeamAuth();
+  const { user } = useAuth();
   return useQuery<InvoiceData[]>({
     queryKey: [`/api/projects/${projectId}/invoices`],
-    queryFn: () => apiFetch(`/projects/${projectId}/invoices`, {}, userId || undefined),
-    enabled: !!projectId && !!userId,
+    queryFn: () => apiFetch(`/projects/${projectId}/invoices`),
+    enabled: !!projectId && !!user,
   });
 }
 
 export function useCreateInvoice() {
-  const { userId } = useTeamAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -126,7 +122,7 @@ export function useCreateInvoice() {
       apiFetch(`/projects/${projectId}/invoices`, {
         method: "POST",
         body: JSON.stringify(data),
-      }, userId || undefined),
+      }),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${variables.projectId}/invoices`] });
     },
@@ -134,12 +130,11 @@ export function useCreateInvoice() {
 }
 
 export function useSendInvoice() {
-  const { userId } = useTeamAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (invoiceId: string) =>
-      apiFetch(`/invoices/${invoiceId}/send`, { method: "POST" }, userId || undefined),
+      apiFetch(`/invoices/${invoiceId}/send`, { method: "POST" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
     },

@@ -50,7 +50,7 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
 
 - All API routes mounted at `/api` via Express router
 - Health check at `/api/healthz` (unauthenticated)
-- Auth middleware reads `x-user-id` header first, then falls back to `pgtsnd_session` JWT cookie for cookie-based auth
+- Auth middleware verifies `pgtsnd_session` JWT cookie for session-based auth
 - Role-based access control middleware: owner/partner see everything, crew see assigned projects, clients see own projects
 - Client-specific routes under `/api/client/*`: dashboard aggregation, messages (with send), deliverables, contracts, profile (get/update), approve/request-revision workflow
 - Team workflow endpoint `POST /api/deliverables/:id/submit-for-review` transitions deliverables to `in_review` status with guards (owner/partner/crew only, prevents re-submission of already-reviewed items)
@@ -82,8 +82,8 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
   - Assets page has grid/list view toggle, thumbnail cards with colored gradient placeholders, "Send to Review" button on draft videos, breadcrumb navigation, and drag-drop upload zone
   - Video Review links back to Assets via "View in Assets" source file row
 - **Team Portal** (`/team/*`): Admin/production team portal — uses `TeamLayout.tsx` sidebar layout, **all pages wired to real API data** via `@workspace/api-client-react`
-  - **Auth**: Email login via `POST /api/auth/login`; stores userId in localStorage as `team-user-id`; sends `x-user-id` header on all API calls via `setCustomHeadersGetter`; `TeamAuthProvider` wraps entire app in `App.tsx`
-  - **Hooks**: `useTeamData.ts` exports hooks (`useProjects`, `useOrganizations`, `useUsers`, `useProjectWithDetails`, `useDashboardData`, etc.) — all gated with `enabled: !!userId` from `useTeamAuth()`
+  - **Auth**: Uses the same JWT cookie-based session as Client Portal (magic link + Google SSO + demo bypass); `TeamAuthProvider` wraps entire app in `App.tsx` and derives team context from `useAuth()` session
+  - **Hooks**: `useTeamData.ts` exports hooks (`useProjects`, `useOrganizations`, `useUsers`, `useProjectWithDetails`, `useDashboardData`, etc.) — all gated with `enabled: !!userId` where userId is derived from the JWT cookie session via `useAuth()`; API calls include `credentials: "include"` for automatic cookie auth
   - **Owner Dashboard** (`TeamDashboard.tsx`): Personalized welcome, Pipeline phase counts, Crew Status, Revenue Snapshot — all from real project/user data
   - **Projects** (`TeamProjects.tsx`): Real project cards with status filters, progress bars, organization names
   - **Project Workspace** (`TeamProjectDetail.tsx`): `/team/projects/:id` — 6-tab workspace with real tasks, deliverables, contracts, members; Review tab has video player with timestamped comments, push-to-client, shareable review links

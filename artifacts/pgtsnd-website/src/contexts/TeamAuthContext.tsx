@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { setCustomHeadersGetter, useGetCurrentUser, useListUsers } from "@workspace/api-client-react";
+import { createContext, useContext, type ReactNode } from "react";
+import { useAuth } from "../lib/auth";
+import { useGetCurrentUser, useListUsers } from "@workspace/api-client-react";
 import type { User } from "@workspace/api-client-react";
 
 interface TeamAuthContextValue {
@@ -8,7 +9,6 @@ interface TeamAuthContextValue {
   userMap: Map<string, User>;
   isLoading: boolean;
   userId: string | null;
-  setUserId: (id: string | null) => void;
 }
 
 const TeamAuthContext = createContext<TeamAuthContextValue>({
@@ -17,37 +17,19 @@ const TeamAuthContext = createContext<TeamAuthContextValue>({
   userMap: new Map(),
   isLoading: true,
   userId: null,
-  setUserId: () => {},
 });
 
-function initHeaders(id: string | null) {
-  setCustomHeadersGetter(id ? () => ({ "x-user-id": id }) : null);
-}
-
-const storedUserId = localStorage.getItem("team-user-id");
-if (storedUserId) {
-  initHeaders(storedUserId);
-}
-
 export function TeamAuthProvider({ children }: { children: ReactNode }) {
-  const [userId, setUserIdState] = useState<string | null>(storedUserId);
-
-  const setUserId = (id: string | null) => {
-    if (id) {
-      localStorage.setItem("team-user-id", id);
-    } else {
-      localStorage.removeItem("team-user-id");
-    }
-    initHeaders(id);
-    setUserIdState(id);
-  };
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id ? String(user.id) : null;
+  const isAuthenticated = !!user;
 
   const { data: currentUser, isLoading: userLoading } = useGetCurrentUser({
-    query: { enabled: !!userId },
+    query: { enabled: isAuthenticated },
   });
 
   const { data: allUsers, isLoading: usersLoading } = useListUsers({
-    query: { enabled: !!userId },
+    query: { enabled: isAuthenticated },
   });
 
   const userMap = new Map<string, User>();
@@ -63,9 +45,8 @@ export function TeamAuthProvider({ children }: { children: ReactNode }) {
         currentUser: currentUser ?? null,
         allUsers: allUsers ?? [],
         userMap,
-        isLoading: userLoading || usersLoading,
+        isLoading: authLoading || userLoading || usersLoading,
         userId,
-        setUserId,
       }}
     >
       {children}
