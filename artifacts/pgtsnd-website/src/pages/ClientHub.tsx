@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import CTAButton from "../components/CTAButton";
 import { useAuth, getDashboardPath } from "../lib/auth";
 
 export default function ClientHub() {
@@ -327,30 +328,11 @@ export default function ClientHub() {
             )}
           </div>
 
-          <button
+          <CTAButton
             type="submit"
             disabled={submitting}
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 600,
-              fontSize: "11px",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              color: "#000000",
-              background: "#ffffff",
-              border: "none",
-              borderRadius: "100px",
-              padding: "16px 0",
-              cursor: submitting ? "not-allowed" : "pointer",
-              width: "100%",
-              transition: "opacity 0.2s ease",
-              opacity: submitting ? 0.6 : 1,
-            }}
-            onMouseEnter={(e) => { if (!submitting) e.currentTarget.style.opacity = "0.85"; }}
-            onMouseLeave={(e) => { if (!submitting) e.currentTarget.style.opacity = "1"; }}
-          >
-            {submitting ? "Sending..." : mode === "login" ? "Send Magic Link" : "Create Account"}
-          </button>
+            label={submitting ? "Sending..." : mode === "login" ? "Send Magic Link" : "Create Account"}
+          />
         </form>
 
         <div style={{ marginTop: "40px" }}>

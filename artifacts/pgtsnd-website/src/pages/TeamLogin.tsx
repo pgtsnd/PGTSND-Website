@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import CTAButton from "../components/CTAButton";
 import { useAuth, getDashboardPath } from "../lib/auth";
 
 export default function TeamLogin() {
@@ -203,27 +204,11 @@ export default function TeamLogin() {
             )}
           </div>
 
-          <button
+          <CTAButton
             type="submit"
             disabled={submitting}
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 600,
-              fontSize: "11px",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              color: "#000000",
-              background: "#ffffff",
-              border: "none",
-              borderRadius: "100px",
-              padding: "16px 48px",
-              cursor: submitting ? "not-allowed" : "pointer",
-              minWidth: "300px",
-              opacity: submitting ? 0.6 : 1,
-            }}
-          >
-            {submitting ? "Sending..." : "Send Magic Link"}
-          </button>
+            label={submitting ? "Sending..." : "Send Magic Link"}
+          />
         </form>
       </section>
 

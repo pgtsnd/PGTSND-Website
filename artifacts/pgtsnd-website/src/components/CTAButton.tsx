@@ -1,16 +1,34 @@
 import { useState } from "react";
 import { Link } from "wouter";
 
-interface CTAButtonProps {
-  href: string;
+interface CTAButtonBaseProps {
   label: string;
-  external?: boolean;
   variant?: "dark" | "light";
 }
 
-export default function CTAButton({ href, label, external, variant = "light" }: CTAButtonProps) {
+interface CTAButtonLinkProps extends CTAButtonBaseProps {
+  href: string;
+  external?: boolean;
+  type?: never;
+  disabled?: never;
+  onClick?: never;
+}
+
+interface CTAButtonSubmitProps extends CTAButtonBaseProps {
+  type: "submit";
+  disabled?: boolean;
+  onClick?: () => void;
+  href?: never;
+  external?: never;
+}
+
+type CTAButtonProps = CTAButtonLinkProps | CTAButtonSubmitProps;
+
+export default function CTAButton(props: CTAButtonProps) {
+  const { label, variant = "light" } = props;
   const [hovered, setHovered] = useState(false);
   const isDark = variant === "dark";
+  const isDisabled = "disabled" in props && props.disabled;
 
   const bgDefault = isDark ? "#000000" : "#ffffff";
   const fgDefault = isDark ? "#ffffff" : "#000000";
@@ -31,10 +49,11 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
     fontSize: "11px",
     textTransform: "uppercase",
     letterSpacing: "0.14em",
-    cursor: "pointer",
+    cursor: isDisabled ? "not-allowed" : "pointer",
     textDecoration: "none",
     whiteSpace: "nowrap",
     minWidth: "300px",
+    opacity: isDisabled ? 0.6 : 1,
   };
 
   const circleExpandStyle: React.CSSProperties = {
@@ -42,7 +61,7 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
     top: "3px",
     left: "3px",
     bottom: "3px",
-    width: hovered ? "calc(100% - 6px)" : "36px",
+    width: hovered && !isDisabled ? "calc(100% - 6px)" : "36px",
     background: circleBg,
     borderRadius: "999px",
     transition: "width 0.45s ease",
@@ -66,7 +85,7 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
     flex: 1,
     textAlign: "center",
     padding: "0 20px",
-    color: hovered ? circleFg : fgDefault,
+    color: hovered && !isDisabled ? circleFg : fgDefault,
     transition: "color 0.35s ease",
   };
 
@@ -81,7 +100,7 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
           fill="none"
           style={{
             transition: "transform 0.35s ease",
-            transform: hovered ? "rotate(0deg)" : "rotate(-45deg)",
+            transform: hovered && !isDisabled ? "rotate(0deg)" : "rotate(-45deg)",
           }}
         >
           <path
@@ -101,6 +120,16 @@ export default function CTAButton({ href, label, external, variant = "light" }: 
     onMouseEnter: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
   };
+
+  if ("type" in props && props.type === "submit") {
+    return (
+      <button type="submit" disabled={isDisabled} style={buttonStyle} {...handlers}>
+        {content}
+      </button>
+    );
+  }
+
+  const { href, external } = props as CTAButtonLinkProps;
 
   if (external) {
     return (
