@@ -194,7 +194,6 @@ export default function GreenJuju() {
 
         {/* Social Media Showcase */}
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
-          <ScrollBadge position="bottom-left" bottomOffset={857} />
           <div
             style={{
               position: "relative",
@@ -235,6 +234,9 @@ export default function GreenJuju() {
               <VideoPhoneMockup
                 poster={"/images/case-studies/green-juju/puppies-green-juju-pgtsnd.jpeg"}
               />
+            </div>
+            <div style={{ position: "absolute", bottom: "20px", right: "20px", zIndex: 2 }}>
+              <ScrollBadge position="bottom-right" inline />
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: "40px" }}>
