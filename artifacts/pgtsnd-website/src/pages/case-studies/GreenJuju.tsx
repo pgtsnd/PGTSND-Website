@@ -587,7 +587,7 @@ function ProductTubsSlideIn() {
   const brightness = 0.7 + progress * 0.3;
 
   return (
-    <div ref={ref} style={{ width: "100%", overflow: "hidden", position: "relative" }}>
+    <div ref={ref} style={{ width: "100%", position: "relative" }}>
       <img
         src={"/images/case-studies/green-juju/green-juju-product-tubs-pgtsnd.png"}
         alt="Green Juju product tubs"
