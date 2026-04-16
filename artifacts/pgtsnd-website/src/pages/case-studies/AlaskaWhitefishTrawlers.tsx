@@ -62,37 +62,13 @@ export default function AlaskaWhitefishTrawlers() {
           </div>
         </section>
 
-        {/* Wild Sustainable & Affordable */}
-        <section style={{ padding: "200px 40px 40px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", alignItems: "start" }}>
-            <div style={{ background: "#f0ede8", padding: "60px 40px", borderRadius: "4px" }}>
-              <div style={{ borderTop: "3px solid #1a2e5a", paddingTop: "40px", textAlign: "center" }}>
-                <h2 style={f({ fontWeight: 900, fontSize: "clamp(28px, 3.5vw, 42px)", textTransform: "uppercase", letterSpacing: "-0.01em", lineHeight: 1.1, color: "#1a2e5a", marginBottom: "32px" })}>
-                  Wild, Sustainable &amp; Affordable
-                </h2>
-                <img
-                  src={"/images/site/screen-shot-2021-08-02.png"}
-                  alt="Pollock Fish"
-                  style={{ width: "280px", height: "auto", margin: "0 auto 32px", display: "block" }}
-                />
-                <p style={f({ fontWeight: 400, fontSize: "15px", color: "#1a2e5a", lineHeight: 1.7, marginBottom: "16px", textAlign: "left" })}>
-                  77% of what we catch in the Gulf of Alaska is pollock caught with a midwater trawl.
-                </p>
-                <p style={f({ fontWeight: 400, fontSize: "13px", color: "rgba(26,46,90,0.8)", lineHeight: 1.7, textAlign: "left" })}>
-                  Most people are familiar with Alaska pollock – it's what's in fish sticks, fish fillet sandwiches, and imitation crab meat! Other fish we catch include Pacific cod.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Inside Our Partnership */}
-        <section style={{ padding: "200px 80px 120px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "start" }}>
-          <div style={{ background: "#ffffff", borderRadius: "4px", padding: "60px 40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <section style={{ padding: "200px 80px 120px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             <img
-              src={"@assets/Screenshot_2026-04-16_at_12.11.22_AM_1776323488245.png"}
-              alt="Alaska Whitefish Trawlers Logo - Original"
-              style={{ width: "100%", height: "auto" }}
+              src={"/images/site/screen-shot-2021-08-02.png"}
+              alt="Pollock Fish"
+              style={{ width: "280px", height: "auto" }}
             />
           </div>
           <div>
