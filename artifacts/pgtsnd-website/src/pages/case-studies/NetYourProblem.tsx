@@ -279,8 +279,8 @@ export default function NetYourProblem() {
               { src: "/images/case-studies/net-your-problem/net-your-progblem-pgtsnd-photography-2.jpeg", span: 1 },
               { src: "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photgraphy-9.jpeg", span: 2 },
               { src: "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-7.jpeg", span: 1 },
-              { src: "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-5.jpeg", span: 1 },
-              { src: "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-8.jpeg", span: 2 },
+              { src: "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-5.jpeg", span: 2 },
+              { src: "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-8.jpeg", span: 1 },
             ].map((photo, i) => (
               <div
                 key={i}
