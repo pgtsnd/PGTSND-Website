@@ -28,7 +28,7 @@ export default function AlaskaWhitefishTrawlers() {
         </section>
 
         {/* Website Screenshot - Wide Scrollable + Laptop Overlay */}
-        <section style={{ padding: "0 40px 0", position: "relative" }}>
+        <section style={{ padding: "0 40px 0", marginBottom: "330px", position: "relative" }}>
           <div style={{ position: "relative" }}>
             <div style={{
               overflow: "hidden",
@@ -63,7 +63,7 @@ export default function AlaskaWhitefishTrawlers() {
         </section>
 
         {/* Inside Our Partnership */}
-        <section style={{ padding: "200px 80px 120px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+        <section style={{ padding: "0 80px 120px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             <img
               src={"/images/site/screen-shot-2021-08-02.png"}
