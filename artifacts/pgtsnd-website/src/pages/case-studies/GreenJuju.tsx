@@ -194,6 +194,7 @@ export default function GreenJuju() {
 
         {/* Social Media Showcase */}
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
+          <ScrollBadge position="bottom-left" bottomOffset={857} />
           <div
             style={{
               position: "relative",
@@ -439,8 +440,8 @@ export default function GreenJuju() {
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
           <div style={{ width: "100%", overflow: "hidden" }}>
             <img
-              src={"/images/case-studies/green-juju/green-juju-vitality-blend-pgtsnd.jpeg"}
-              alt="Green Juju Vitality Blend"
+              src={"/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg"}
+              alt="Green Juju Products"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
           </div>
