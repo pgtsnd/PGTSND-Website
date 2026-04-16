@@ -138,7 +138,7 @@ export default function AlaskaBeringSeaCrabbers() {
         {/* Hero Video Placeholder + Testimonial */}
         <section style={{ padding: "0 80px", paddingBottom: "120px", position: "relative" }}>
           <div style={{ width: "100%", position: "relative" }}>
-            <div style={{ position: "absolute", top: "-45px", left: "0", zIndex: 5 }}>
+            <div style={{ position: "absolute", top: "-50px", left: "0", zIndex: 5 }}>
               <ScrollBadge position="bottom-left" inline />
             </div>
             <div style={{ width: "100%", aspectRatio: "16 / 9", overflow: "visible", position: "relative", background: "#111" }}>
