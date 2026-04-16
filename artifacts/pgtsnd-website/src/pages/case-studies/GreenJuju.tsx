@@ -202,7 +202,7 @@ export default function GreenJuju() {
               overflow: "hidden",
               aspectRatio: "16 / 9",
               backgroundImage: `url("/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg")`,
-              backgroundSize: "cover",
+              backgroundSize: "200%",
               backgroundPosition: "center",
             }}
           >
@@ -210,8 +210,7 @@ export default function GreenJuju() {
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "rgba(96,120,100,0.55)",
-                mixBlendMode: "multiply",
+                background: "rgba(82,140,130,0.55)",
               }}
             />
             <div
@@ -221,10 +220,10 @@ export default function GreenJuju() {
                 width: "100%",
                 height: "100%",
                 display: "flex",
-                justifyContent: "center",
+                justifyContent: "space-evenly",
                 alignItems: "center",
-                gap: "60px",
-                padding: "40px",
+                gap: "40px",
+                padding: "40px 80px",
               }}
             >
               <VideoPhoneMockup
@@ -232,7 +231,6 @@ export default function GreenJuju() {
               />
               <VideoPhoneMockup
                 poster={"/images/case-studies/green-juju/green-juju-supplements-close-pgtsnd.jpeg"}
-                style={{ transform: "translateY(-20px)" }}
               />
               <VideoPhoneMockup
                 poster={"/images/case-studies/green-juju/puppies-green-juju-pgtsnd.jpeg"}
