@@ -340,26 +340,9 @@ export default function NWSablefish() {
           </div>
         </section>
 
-        {/* ScrollBadge + Instagram Button */}
-        <section style={{ padding: "40px 40px 80px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        {/* ScrollBadge */}
+        <section style={{ padding: "40px 40px 80px", display: "flex", justifyContent: "flex-start", alignItems: "flex-start" }}>
           <ScrollBadge position="bottom-left" bottomOffset={-58} />
-          <a
-            href="https://www.instagram.com/nw_sablefish"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "16px 48px",
-              border: "2px solid rgba(255,255,255,0.4)",
-              borderRadius: "999px",
-              textDecoration: "none",
-              ...f({ fontWeight: 600, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.12em", color: "#ffffff" }),
-            }}
-          >
-            NW Sablefish Instagram
-          </a>
         </section>
 
         {/* Vertical Video Phone Array on Topo Background */}
@@ -408,6 +391,25 @@ export default function NWSablefish() {
                 poster={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-9.JPG"}
               />
             </div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", paddingTop: "40px" }}>
+            <a
+              href="https://www.instagram.com/nw_sablefish"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "16px 48px",
+                border: "2px solid rgba(255,255,255,0.4)",
+                borderRadius: "999px",
+                textDecoration: "none",
+                ...f({ fontWeight: 600, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.12em", color: "#ffffff" }),
+              }}
+            >
+              NW Sablefish Instagram
+            </a>
           </div>
         </section>
 
