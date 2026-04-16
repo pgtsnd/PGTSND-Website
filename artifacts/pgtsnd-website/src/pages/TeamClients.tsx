@@ -20,6 +20,7 @@ import {
   getListUsersQueryKey,
 } from "@workspace/api-client-react";
 import { api, type Invoice, type Contract } from "../lib/api";
+import { exportTeamInvoicesToCsv, type TeamInvoiceExportRow } from "../lib/exports";
 
 type ClientTab = "overview" | "invoices" | "scope";
 
@@ -191,6 +192,15 @@ export default function TeamClients() {
   const [linkLoadingId, setLinkLoadingId] = useState<string | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
 
+  const [showExportModal, setShowExportModal] = useState(false);
+  const allStatuses: Invoice["status"][] = ["draft", "sent", "paid", "overdue", "void"];
+  const [exportFilters, setExportFilters] = useState<{
+    statuses: Invoice["status"][];
+    clientId: string;
+    fromDate: string;
+    toDate: string;
+  }>({ statuses: [...allStatuses], clientId: "", fromDate: "", toDate: "" });
+
   const handleCopyPaymentLink = async (invoiceId: string) => {
     setLinkLoadingId(invoiceId);
     setLinkError(null);
@@ -307,13 +317,26 @@ export default function TeamClients() {
               {clientData.length} clients · {clientData.filter(c => c.status === "active").length} active
             </p>
           </div>
-          <button
-            onClick={() => { setForm(emptyForm); setFormError(""); setShowIntegrations(false); setShowAddModal(true); }}
-            style={f({ fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent, border: "none", borderRadius: "6px", padding: "10px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" })}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-            Add Client
-          </button>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={() => {
+                setExportFilters({ statuses: [...allStatuses], clientId: "", fromDate: "", toDate: "" });
+                setShowExportModal(true);
+              }}
+              disabled={invoices.length === 0}
+              style={f({ fontWeight: 600, fontSize: "12px", color: t.textTertiary, background: t.hoverBg, border: `1px solid ${t.border}`, borderRadius: "6px", padding: "10px 18px", cursor: invoices.length === 0 ? "not-allowed" : "pointer", opacity: invoices.length === 0 ? 0.5 : 1, display: "flex", alignItems: "center", gap: "8px" })}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              Export CSV
+            </button>
+            <button
+              onClick={() => { setForm(emptyForm); setFormError(""); setShowIntegrations(false); setShowAddModal(true); }}
+              style={f({ fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent, border: "none", borderRadius: "6px", padding: "10px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" })}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+              Add Client
+            </button>
+          </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "14px", marginBottom: "32px" }}>
@@ -443,6 +466,39 @@ export default function TeamClients() {
           })}
         </div>
       </div>
+
+      {showExportModal && (
+        <ExportInvoicesModal
+          t={t}
+          f={f}
+          inputStyle={inputStyle}
+          labelStyle={labelStyle}
+          clients={clientData}
+          filters={exportFilters}
+          setFilters={setExportFilters}
+          allStatuses={allStatuses}
+          onClose={() => setShowExportModal(false)}
+          onExport={() => {
+            const rows: TeamInvoiceExportRow[] = [];
+            const fromTs = exportFilters.fromDate ? new Date(exportFilters.fromDate).getTime() : null;
+            const toTs = exportFilters.toDate ? new Date(exportFilters.toDate).getTime() + 24 * 60 * 60 * 1000 - 1 : null;
+            for (const client of clientData) {
+              if (exportFilters.clientId && client.id !== exportFilters.clientId) continue;
+              for (const inv of client.invoices as Invoice[]) {
+                if (!exportFilters.statuses.includes(inv.status)) continue;
+                const created = new Date(inv.createdAt).getTime();
+                if (fromTs !== null && created < fromTs) continue;
+                if (toTs !== null && created > toTs) continue;
+                const projectName = client.projects.find((p: Project) => p.id === inv.projectId)?.name ?? "";
+                rows.push({ invoice: inv, clientName: client.company, projectName });
+              }
+            }
+            const stamp = new Date().toISOString().slice(0, 10);
+            exportTeamInvoicesToCsv(rows, `invoices-${stamp}.csv`);
+            setShowExportModal(false);
+          }}
+        />
+      )}
 
       {showAddModal && (
         <AddClientModal
@@ -985,6 +1041,134 @@ function AddClientModal({ t, f, form, setForm, formError, isSaving, showIntegrat
             style={f({ fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent, border: "none", borderRadius: "8px", padding: "10px 24px", cursor: "pointer", opacity: isSaving ? 0.6 : 1 })}
           >
             {isSaving ? "Adding..." : "Add Client"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExportInvoicesModal({ t, f, inputStyle, labelStyle, clients, filters, setFilters, allStatuses, onClose, onExport }: any) {
+  const matchingCount = (() => {
+    const fromTs = filters.fromDate ? new Date(filters.fromDate).getTime() : null;
+    const toTs = filters.toDate ? new Date(filters.toDate).getTime() + 24 * 60 * 60 * 1000 - 1 : null;
+    let n = 0;
+    for (const client of clients) {
+      if (filters.clientId && client.id !== filters.clientId) continue;
+      for (const inv of client.invoices as Invoice[]) {
+        if (!filters.statuses.includes(inv.status)) continue;
+        const created = new Date(inv.createdAt).getTime();
+        if (fromTs !== null && created < fromTs) continue;
+        if (toTs !== null && created > toTs) continue;
+        n++;
+      }
+    }
+    return n;
+  })();
+
+  const toggleStatus = (s: Invoice["status"]) => {
+    const has = filters.statuses.includes(s);
+    setFilters({ ...filters, statuses: has ? filters.statuses.filter((x: string) => x !== s) : [...filters.statuses, s] });
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, backdropFilter: "blur(4px)" }}
+    >
+      <div
+        onClick={(e: any) => e.stopPropagation()}
+        style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "16px", padding: "32px", width: "480px", maxWidth: "90vw", maxHeight: "85vh", overflowY: "auto" }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+          <h2 style={f({ fontWeight: 800, fontSize: "20px", color: t.text })}>Export Invoices</h2>
+          <button onClick={onClose} style={{ background: "transparent", border: "none", cursor: "pointer", padding: "4px" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+        <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "24px" })}>
+          Download a CSV of invoices across all clients. Use the filters below to narrow what's included.
+        </p>
+
+        <div style={{ marginBottom: "20px" }}>
+          <label style={labelStyle}>Client</label>
+          <select
+            value={filters.clientId}
+            onChange={(e: any) => setFilters({ ...filters, clientId: e.target.value })}
+            style={{ ...inputStyle, cursor: "pointer" }}
+          >
+            <option value="">All clients</option>
+            {clients.map((c: any) => (
+              <option key={c.id} value={c.id}>{c.company}</option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ marginBottom: "20px" }}>
+          <label style={labelStyle}>Status</label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {allStatuses.map((s: Invoice["status"]) => {
+              const active = filters.statuses.includes(s);
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => toggleStatus(s)}
+                  style={f({
+                    fontWeight: 600, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.06em",
+                    color: active ? t.accentText : t.textMuted,
+                    background: active ? t.accent : "transparent",
+                    border: `1px solid ${active ? t.accent : t.border}`,
+                    borderRadius: "6px", padding: "6px 12px", cursor: "pointer",
+                  })}
+                >
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "24px" }}>
+          <div>
+            <label style={labelStyle}>From (created)</label>
+            <input
+              type="date"
+              value={filters.fromDate}
+              onChange={(e: any) => setFilters({ ...filters, fromDate: e.target.value })}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>To (created)</label>
+            <input
+              type="date"
+              value={filters.toDate}
+              onChange={(e: any) => setFilters({ ...filters, toDate: e.target.value })}
+              style={inputStyle}
+            />
+          </div>
+        </div>
+
+        <div style={{ padding: "12px 16px", background: t.hoverBg, borderRadius: "8px", marginBottom: "20px" }}>
+          <p style={f({ fontWeight: 500, fontSize: "12px", color: t.textTertiary })}>
+            {matchingCount} invoice{matchingCount === 1 ? "" : "s"} will be exported
+          </p>
+        </div>
+
+        <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+          <button
+            onClick={onClose}
+            style={f({ fontWeight: 600, fontSize: "12px", color: t.textSecondary, background: "transparent", border: `1px solid ${t.border}`, borderRadius: "8px", padding: "10px 20px", cursor: "pointer" })}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onExport}
+            disabled={matchingCount === 0 || filters.statuses.length === 0}
+            style={f({ fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent, border: "none", borderRadius: "8px", padding: "10px 24px", cursor: matchingCount === 0 ? "not-allowed" : "pointer", opacity: matchingCount === 0 || filters.statuses.length === 0 ? 0.5 : 1 })}
+          >
+            Download CSV
           </button>
         </div>
       </div>

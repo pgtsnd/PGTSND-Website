@@ -28,6 +28,47 @@ function formatDateForExport(date: string | Date | null): string {
   return d.toISOString().slice(0, 10);
 }
 
+export interface TeamInvoiceExportRow {
+  invoice: Invoice;
+  clientName: string;
+  projectName: string;
+}
+
+export function exportTeamInvoicesToCsv(rows: TeamInvoiceExportRow[], filename = "invoices.csv"): void {
+  const headers = [
+    "Client",
+    "Project",
+    "Invoice Number",
+    "Description",
+    "Amount",
+    "Status",
+    "Due Date",
+    "Paid At",
+    "Payment Method",
+    "Created At",
+  ];
+
+  const csvRows = rows.map(({ invoice: inv, clientName, projectName }) => [
+    clientName,
+    projectName,
+    inv.invoiceNumber ?? inv.id.slice(0, 8),
+    inv.description,
+    inv.amount.toFixed(2),
+    inv.status,
+    formatDateForExport(inv.dueDate),
+    formatDateForExport(inv.paidAt),
+    inv.paymentMethod ?? "",
+    formatDateForExport(inv.createdAt),
+  ]);
+
+  const csv = [headers, ...csvRows]
+    .map((row) => row.map(csvEscape).join(","))
+    .join("\r\n");
+
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+  downloadBlob(blob, filename);
+}
+
 export function exportInvoicesToCsv(invoices: Invoice[], filename = "invoices.csv"): void {
   const headers = [
     "Invoice Number",
