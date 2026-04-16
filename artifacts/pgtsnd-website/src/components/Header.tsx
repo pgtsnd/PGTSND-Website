@@ -36,7 +36,7 @@ export default function Header() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "24px 32px",
+          padding: "24px 80px",
           background: menuOpen ? "rgba(0, 0, 0, 0.75)" : "rgba(0, 0, 0, 0.85)",
           backdropFilter: "blur(8px)",
           transition: "background 0.3s ease",
@@ -174,7 +174,7 @@ export default function Header() {
 
         <div
           onClick={(e) => e.stopPropagation()}
-          style={{ padding: "24px 32px", textAlign: "center" }}
+          style={{ padding: "24px 80px", textAlign: "center" }}
         >
           <a
             href="/team"
