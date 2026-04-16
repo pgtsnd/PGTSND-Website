@@ -616,8 +616,10 @@ function SnackCutoutSlideIn() {
       if (!ref.current) return;
       const rect = ref.current.getBoundingClientRect();
       const viewH = window.innerHeight;
-      // 0 when section top is at viewport bottom, 1 when section top reaches viewport top
-      const p = (1 - rect.top / viewH) * 1.6;
+      // 0 when section top is at viewport bottom, 1 by the time the
+      // section is well into view so the image is fully settled before
+      // it starts scrolling off the top.
+      const p = (1 - rect.top / viewH) * 2.2;
       setProgress(Math.max(0, Math.min(1, p)));
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -625,8 +627,8 @@ function SnackCutoutSlideIn() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const translate = (1 - progress) * 100;
-  const brightness = 0.25 + progress * 0.75;
+  const translate = (1 - progress) * 40;
+  const brightness = 0.55 + progress * 0.45;
 
   return (
     <section ref={ref} style={{ padding: "0", overflow: "hidden" }}>
