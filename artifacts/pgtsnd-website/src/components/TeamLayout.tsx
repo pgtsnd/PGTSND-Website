@@ -81,7 +81,6 @@ const navItems: NavItem[] = [
         <line x1="12" y1="3" x2="12" y2="15" />
       </svg>
     ),
-    ownerOnly: true,
   },
   { href: "/team/settings", label: "Settings", icon: settingsIcon, ownerOnly: true },
 ];

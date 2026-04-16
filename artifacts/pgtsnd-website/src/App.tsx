@@ -202,7 +202,7 @@ function Router() {
       </Route>
       <Route path="/team/uploads">
         {() => (
-          <ProtectedRoute allowedRoles={OWNER_ROLES} redirectTo="/team/dashboard">
+          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
             <TeamUploads />
           </ProtectedRoute>
         )}
