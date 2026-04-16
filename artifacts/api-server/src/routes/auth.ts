@@ -1,4 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
+import rateLimit from "express-rate-limit";
 import {
   createMagicLink,
   verifyMagicLink,
@@ -15,6 +16,28 @@ import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
+const authRateLimitHandler = (_req: Request, res: Response) => {
+  res.status(429).json({
+    error: "Too many attempts. Please wait a minute and try again.",
+  });
+};
+
+const magicLinkLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  handler: authRateLimitHandler,
+});
+
+const googleAuthLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  handler: authRateLimitHandler,
+});
+
 const COOKIE_NAME = "pgtsnd_session";
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -24,7 +47,7 @@ const COOKIE_OPTIONS = {
   path: "/",
 };
 
-router.post("/auth/magic-link", async (req: Request, res: Response) => {
+router.post("/auth/magic-link", magicLinkLimiter, async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
 
@@ -102,7 +125,7 @@ router.get("/auth/verify-magic-link", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/auth/google", (_req: Request, res: Response) => {
+router.get("/auth/google", googleAuthLimiter, (_req: Request, res: Response) => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) {
     res.status(500).json({ error: "Google OAuth not configured" });
