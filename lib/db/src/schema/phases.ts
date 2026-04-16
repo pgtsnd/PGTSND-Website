@@ -22,6 +22,8 @@ export const phasesTable = pgTable(
       .references(() => projectsTable.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 200 }).notNull(),
     description: text("description"),
+    startDate: timestamp("start_date"),
+    endDate: timestamp("end_date"),
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")

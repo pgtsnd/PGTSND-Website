@@ -24,6 +24,8 @@ export interface Phase {
   projectId: string;
   name: string;
   description: string | null;
+  startDate: string | null;
+  endDate: string | null;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -333,7 +335,7 @@ export const api = {
   getProjectPhases: (projectId: string) =>
     apiFetch<Phase[]>(`/projects/${projectId}/phases`),
 
-  createPhase: (projectId: string, data: { name: string; description?: string; sortOrder?: number }) =>
+  createPhase: (projectId: string, data: { name: string; description?: string; startDate?: string; endDate?: string; sortOrder?: number }) =>
     apiFetch<Phase>(`/projects/${projectId}/phases`, {
       method: "POST",
       body: JSON.stringify(data),

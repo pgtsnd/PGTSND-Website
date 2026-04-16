@@ -292,53 +292,58 @@ async function seed() {
   ]);
 
   // ── PHASES ──
+  // Proj1: Net Your Problem — Feb 1 → May 15 (post_production phase, 62%)
   const [p1Pre, p1Prod, p1Post, p1Delivery] = await db
     .insert(phasesTable)
     .values([
-      { projectId: proj1.id, name: "Pre-Production", sortOrder: 0 },
-      { projectId: proj1.id, name: "Production", sortOrder: 1 },
-      { projectId: proj1.id, name: "Post-Production", sortOrder: 2 },
-      { projectId: proj1.id, name: "Delivery", sortOrder: 3 },
+      { projectId: proj1.id, name: "Pre-Production", sortOrder: 0, startDate: new Date("2026-02-01"), endDate: new Date("2026-02-28") },
+      { projectId: proj1.id, name: "Production", sortOrder: 1, startDate: new Date("2026-03-01"), endDate: new Date("2026-03-21") },
+      { projectId: proj1.id, name: "Post-Production", sortOrder: 2, startDate: new Date("2026-03-22"), endDate: new Date("2026-05-01") },
+      { projectId: proj1.id, name: "Delivery", sortOrder: 3, startDate: new Date("2026-05-02"), endDate: new Date("2026-05-15") },
     ])
     .returning();
 
+  // Proj2: Tran Architecture — Mar 15 → Jun 30 (production phase, 35%)
   const [p2Pre, p2Prod, p2Post, p2Delivery] = await db
     .insert(phasesTable)
     .values([
-      { projectId: proj2.id, name: "Pre-Production", sortOrder: 0 },
-      { projectId: proj2.id, name: "Production", sortOrder: 1 },
-      { projectId: proj2.id, name: "Post-Production", sortOrder: 2 },
-      { projectId: proj2.id, name: "Delivery", sortOrder: 3 },
+      { projectId: proj2.id, name: "Pre-Production", sortOrder: 0, startDate: new Date("2026-03-15"), endDate: new Date("2026-04-05") },
+      { projectId: proj2.id, name: "Production", sortOrder: 1, startDate: new Date("2026-04-06"), endDate: new Date("2026-05-10") },
+      { projectId: proj2.id, name: "Post-Production", sortOrder: 2, startDate: new Date("2026-05-11"), endDate: new Date("2026-06-15") },
+      { projectId: proj2.id, name: "Delivery", sortOrder: 3, startDate: new Date("2026-06-16"), endDate: new Date("2026-06-30") },
     ])
     .returning();
 
+  // Proj3: Pacific NW Health — Jan 10 → Apr 25 (review phase, 88%)
   const [p3Pre, p3Prod, p3Post, p3Delivery] = await db
     .insert(phasesTable)
     .values([
-      { projectId: proj3.id, name: "Pre-Production", sortOrder: 0 },
-      { projectId: proj3.id, name: "Production", sortOrder: 1 },
-      { projectId: proj3.id, name: "Post-Production", sortOrder: 2 },
-      { projectId: proj3.id, name: "Delivery", sortOrder: 3 },
+      { projectId: proj3.id, name: "Pre-Production", sortOrder: 0, startDate: new Date("2026-01-10"), endDate: new Date("2026-02-01") },
+      { projectId: proj3.id, name: "Production", sortOrder: 1, startDate: new Date("2026-02-02"), endDate: new Date("2026-02-28") },
+      { projectId: proj3.id, name: "Post-Production", sortOrder: 2, startDate: new Date("2026-03-01"), endDate: new Date("2026-04-05") },
+      { projectId: proj3.id, name: "Delivery", sortOrder: 3, startDate: new Date("2026-04-06"), endDate: new Date("2026-04-25") },
     ])
     .returning();
 
+  // Proj4: Cascade Coffee — Apr 1 → Jul 20 (pre_production phase, 12%)
   const [p4Pre, p4Prod, p4Post, p4Delivery] = await db
     .insert(phasesTable)
     .values([
-      { projectId: proj4.id, name: "Pre-Production", sortOrder: 0 },
-      { projectId: proj4.id, name: "Production", sortOrder: 1 },
-      { projectId: proj4.id, name: "Post-Production", sortOrder: 2 },
-      { projectId: proj4.id, name: "Delivery", sortOrder: 3 },
+      { projectId: proj4.id, name: "Pre-Production", sortOrder: 0, startDate: new Date("2026-04-01"), endDate: new Date("2026-04-30") },
+      { projectId: proj4.id, name: "Production", sortOrder: 1, startDate: new Date("2026-05-01"), endDate: new Date("2026-06-01") },
+      { projectId: proj4.id, name: "Post-Production", sortOrder: 2, startDate: new Date("2026-06-02"), endDate: new Date("2026-07-05") },
+      { projectId: proj4.id, name: "Delivery", sortOrder: 3, startDate: new Date("2026-07-06"), endDate: new Date("2026-07-20") },
     ])
     .returning();
 
+  // Proj5: Vallation Outerwear — Nov 15 → Mar 1 (delivered, 100%)
   const [p5Pre, p5Prod, p5Post, p5Delivery] = await db
     .insert(phasesTable)
     .values([
-      { projectId: proj5.id, name: "Pre-Production", sortOrder: 0 },
-      { projectId: proj5.id, name: "Production", sortOrder: 1 },
-      { projectId: proj5.id, name: "Post-Production", sortOrder: 2 },
-      { projectId: proj5.id, name: "Delivery", sortOrder: 3 },
+      { projectId: proj5.id, name: "Pre-Production", sortOrder: 0, startDate: new Date("2025-11-15"), endDate: new Date("2025-12-15") },
+      { projectId: proj5.id, name: "Production", sortOrder: 1, startDate: new Date("2025-12-16"), endDate: new Date("2026-01-20") },
+      { projectId: proj5.id, name: "Post-Production", sortOrder: 2, startDate: new Date("2026-01-21"), endDate: new Date("2026-02-15") },
+      { projectId: proj5.id, name: "Delivery", sortOrder: 3, startDate: new Date("2026-02-16"), endDate: new Date("2026-03-01") },
     ])
     .returning();
 
