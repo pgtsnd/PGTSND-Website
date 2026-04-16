@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { ThemeProvider } from "@/components/ThemeContext";
 import { AuthProvider } from "@/lib/auth";
+import { TeamAuthProvider } from "@/contexts/TeamAuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Header from "@/components/Header";
 import Home from "@/pages/Home";
@@ -53,7 +54,6 @@ function ScrollToTop() {
   return null;
 }
 
-const CLIENT_ROLES = ["client", "owner", "partner"];
 const TEAM_ROLES = ["owner", "partner", "crew"];
 
 function Router() {
@@ -246,8 +246,10 @@ function App() {
     <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
       <ThemeProvider>
         <AuthProvider>
-          <ScrollToTop />
-          <Router />
+          <TeamAuthProvider>
+            <ScrollToTop />
+            <Router />
+          </TeamAuthProvider>
         </AuthProvider>
       </ThemeProvider>
     </WouterRouter>

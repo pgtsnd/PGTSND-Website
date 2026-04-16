@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useTheme } from "./ThemeContext";
+import { useTeamAuth } from "../contexts/TeamAuthContext";
 import logo from "@assets/logo.webp";
 
 const navItems = [
@@ -94,6 +95,7 @@ const navItems = [
 export default function TeamLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { t, toggle } = useTheme();
+  const { currentUser } = useTeamAuth();
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: t.bg }}>
@@ -163,10 +165,10 @@ export default function TeamLayout({ children }: { children: React.ReactNode }) 
 
         <div style={{ padding: "16px 20px", borderTop: `1px solid ${t.border}`, marginTop: "auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: t.accent, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", color: t.accentText }}>BD</div>
+            <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: t.accent, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", color: t.accentText }}>{currentUser?.initials ?? "??"}</div>
             <div>
-              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, lineHeight: 1.3 }}>Bri Dwyer</p>
-              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>Director / Producer</p>
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, lineHeight: 1.3 }}>{currentUser?.name ?? "Team"}</p>
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>{currentUser?.title ?? ""}</p>
             </div>
           </div>
         </div>

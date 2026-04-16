@@ -1,59 +1,92 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
-
-const weeks = ["Apr 7", "Apr 14", "Apr 21", "Apr 28", "May 5", "May 12", "May 19", "May 26", "Jun 2", "Jun 9"];
-const todayWeekIndex = 1;
-
-interface ScheduleItem {
-  project: string;
-  projectId: number;
-  phase: string;
-  startWeek: number;
-  endWeek: number;
-  intensity: "high" | "medium" | "low";
-  milestones: { week: number; label: string }[];
-}
-
-const scheduleItems: ScheduleItem[] = [
-  {
-    project: "Spring Campaign Film", projectId: 1, phase: "Post-Production",
-    startWeek: 0, endWeek: 5, intensity: "high",
-    milestones: [
-      { week: 1, label: "Rough Cut v2" },
-      { week: 3, label: "Fine Cut" },
-      { week: 5, label: "Final Delivery" },
-    ],
-  },
-  {
-    project: "Product Launch Teaser", projectId: 2, phase: "Production",
-    startWeek: 1, endWeek: 8, intensity: "medium",
-    milestones: [
-      { week: 2, label: "Shoot Day 1" },
-      { week: 3, label: "Shoot Day 2" },
-      { week: 6, label: "Rough Cut" },
-      { week: 8, label: "Final Delivery" },
-    ],
-  },
-  {
-    project: "Brand Story — Founders Cut", projectId: 3, phase: "Paused",
-    startWeek: 0, endWeek: 2, intensity: "low",
-    milestones: [],
-  },
-];
-
-const upcomingEvents = [
-  { date: "Apr 15", day: "Tue", title: "Product macro shoot", project: "Product Launch Teaser", crew: ["Sam Reeves", "Bri Dwyer"], time: "9:00 AM – 4:00 PM" },
-  { date: "Apr 16", day: "Wed", title: "Sound design review", project: "Spring Campaign Film", crew: ["Jamie Lin", "Bri Dwyer"], time: "2:00 PM" },
-  { date: "Apr 18", day: "Fri", title: "Color grading review — Scenes 1-3", project: "Spring Campaign Film", crew: ["Alex Torres", "Bri Dwyer"], time: "10:00 AM" },
-  { date: "Apr 22", day: "Tue", title: "Shoot Day 2 — Street + cafe scenes", project: "Product Launch Teaser", crew: ["Sam Reeves", "Bri Dwyer"], time: "7:00 AM – 6:00 PM" },
-  { date: "Apr 25", day: "Fri", title: "Fine Cut delivery target", project: "Spring Campaign Film", crew: ["Jamie Lin"], time: "EOD" },
-];
+import { useTeamAuth } from "../contexts/TeamAuthContext";
+import {
+  useDashboardData,
+  formatPhase,
+  formatDate,
+  type Project,
+} from "../hooks/useTeamData";
 
 export default function TeamSchedule() {
   const { t } = useTheme();
+  const { isLoading: authLoading } = useTeamAuth();
+  const { projects, isLoading } = useDashboardData();
   const [view, setView] = useState<"timeline" | "upcoming">("timeline");
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+
+  const activeProjects = projects.filter((p) => p.status !== "archived");
+
+  const weeks = useMemo(() => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() + 1);
+    const result: string[] = [];
+    for (let i = -1; i < 9; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(d.getDate() + i * 7);
+      result.push(d.toLocaleDateString("en-US", { month: "short", day: "numeric" }));
+    }
+    return result;
+  }, []);
+
+  const todayWeekIndex = 1;
+
+  const scheduleItems = activeProjects.map((p) => {
+    const now = new Date();
+    const startDate = p.startDate ? new Date(p.startDate) : new Date(p.createdAt);
+    const dueDate = p.dueDate ? new Date(p.dueDate) : null;
+
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() + 1 - 7);
+
+    const startWeek = Math.max(0, Math.floor((startDate.getTime() - startOfWeek.getTime()) / (7 * 24 * 60 * 60 * 1000)));
+    const endWeek = dueDate
+      ? Math.min(weeks.length - 1, Math.floor((dueDate.getTime() - startOfWeek.getTime()) / (7 * 24 * 60 * 60 * 1000)))
+      : Math.min(weeks.length - 1, startWeek + 4);
+
+    const milestones: { week: number; label: string }[] = [];
+    if (dueDate) {
+      milestones.push({ week: Math.min(endWeek, weeks.length - 1), label: "Due Date" });
+    }
+
+    return {
+      project: p.name,
+      projectId: p.id,
+      phase: formatPhase(p.phase),
+      startWeek: Math.max(0, startWeek),
+      endWeek: Math.max(0, endWeek),
+      intensity: p.progress > 50 ? "high" as const : p.progress > 20 ? "medium" as const : "low" as const,
+      milestones,
+      isPaused: p.status === "lead",
+    };
+  });
+
+  const upcomingEvents = activeProjects
+    .filter((p) => p.dueDate)
+    .map((p) => {
+      const d = new Date(p.dueDate!);
+      return {
+        date: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        day: d.toLocaleDateString("en-US", { weekday: "short" }),
+        title: `${formatPhase(p.phase)} — ${p.name}`,
+        project: p.name,
+        time: "Due date",
+        sortDate: d.getTime(),
+      };
+    })
+    .sort((a, b) => a.sortDate - b.sortDate);
+
+  if (authLoading || isLoading) {
+    return (
+      <TeamLayout>
+        <div style={{ padding: "40px 48px" }}>
+          <p style={f({ fontWeight: 400, fontSize: "14px", color: t.textMuted })}>Loading schedule...</p>
+        </div>
+      </TeamLayout>
+    );
+  }
 
   return (
     <TeamLayout>
@@ -88,13 +121,13 @@ export default function TeamSchedule() {
                     background: i === todayWeekIndex ? "rgba(255,255,255,0.03)" : "transparent",
                   }}>
                     <p style={f({ fontWeight: i === todayWeekIndex ? 700 : 400, fontSize: "10px", color: i === todayWeekIndex ? t.text : t.textMuted })}>{week}</p>
-                    {i === todayWeekIndex && <p style={f({ fontWeight: 600, fontSize: "8px", color: t.accent, textTransform: "uppercase", marginTop: "2px" })}>Today</p>}
+                    {i === todayWeekIndex && <p style={f({ fontWeight: 600, fontSize: "8px", color: t.accent, textTransform: "uppercase", marginTop: "2px" })}>This Week</p>}
                   </div>
                 ))}
               </div>
 
               {scheduleItems.map((item, rowIndex) => (
-                <div key={item.project} style={{
+                <div key={item.projectId} style={{
                   display: "grid", gridTemplateColumns: `180px repeat(${weeks.length}, 1fr)`,
                   borderBottom: rowIndex < scheduleItems.length - 1 ? `1px solid ${t.borderSubtle}` : "none",
                   minHeight: "64px", alignItems: "center",
@@ -115,8 +148,10 @@ export default function TeamSchedule() {
                         <div style={{
                           position: "absolute", left: colIndex === item.startWeek ? "4px" : "0",
                           right: colIndex === item.endWeek ? "4px" : "0",
-                          height: "8px", background: item.intensity === "high" ? t.text : item.intensity === "medium" ? t.textTertiary : t.textMuted, borderRadius: colIndex === item.startWeek && colIndex === item.endWeek ? "4px" : colIndex === item.startWeek ? "4px 0 0 4px" : colIndex === item.endWeek ? "0 4px 4px 0" : "0",
-                          opacity: item.phase === "Paused" ? 0.3 : 0.6,
+                          height: "8px",
+                          background: item.intensity === "high" ? t.text : item.intensity === "medium" ? t.textTertiary : t.textMuted,
+                          borderRadius: colIndex === item.startWeek && colIndex === item.endWeek ? "4px" : colIndex === item.startWeek ? "4px 0 0 4px" : colIndex === item.endWeek ? "0 4px 4px 0" : "0",
+                          opacity: item.isPaused ? 0.3 : 0.6,
                         }} />
                       )}
                       {item.milestones.some((m) => m.week === colIndex) && (
@@ -148,28 +183,30 @@ export default function TeamSchedule() {
 
         {view === "upcoming" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {upcomingEvents.map((event, i) => (
-              <div key={i} style={{
-                display: "flex", alignItems: "flex-start", gap: "20px",
-                background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
-                padding: "20px 24px",
-              }}>
-                <div style={{ textAlign: "center", minWidth: "48px" }}>
-                  <p style={f({ fontWeight: 700, fontSize: "14px", color: t.text })}>{event.date.split(" ")[1]}</p>
-                  <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, textTransform: "uppercase" })}>{event.day}</p>
-                </div>
-                <div style={{ width: "1px", background: t.border, alignSelf: "stretch" }} />
-                <div style={{ flex: 1 }}>
-                  <p style={f({ fontWeight: 700, fontSize: "14px", color: t.text, marginBottom: "4px" })}>{event.title}</p>
-                  <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "8px" })}>{event.project} · {event.time}</p>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    {event.crew.map((c) => (
-                      <span key={c} style={f({ fontWeight: 500, fontSize: "10px", color: t.textTertiary, background: t.hoverBg, padding: "3px 8px", borderRadius: "4px" })}>{c}</span>
-                    ))}
+            {upcomingEvents.length === 0 ? (
+              <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", padding: "48px", textAlign: "center" }}>
+                <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" })}>No upcoming dates</p>
+                <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>Set due dates on projects to see them here.</p>
+              </div>
+            ) : (
+              upcomingEvents.map((event, i) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "flex-start", gap: "20px",
+                  background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
+                  padding: "20px 24px",
+                }}>
+                  <div style={{ textAlign: "center", minWidth: "48px" }}>
+                    <p style={f({ fontWeight: 700, fontSize: "14px", color: t.text })}>{event.date.split(" ")[1]}</p>
+                    <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, textTransform: "uppercase" })}>{event.day}</p>
+                  </div>
+                  <div style={{ width: "1px", background: t.border, alignSelf: "stretch" }} />
+                  <div style={{ flex: 1 }}>
+                    <p style={f({ fontWeight: 700, fontSize: "14px", color: t.text, marginBottom: "4px" })}>{event.title}</p>
+                    <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>{event.project} · {event.time}</p>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         )}
       </div>

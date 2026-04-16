@@ -10,6 +10,9 @@ import {
   ensureDemoUser,
 } from "../lib/auth";
 import { logger } from "../lib/logger";
+import { db, usersTable, selectUserSchema } from "@workspace/db";
+import { eq, and, ne } from "drizzle-orm";
+import { validateAndSend } from "../middleware/validate-response";
 
 const router: IRouter = Router();
 
@@ -194,6 +197,33 @@ router.get("/auth/me", (req: Request, res: Response) => {
 router.post("/auth/logout", (_req: Request, res: Response) => {
   res.clearCookie(COOKIE_NAME, { path: "/" });
   res.json({ success: true });
+});
+
+router.post("/auth/login", async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (!email || typeof email !== "string") {
+    res.status(400).json({ error: "Email is required" });
+    return;
+  }
+
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(
+      and(
+        eq(usersTable.email, email.toLowerCase().trim()),
+        ne(usersTable.role, "client"),
+      ),
+    )
+    .limit(1);
+
+  if (!user) {
+    res.status(401).json({ error: "Access restricted to team members" });
+    return;
+  }
+
+  validateAndSend(res, selectUserSchema, user);
 });
 
 export default router;
