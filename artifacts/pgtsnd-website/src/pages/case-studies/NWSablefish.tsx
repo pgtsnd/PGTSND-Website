@@ -399,6 +399,14 @@ export default function NWSablefish() {
 
         {/* Vertical Video Phone Array on Topo Background */}
         <section style={{ padding: "0 40px 0", position: "relative" }}>
+          <div style={{ padding: "0 40px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <img
+              src={"/images/case-studies/nw-sablefish/NWsablefish-fish-gold.png"}
+              alt="NW Sablefish"
+              style={{ width: "60px", height: "auto" }}
+            />
+            <ScrollBadge position="bottom-right" inline />
+          </div>
           <div
             style={{
               position: "relative",
@@ -493,57 +501,6 @@ export default function NWSablefish() {
               We built their social presence from zero into a growing community, establishing a foundation for awareness and storytelling that positioned North West Sablefish as both a high-value product and as an experience worth savoring.
             </p>
           </div>
-        </section>
-
-        {/* Vertical Video Phone Array on Topo Background */}
-        <section style={{ padding: "0 40px 0", position: "relative" }}>
-          <div
-            style={{
-              position: "relative",
-              borderRadius: "8px",
-              overflow: "hidden",
-              background: "#1a3a4a",
-              padding: "80px 40px",
-            }}
-          >
-            <div style={{ position: "absolute", inset: 0, opacity: 0.55, pointerEvents: "none" }}>
-              <img
-                src={"/images/case-studies/nw-sablefish/sablefish-topo-blue2-1.png"}
-                alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-            </div>
-            <div
-              style={{
-                position: "relative",
-                zIndex: 1,
-                display: "flex",
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                gap: "40px",
-              }}
-            >
-              <VideoPhoneMockup
-                poster={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-4.jpg"}
-              />
-              <VideoPhoneMockup
-                poster={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-7.jpeg"}
-              />
-              <VideoPhoneMockup
-                poster={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-9.JPG"}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Fish Sticker + ScrollBadge */}
-        <section style={{ padding: "0 80px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <img
-            src={"/images/case-studies/nw-sablefish/NWsablefish-fish-gold.png"}
-            alt="NW Sablefish"
-            style={{ width: "60px", height: "auto" }}
-          />
-          <ScrollBadge position="bottom-right" inline />
         </section>
 
         {/* Photo Gallery */}
