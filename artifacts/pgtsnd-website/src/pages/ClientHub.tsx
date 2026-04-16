@@ -16,7 +16,7 @@ export default function ClientHub() {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate(getDashboardPath(user.role));
+      navigate("/client-hub/dashboard");
     }
   }, [user, loading, navigate]);
 
@@ -52,8 +52,8 @@ export default function ClientHub() {
     try {
       const result = await login(email);
 
-      if (result.demo && result.redirect) {
-        navigate(result.redirect);
+      if (result.demo) {
+        navigate("/client-hub/dashboard");
         return;
       }
 
