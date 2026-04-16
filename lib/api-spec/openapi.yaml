@@ -960,6 +960,123 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /dm/contacts:
+    get:
+      operationId: listDmContacts
+      tags: [messages]
+      summary: List users the current user is allowed to DM
+      responses:
+        "200":
+          description: Allowed DM contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DmContact"
+
+  /dm/conversations:
+    get:
+      operationId: listDmConversations
+      tags: [messages]
+      summary: List the current user's DM conversations
+      responses:
+        "200":
+          description: DM conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DmConversation"
+
+  /dm/threads/{userId}:
+    get:
+      operationId: getDmThread
+      tags: [messages]
+      summary: Get DM thread with another user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Thread messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      operationId: sendDm
+      tags: [messages]
+      summary: Send a DM
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendDm"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /dm/threads/{userId}/read:
+    patch:
+      operationId: markDmThreadRead
+      tags: [messages]
+      summary: Mark all messages in a DM thread as read
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /messages/unread-summary:
+    get:
+      operationId: getUnreadSummary
+      tags: [messages]
+      summary: Unread counts split by project groups vs DMs
+      responses:
+        "200":
+          description: Unread summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnreadSummary"
+
   /projects/{projectId}/contracts:
     get:
       operationId: listProjectContracts
@@ -2121,6 +2238,10 @@ components:
           type: string
         projectId:
           type: string
+          nullable: true
+        recipientId:
+          type: string
+          nullable: true
         senderId:
           type: string
         content:
@@ -2132,11 +2253,72 @@ components:
           format: date-time
       required:
         - id
-        - projectId
         - senderId
         - content
         - read
         - createdAt
+
+    DmContact:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+      required: [id, name, email, role]
+
+    DmConversation:
+      type: object
+      properties:
+        partnerId:
+          type: string
+        partnerName:
+          type: string
+        partnerRole:
+          type: string
+          nullable: true
+        partnerAvatarUrl:
+          type: string
+          nullable: true
+        lastMessageContent:
+          type: string
+        lastMessageAt:
+          type: string
+          format: date-time
+        lastMessageFromMe:
+          type: boolean
+        unreadCount:
+          type: integer
+      required:
+        - partnerId
+        - partnerName
+        - lastMessageContent
+        - lastMessageAt
+        - lastMessageFromMe
+        - unreadCount
+
+    UnreadSummary:
+      type: object
+      properties:
+        projectGroups:
+          type: integer
+        directMessages:
+          type: integer
+      required: [projectGroups, directMessages]
+
+    SendDm:
+      type: object
+      properties:
+        content:
+          type: string
+      required: [content]
 
     CreateMessage:
       type: object

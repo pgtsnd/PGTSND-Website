@@ -591,11 +591,40 @@ export interface UpdateReview {
 
 export interface Message {
   id: string;
-  projectId: string;
+  projectId?: string | null;
+  recipientId?: string | null;
   senderId: string;
   content: string;
   read: boolean;
   createdAt: string;
+}
+
+export interface DmContact {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatarUrl?: string | null;
+}
+
+export interface DmConversation {
+  partnerId: string;
+  partnerName: string;
+  partnerRole?: string | null;
+  partnerAvatarUrl?: string | null;
+  lastMessageContent: string;
+  lastMessageAt: string;
+  lastMessageFromMe: boolean;
+  unreadCount: number;
+}
+
+export interface UnreadSummary {
+  projectGroups: number;
+  directMessages: number;
+}
+
+export interface SendDm {
+  content: string;
 }
 
 export interface CreateMessage {
@@ -765,3 +794,7 @@ export type ValidationErrorResponse = ValidationError;
  * Resource deleted
  */
 export type DeleteSuccessResponse = DeleteResult;
+
+export type MarkDmThreadRead200 = {
+  ok?: boolean;
+};

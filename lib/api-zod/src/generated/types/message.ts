@@ -8,7 +8,8 @@
 
 export interface Message {
   id: string;
-  projectId: string;
+  projectId?: string | null;
+  recipientId?: string | null;
   senderId: string;
   content: string;
   read: boolean;

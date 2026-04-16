@@ -1092,7 +1092,8 @@ export const ListProjectMessagesParams = zod.object({
 
 export const ListProjectMessagesResponseItem = zod.object({
   id: zod.string(),
-  projectId: zod.string(),
+  projectId: zod.string().nullish(),
+  recipientId: zod.string().nullish(),
   senderId: zod.string(),
   content: zod.string(),
   read: zod.boolean(),
@@ -1122,7 +1123,8 @@ export const MarkMessageReadParams = zod.object({
 
 export const MarkMessageReadResponse = zod.object({
   id: zod.string(),
-  projectId: zod.string(),
+  projectId: zod.string().nullish(),
+  recipientId: zod.string().nullish(),
   senderId: zod.string(),
   content: zod.string(),
   read: zod.boolean(),
@@ -1138,7 +1140,8 @@ export const GetMessageParams = zod.object({
 
 export const GetMessageResponse = zod.object({
   id: zod.string(),
-  projectId: zod.string(),
+  projectId: zod.string().nullish(),
+  recipientId: zod.string().nullish(),
   senderId: zod.string(),
   content: zod.string(),
   read: zod.boolean(),
@@ -1154,6 +1157,83 @@ export const DeleteMessageParams = zod.object({
 
 export const DeleteMessageResponse = zod.object({
   message: zod.string(),
+});
+
+/**
+ * @summary List users the current user is allowed to DM
+ */
+export const ListDmContactsResponseItem = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  email: zod.string(),
+  role: zod.string(),
+  avatarUrl: zod.string().nullish(),
+});
+export const ListDmContactsResponse = zod.array(ListDmContactsResponseItem);
+
+/**
+ * @summary List the current user's DM conversations
+ */
+export const ListDmConversationsResponseItem = zod.object({
+  partnerId: zod.string(),
+  partnerName: zod.string(),
+  partnerRole: zod.string().nullish(),
+  partnerAvatarUrl: zod.string().nullish(),
+  lastMessageContent: zod.string(),
+  lastMessageAt: zod.coerce.date(),
+  lastMessageFromMe: zod.boolean(),
+  unreadCount: zod.number(),
+});
+export const ListDmConversationsResponse = zod.array(
+  ListDmConversationsResponseItem,
+);
+
+/**
+ * @summary Get DM thread with another user
+ */
+export const GetDmThreadParams = zod.object({
+  userId: zod.coerce.string(),
+});
+
+export const GetDmThreadResponseItem = zod.object({
+  id: zod.string(),
+  projectId: zod.string().nullish(),
+  recipientId: zod.string().nullish(),
+  senderId: zod.string(),
+  content: zod.string(),
+  read: zod.boolean(),
+  createdAt: zod.coerce.date(),
+});
+export const GetDmThreadResponse = zod.array(GetDmThreadResponseItem);
+
+/**
+ * @summary Send a DM
+ */
+export const SendDmParams = zod.object({
+  userId: zod.coerce.string(),
+});
+
+export const SendDmBody = zod.object({
+  content: zod.string(),
+});
+
+/**
+ * @summary Mark all messages in a DM thread as read
+ */
+export const MarkDmThreadReadParams = zod.object({
+  userId: zod.coerce.string(),
+});
+
+export const MarkDmThreadReadResponse = zod.object({
+  ok: zod.boolean().optional(),
+});
+
+/**
+ * @summary Unread counts split by project groups vs DMs
+ */
+export const GetUnreadSummaryResponse = zod.object({
+  projectGroups: zod.number(),
+  directMessages: zod.number(),
 });
 
 /**

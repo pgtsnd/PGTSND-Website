@@ -33,10 +33,13 @@ import type {
   DeleteSuccessResponse,
   Deliverable,
   DeliverableVersion,
+  DmContact,
+  DmConversation,
   Error,
   ForbiddenResponse,
   HealthStatus,
   Invoice,
+  MarkDmThreadRead200,
   Message,
   NotFoundResponse,
   Organization,
@@ -44,9 +47,11 @@ import type {
   Project,
   ProjectMember,
   Review,
+  SendDm,
   Task,
   TaskItem,
   UnauthorizedResponse,
+  UnreadSummary,
   UpdateContract,
   UpdateDeliverable,
   UpdateInvoice,
@@ -4249,6 +4254,493 @@ export const useDeleteMessage = <
 > => {
   return useMutation(getDeleteMessageMutationOptions(options));
 };
+
+/**
+ * @summary List users the current user is allowed to DM
+ */
+export const getListDmContactsUrl = () => {
+  return `/api/dm/contacts`;
+};
+
+export const listDmContacts = async (
+  options?: RequestInit,
+): Promise<DmContact[]> => {
+  return customFetch<DmContact[]>(getListDmContactsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListDmContactsQueryKey = () => {
+  return [`/api/dm/contacts`] as const;
+};
+
+export const getListDmContactsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDmContacts>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listDmContacts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListDmContactsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listDmContacts>>> = ({
+    signal,
+  }) => listDmContacts({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDmContacts>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListDmContactsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDmContacts>>
+>;
+export type ListDmContactsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List users the current user is allowed to DM
+ */
+
+export function useListDmContacts<
+  TData = Awaited<ReturnType<typeof listDmContacts>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listDmContacts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListDmContactsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List the current user's DM conversations
+ */
+export const getListDmConversationsUrl = () => {
+  return `/api/dm/conversations`;
+};
+
+export const listDmConversations = async (
+  options?: RequestInit,
+): Promise<DmConversation[]> => {
+  return customFetch<DmConversation[]>(getListDmConversationsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListDmConversationsQueryKey = () => {
+  return [`/api/dm/conversations`] as const;
+};
+
+export const getListDmConversationsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDmConversations>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listDmConversations>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListDmConversationsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listDmConversations>>
+  > = ({ signal }) => listDmConversations({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDmConversations>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListDmConversationsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDmConversations>>
+>;
+export type ListDmConversationsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List the current user's DM conversations
+ */
+
+export function useListDmConversations<
+  TData = Awaited<ReturnType<typeof listDmConversations>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listDmConversations>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListDmConversationsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get DM thread with another user
+ */
+export const getGetDmThreadUrl = (userId: string) => {
+  return `/api/dm/threads/${userId}`;
+};
+
+export const getDmThread = async (
+  userId: string,
+  options?: RequestInit,
+): Promise<Message[]> => {
+  return customFetch<Message[]>(getGetDmThreadUrl(userId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetDmThreadQueryKey = (userId: string) => {
+  return [`/api/dm/threads/${userId}`] as const;
+};
+
+export const getGetDmThreadQueryOptions = <
+  TData = Awaited<ReturnType<typeof getDmThread>>,
+  TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+>(
+  userId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getDmThread>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetDmThreadQueryKey(userId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getDmThread>>> = ({
+    signal,
+  }) => getDmThread(userId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!userId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getDmThread>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetDmThreadQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getDmThread>>
+>;
+export type GetDmThreadQueryError = ErrorType<
+  ForbiddenResponse | NotFoundResponse
+>;
+
+/**
+ * @summary Get DM thread with another user
+ */
+
+export function useGetDmThread<
+  TData = Awaited<ReturnType<typeof getDmThread>>,
+  TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+>(
+  userId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getDmThread>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetDmThreadQueryOptions(userId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Send a DM
+ */
+export const getSendDmUrl = (userId: string) => {
+  return `/api/dm/threads/${userId}`;
+};
+
+export const sendDm = async (
+  userId: string,
+  sendDm: SendDm,
+  options?: RequestInit,
+): Promise<Message> => {
+  return customFetch<Message>(getSendDmUrl(userId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(sendDm),
+  });
+};
+
+export const getSendDmMutationOptions = <
+  TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendDm>>,
+    TError,
+    { userId: string; data: BodyType<SendDm> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendDm>>,
+  TError,
+  { userId: string; data: BodyType<SendDm> },
+  TContext
+> => {
+  const mutationKey = ["sendDm"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendDm>>,
+    { userId: string; data: BodyType<SendDm> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return sendDm(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendDmMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendDm>>
+>;
+export type SendDmMutationBody = BodyType<SendDm>;
+export type SendDmMutationError = ErrorType<
+  ForbiddenResponse | NotFoundResponse
+>;
+
+/**
+ * @summary Send a DM
+ */
+export const useSendDm = <
+  TError = ErrorType<ForbiddenResponse | NotFoundResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendDm>>,
+    TError,
+    { userId: string; data: BodyType<SendDm> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendDm>>,
+  TError,
+  { userId: string; data: BodyType<SendDm> },
+  TContext
+> => {
+  return useMutation(getSendDmMutationOptions(options));
+};
+
+/**
+ * @summary Mark all messages in a DM thread as read
+ */
+export const getMarkDmThreadReadUrl = (userId: string) => {
+  return `/api/dm/threads/${userId}/read`;
+};
+
+export const markDmThreadRead = async (
+  userId: string,
+  options?: RequestInit,
+): Promise<MarkDmThreadRead200> => {
+  return customFetch<MarkDmThreadRead200>(getMarkDmThreadReadUrl(userId), {
+    ...options,
+    method: "PATCH",
+  });
+};
+
+export const getMarkDmThreadReadMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markDmThreadRead>>,
+    TError,
+    { userId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof markDmThreadRead>>,
+  TError,
+  { userId: string },
+  TContext
+> => {
+  const mutationKey = ["markDmThreadRead"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof markDmThreadRead>>,
+    { userId: string }
+  > = (props) => {
+    const { userId } = props ?? {};
+
+    return markDmThreadRead(userId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MarkDmThreadReadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof markDmThreadRead>>
+>;
+
+export type MarkDmThreadReadMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Mark all messages in a DM thread as read
+ */
+export const useMarkDmThreadRead = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markDmThreadRead>>,
+    TError,
+    { userId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof markDmThreadRead>>,
+  TError,
+  { userId: string },
+  TContext
+> => {
+  return useMutation(getMarkDmThreadReadMutationOptions(options));
+};
+
+/**
+ * @summary Unread counts split by project groups vs DMs
+ */
+export const getGetUnreadSummaryUrl = () => {
+  return `/api/messages/unread-summary`;
+};
+
+export const getUnreadSummary = async (
+  options?: RequestInit,
+): Promise<UnreadSummary> => {
+  return customFetch<UnreadSummary>(getGetUnreadSummaryUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetUnreadSummaryQueryKey = () => {
+  return [`/api/messages/unread-summary`] as const;
+};
+
+export const getGetUnreadSummaryQueryOptions = <
+  TData = Awaited<ReturnType<typeof getUnreadSummary>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getUnreadSummary>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetUnreadSummaryQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getUnreadSummary>>
+  > = ({ signal }) => getUnreadSummary({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getUnreadSummary>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetUnreadSummaryQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getUnreadSummary>>
+>;
+export type GetUnreadSummaryQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Unread counts split by project groups vs DMs
+ */
+
+export function useGetUnreadSummary<
+  TData = Awaited<ReturnType<typeof getUnreadSummary>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getUnreadSummary>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetUnreadSummaryQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List contracts for a project

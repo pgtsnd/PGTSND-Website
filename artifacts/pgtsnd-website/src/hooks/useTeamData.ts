@@ -10,6 +10,12 @@ import {
   useListUsers,
   useCreateMessage,
   useUpdateUser,
+  useListDmContacts,
+  useListDmConversations,
+  useGetDmThread,
+  useSendDm,
+  useMarkDmThreadRead,
+  useGetUnreadSummary,
 } from "@workspace/api-client-react";
 import type {
   Project,
@@ -84,6 +90,40 @@ export function useUsers() {
 
 export function useSendMessage() {
   return useCreateMessage();
+}
+
+export function useDmContacts() {
+  const { userId } = useTeamAuth();
+  return useListDmContacts({ query: { enabled: !!userId } });
+}
+
+export function useDmConversations() {
+  const { userId } = useTeamAuth();
+  return useListDmConversations({
+    query: { enabled: !!userId, refetchInterval: 15000 },
+  });
+}
+
+export function useDmThread(otherUserId: string) {
+  const { userId } = useTeamAuth();
+  return useGetDmThread(otherUserId, {
+    query: { enabled: !!otherUserId && !!userId },
+  });
+}
+
+export function useSendDirectMessage() {
+  return useSendDm();
+}
+
+export function useMarkDmRead() {
+  return useMarkDmThreadRead();
+}
+
+export function useUnreadSummary() {
+  const { userId } = useTeamAuth();
+  return useGetUnreadSummary({
+    query: { enabled: !!userId, refetchInterval: 15000 },
+  });
 }
 
 export function useUpdateProfile() {

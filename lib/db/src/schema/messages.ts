@@ -17,9 +17,10 @@ export const messagesTable = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => randomUUID()),
-    projectId: text("project_id")
-      .notNull()
-      .references(() => projectsTable.id, { onDelete: "cascade" }),
+    projectId: text("project_id").references(() => projectsTable.id, {
+      onDelete: "cascade",
+    }),
+    recipientId: text("recipient_id").references(() => usersTable.id),
     senderId: text("sender_id")
       .notNull()
       .references(() => usersTable.id),
@@ -30,6 +31,7 @@ export const messagesTable = pgTable(
   (table) => [
     index("messages_project_idx").on(table.projectId),
     index("messages_sender_idx").on(table.senderId),
+    index("messages_recipient_idx").on(table.recipientId),
   ],
 );
 
