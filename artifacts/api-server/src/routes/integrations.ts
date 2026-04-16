@@ -10,7 +10,7 @@ import {
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireRole } from "../middleware/auth";
-import { requireProjectAccess } from "../middleware/project-access";
+import { requireProjectAccess, requireProjectAccessViaEntity, resolveProjectFromInvoice } from "../middleware/project-access";
 import { validateAndSend, validateAndSendArray } from "../middleware/validate-response";
 import * as stripeService from "../services/stripe";
 import * as driveService from "../services/google-drive";
@@ -322,6 +322,62 @@ router.post(
 );
 
 router.post(
+  "/invoices/:id/checkout",
+  requireProjectAccessViaEntity(resolveProjectFromInvoice, "id"),
+  async (req, res) => {
+    const { successUrl, cancelUrl } = req.body;
+    if (!successUrl || !cancelUrl) {
+      res.status(400).json({ error: "successUrl and cancelUrl are required" });
+      return;
+    }
+
+    const requestOrigin = req.get("origin") || `${req.protocol}://${req.get("host")}`;
+    try {
+      const successOrigin = new URL(successUrl).origin;
+      const cancelOrigin = new URL(cancelUrl).origin;
+      if (successOrigin !== requestOrigin || cancelOrigin !== requestOrigin) {
+        res.status(400).json({ error: "Redirect URLs must match the application origin" });
+        return;
+      }
+    } catch {
+      res.status(400).json({ error: "Invalid redirect URLs" });
+      return;
+    }
+
+    try {
+      const result = await stripeService.createCheckoutSession(
+        req.params.id,
+        successUrl,
+        cancelUrl,
+      );
+
+      if (!result) {
+        res.status(404).json({ error: "Invoice not found, already paid, or Stripe not connected" });
+        return;
+      }
+
+      res.json(result);
+    } catch (err) {
+      console.error("Checkout session creation failed:", err);
+      res.status(500).json({ error: "Failed to create checkout session" });
+    }
+  },
+);
+
+router.get(
+  "/invoices/:id/payment",
+  requireProjectAccessViaEntity(resolveProjectFromInvoice, "id"),
+  async (req, res) => {
+    const details = await stripeService.getPaymentDetails(req.params.id);
+    if (!details) {
+      res.status(404).json({ error: "Payment details not found" });
+      return;
+    }
+    res.json(details);
+  },
+);
+
+router.post(
   "/webhooks/stripe",
   async (req, res) => {
     const sig = req.headers["stripe-signature"] as string;
@@ -331,7 +387,7 @@ router.post(
     }
 
     try {
-      const rawBody = JSON.stringify(req.body);
+      const rawBody = Buffer.isBuffer(req.body) ? req.body : JSON.stringify(req.body);
       await stripeService.handleStripeWebhook(rawBody, sig);
       res.json({ received: true });
     } catch (err) {

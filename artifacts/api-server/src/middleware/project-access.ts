@@ -10,6 +10,7 @@ import {
   reviewsTable,
   messagesTable,
   contractsTable,
+  invoicesTable,
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 
@@ -147,6 +148,17 @@ export async function resolveProjectFromContract(
     .where(eq(contractsTable.id, contractId))
     .limit(1);
   return contract?.projectId ?? null;
+}
+
+export async function resolveProjectFromInvoice(
+  invoiceId: string,
+): Promise<string | null> {
+  const [invoice] = await db
+    .select({ projectId: invoicesTable.projectId })
+    .from(invoicesTable)
+    .where(eq(invoicesTable.id, invoiceId))
+    .limit(1);
+  return invoice?.projectId ?? null;
 }
 
 export function requireProjectAccessViaEntity(

@@ -41,7 +41,7 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
 - **messages** — Project-scoped messages with read status
 - **contracts** — Project contracts (SOW, amendments, etc.) with status: draft, sent, signed, expired. Includes DocuSign fields: `docusign_envelope_id`, `docusign_signing_url`
 - **review_reminders** — Tracks automated review reminders per deliverable (day 3, 5, 7+ daily), FK to deliverables
-- **invoices** — Billing invoices linked to projects with Stripe fields: `stripe_invoice_id`, `stripe_payment_intent_id`, `stripe_hosted_url`, `stripe_pdf_url`. Status: draft, sent, paid, overdue, void
+- **invoices** — Billing invoices linked to projects with Stripe fields: `stripe_invoice_id`, `stripe_payment_intent_id`, `stripe_checkout_session_id`, `stripe_hosted_url`, `stripe_pdf_url`. Status: draft, sent, paid, overdue, void
 - **integration_settings** — External service configurations (Stripe, Google Drive, Slack, DocuSign) with encrypted config storage. Type enum: stripe, google_drive, slack, docusign
 - **video_comments** — Timestamped comments on deliverables: authorId, authorName, timestampSeconds, content. FK to deliverables and users
 - **video_comment_replies** — Threaded replies on video comments: authorId, authorName, content. FK to video_comments
@@ -78,7 +78,7 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
   - **Assets** (`ClientAssets.tsx`): Shows only approved deliverables as asset cards, filterable by project, with type labels and version info
   - **Video Review** (`ClientVideoReview.tsx`): Full video review system with custom HTML5 video player, timestamped comments (markers on timeline, click-to-jump), threaded replies, version selector, approve/request-revision workflow
   - **Contracts** (`ClientContracts.tsx`): DocuSign links for pending signatures; filterable (All/Pending/Signed); expandable details with project, type, amount, dates
-  - **Billing** (`ClientBilling.tsx`): Derived from contract data — summary cards (Total Paid, Outstanding, Total Contracts), contract summary table, Stripe integration placeholder
+  - **Billing** (`ClientBilling.tsx`): Summary cards (Total Paid, Outstanding, Total Invoices), outstanding invoices with "Pay Now" button that creates a Stripe Checkout session and redirects to hosted payment page, payment success/canceled URL handling with toast banners, payment history showing real transaction data with payment method details, fallback modal for invoices without Stripe
 - **Theme System** (`ThemeContext.tsx`): Dark/light mode toggle in sidebar; dark mode uses `#111114` gray (not pure black), light mode uses `#f4f4f6`; all portal pages consume `useTheme()` with `t.*` token variables for backgrounds, text, borders, cards, modals
   - Assets page has grid/list view toggle, thumbnail cards with colored gradient placeholders, "Send to Review" button on draft videos, breadcrumb navigation, and drag-drop upload zone
   - Video Review links back to Assets via "View in Assets" source file row
@@ -105,7 +105,7 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
   - **Demo bypass**: `demo@pgtsnd.com` (owner role, works on both portals)
 - **External Integrations**: Backend service modules at `artifacts/api-server/src/services/` for Stripe (invoicing/payments), Google Drive (file storage), Slack (messaging bridge), DocuSign (contract signing). Each integration stores credentials encrypted at rest via AES-256-GCM in `integration_settings.config` JSONB column. Master key stored in `VAULT_MASTER_KEY` env secret. Vault service at `artifacts/api-server/src/services/vault.ts`. Manage connections via Team Settings → Integrations panel (shows vault status banner with encryption indicator per integration). API routes at `/api/integrations/*` for status, config, vault status, and service-specific operations. All integration operation routes protected by `requireRole` middleware.
   - **Vault**: `VAULT_MASTER_KEY` env var enables AES-256-GCM encryption. Keys encrypted on save, decrypted only when service needs them internally. GET returns masked values (first 4 + last 4 chars). `GET /api/integrations/vault` returns encryption status. `POST /api/integrations/vault/encrypt-existing` migrates any unencrypted configs. Graceful fallback to plaintext if key not set.
-  - **Stripe**: Invoice creation, sending, payment tracking via webhooks (`/api/webhooks/stripe`)
+  - **Stripe**: Invoice creation, sending, Stripe Checkout payment flow (`POST /api/invoices/:id/checkout`), payment details retrieval (`GET /api/invoices/:id/payment`), webhook processing for `checkout.session.completed`, `payment_intent.succeeded`, `invoice.paid`, `invoice.payment_failed`, and `checkout.session.expired` events (`POST /api/webhooks/stripe`). Raw body parsing enabled for webhook signature verification.
   - **Google Drive**: Folder-scoped file listing, download URLs (`/api/integrations/drive/files`)
   - **Slack**: Send messages, list channels, get history (`/api/integrations/slack/*`)
   - **DocuSign**: Send envelopes, get signing URLs, status tracking via webhooks (`/api/webhooks/docusign`)

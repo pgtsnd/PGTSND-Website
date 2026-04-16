@@ -31,6 +31,7 @@ export const invoicesTable = pgTable(
       .references(() => projectsTable.id, { onDelete: "cascade" }),
     stripeInvoiceId: text("stripe_invoice_id"),
     stripePaymentIntentId: text("stripe_payment_intent_id"),
+    stripeCheckoutSessionId: text("stripe_checkout_session_id"),
     invoiceNumber: varchar("invoice_number", { length: 50 }),
     description: text("description").notNull(),
     amount: integer("amount").notNull(),
@@ -50,6 +51,7 @@ export const invoicesTable = pgTable(
     index("invoices_project_idx").on(table.projectId),
     index("invoices_status_idx").on(table.status),
     index("invoices_stripe_id_idx").on(table.stripeInvoiceId),
+    index("invoices_checkout_session_idx").on(table.stripeCheckoutSessionId),
   ],
 );
 

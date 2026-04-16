@@ -24,7 +24,7 @@ async function getStripeClient(): Promise<Stripe | null> {
 
   if (!stripeClient) {
     stripeClient = new Stripe(config.secretKey, {
-      apiVersion: "2025-04-30.basil",
+      apiVersion: "2026-03-25.dahlia",
     });
   }
 
@@ -106,6 +106,75 @@ export async function createInvoice(data: {
   return invoice;
 }
 
+export async function createCheckoutSession(
+  invoiceId: string,
+  successUrl: string,
+  cancelUrl: string,
+): Promise<{ url: string } | null> {
+  const [invoice] = await db
+    .select()
+    .from(invoicesTable)
+    .where(eq(invoicesTable.id, invoiceId))
+    .limit(1);
+
+  if (!invoice) return null;
+  if (invoice.status === "paid" || invoice.status === "void") return null;
+
+  const stripe = await getStripeClient();
+  if (!stripe) return null;
+
+  if (invoice.stripeCheckoutSessionId) {
+    try {
+      const existing = await stripe.checkout.sessions.retrieve(invoice.stripeCheckoutSessionId);
+      if (existing.status === "open") {
+        return { url: existing.url! };
+      }
+    } catch {
+      // session expired or invalid, create a new one
+    }
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    mode: "payment",
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: invoice.description,
+            metadata: {
+              invoiceNumber: invoice.invoiceNumber ?? "",
+              invoiceId: invoice.id,
+            },
+          },
+          unit_amount: invoice.amount * 100,
+        },
+        quantity: 1,
+      },
+    ],
+    metadata: {
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber ?? "",
+    },
+    payment_intent_data: {
+      metadata: {
+        invoiceId: invoice.id,
+        invoiceNumber: invoice.invoiceNumber ?? "",
+      },
+    },
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+  });
+
+  await db
+    .update(invoicesTable)
+    .set({ stripeCheckoutSessionId: session.id })
+    .where(eq(invoicesTable.id, invoiceId));
+
+  return { url: session.url! };
+}
+
 export async function sendInvoice(invoiceId: string): Promise<Invoice | null> {
   const [invoice] = await db
     .select()
@@ -134,7 +203,7 @@ export async function sendInvoice(invoiceId: string): Promise<Invoice | null> {
   return updated;
 }
 
-export async function handleStripeWebhook(payload: string, signature: string): Promise<void> {
+export async function handleStripeWebhook(payload: string | Buffer, signature: string): Promise<void> {
   const [settings] = await db
     .select()
     .from(integrationSettingsTable)
@@ -147,7 +216,7 @@ export async function handleStripeWebhook(payload: string, signature: string): P
   if (!config.webhookSecret || !config.secretKey) return;
 
   const stripe = new Stripe(config.secretKey, {
-    apiVersion: "2025-04-30.basil",
+    apiVersion: "2026-03-25.dahlia",
   });
 
   let event: Stripe.Event;
@@ -158,24 +227,193 @@ export async function handleStripeWebhook(payload: string, signature: string): P
     throw new Error("Invalid webhook signature");
   }
 
-  if (event.type === "invoice.paid") {
-    const stripeInvoice = event.data.object as Stripe.Invoice;
-    await db
-      .update(invoicesTable)
-      .set({
-        status: "paid",
-        paidAt: new Date(),
-        paymentMethod: stripeInvoice.charge ? "card" : "unknown",
-      })
-      .where(eq(invoicesTable.stripeInvoiceId, stripeInvoice.id));
-  }
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const invoiceId = session.metadata?.invoiceId;
+      if (!invoiceId) break;
 
-  if (event.type === "invoice.payment_failed") {
-    const stripeInvoice = event.data.object as Stripe.Invoice;
-    await db
-      .update(invoicesTable)
-      .set({ status: "overdue" })
-      .where(eq(invoicesTable.stripeInvoiceId, stripeInvoice.id));
+      const paymentIntentId = typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : session.payment_intent?.id;
+
+      let paymentMethod = "card";
+      if (paymentIntentId && stripe) {
+        try {
+          const pi = await stripe.paymentIntents.retrieve(paymentIntentId, {
+            expand: ["payment_method"],
+          });
+          const pm = pi.payment_method;
+          if (typeof pm === "object" && pm !== null && "type" in pm) {
+            paymentMethod = pm.type === "card" && "card" in pm && pm.card
+              ? `${pm.card.brand ?? "card"} ····${pm.card.last4 ?? ""}`
+              : pm.type;
+          }
+        } catch {
+          // fall back to "card"
+        }
+      }
+
+      await db
+        .update(invoicesTable)
+        .set({
+          status: "paid",
+          paidAt: new Date(),
+          paymentMethod,
+          stripePaymentIntentId: paymentIntentId ?? null,
+        })
+        .where(eq(invoicesTable.id, invoiceId));
+      break;
+    }
+
+    case "payment_intent.succeeded": {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const invoiceId = paymentIntent.metadata?.invoiceId;
+
+      if (invoiceId) {
+        const [existing] = await db
+          .select()
+          .from(invoicesTable)
+          .where(eq(invoicesTable.id, invoiceId))
+          .limit(1);
+
+        if (existing && existing.status !== "paid") {
+          let paymentMethod = "card";
+          try {
+            const pmId = typeof paymentIntent.payment_method === "string"
+              ? paymentIntent.payment_method
+              : paymentIntent.payment_method?.id;
+            if (pmId) {
+              const pm = await stripe.paymentMethods.retrieve(pmId);
+              if (pm.type === "card" && pm.card) {
+                paymentMethod = `${pm.card.brand ?? "card"} ····${pm.card.last4 ?? ""}`;
+              }
+            }
+          } catch {
+            // fall back to "card"
+          }
+
+          await db
+            .update(invoicesTable)
+            .set({
+              status: "paid",
+              paidAt: new Date(),
+              paymentMethod,
+              stripePaymentIntentId: paymentIntent.id,
+            })
+            .where(eq(invoicesTable.id, invoiceId));
+        }
+      }
+      break;
+    }
+
+    case "invoice.paid": {
+      const stripeInvoice = event.data.object as Stripe.Invoice;
+      await db
+        .update(invoicesTable)
+        .set({
+          status: "paid",
+          paidAt: new Date(),
+          paymentMethod: "card",
+        })
+        .where(eq(invoicesTable.stripeInvoiceId, stripeInvoice.id));
+      break;
+    }
+
+    case "invoice.payment_failed": {
+      const stripeInvoice = event.data.object as Stripe.Invoice;
+      await db
+        .update(invoicesTable)
+        .set({ status: "overdue" })
+        .where(eq(invoicesTable.stripeInvoiceId, stripeInvoice.id));
+      break;
+    }
+
+    case "payment_intent.payment_failed": {
+      const failedIntent = event.data.object as Stripe.PaymentIntent;
+      const failedInvoiceId = failedIntent.metadata?.invoiceId;
+      if (failedInvoiceId) {
+        const [existing] = await db
+          .select()
+          .from(invoicesTable)
+          .where(eq(invoicesTable.id, failedInvoiceId))
+          .limit(1);
+
+        if (existing && existing.status !== "paid") {
+          await db
+            .update(invoicesTable)
+            .set({ status: "overdue" })
+            .where(eq(invoicesTable.id, failedInvoiceId));
+        }
+      }
+      break;
+    }
+
+    case "checkout.session.expired": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const invoiceId = session.metadata?.invoiceId;
+      if (invoiceId) {
+        const [existing] = await db
+          .select()
+          .from(invoicesTable)
+          .where(eq(invoicesTable.id, invoiceId))
+          .limit(1);
+
+        if (existing && existing.status !== "paid") {
+          await db
+            .update(invoicesTable)
+            .set({ stripeCheckoutSessionId: null })
+            .where(eq(invoicesTable.id, invoiceId));
+        }
+      }
+      break;
+    }
+  }
+}
+
+export async function getPaymentDetails(invoiceId: string): Promise<{
+  paymentIntentId: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  paymentMethod: string | null;
+  receiptUrl: string | null;
+  paidAt: string | null;
+} | null> {
+  const [invoice] = await db
+    .select()
+    .from(invoicesTable)
+    .where(eq(invoicesTable.id, invoiceId))
+    .limit(1);
+
+  if (!invoice || !invoice.stripePaymentIntentId) return null;
+
+  const stripe = await getStripeClient();
+  if (!stripe) return null;
+
+  try {
+    const pi = await stripe.paymentIntents.retrieve(invoice.stripePaymentIntentId, {
+      expand: ["latest_charge"],
+    });
+
+    let receiptUrl: string | null = null;
+    const charge = pi.latest_charge;
+    if (typeof charge === "object" && charge !== null && "receipt_url" in charge) {
+      receiptUrl = charge.receipt_url ?? null;
+    }
+
+    return {
+      paymentIntentId: pi.id,
+      amount: pi.amount / 100,
+      currency: pi.currency,
+      status: pi.status,
+      paymentMethod: invoice.paymentMethod,
+      receiptUrl,
+      paidAt: invoice.paidAt?.toISOString() ?? null,
+    };
+  } catch (err) {
+    console.error("Failed to retrieve payment details:", err);
+    return null;
   }
 }
 
