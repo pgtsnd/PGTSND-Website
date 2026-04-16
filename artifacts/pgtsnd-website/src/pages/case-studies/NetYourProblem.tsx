@@ -230,7 +230,7 @@ export default function NetYourProblem() {
                 </p>
               </div>
             </div>
-            <div style={{ position: "absolute", bottom: "450px", right: "60px" }}>
+            <div style={{ position: "absolute", bottom: "435px", right: "60px" }}>
               <ScrollBadge position="bottom-right" inline />
             </div>
           </div>
