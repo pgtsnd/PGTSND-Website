@@ -30,6 +30,29 @@ const magicLinkLimiter = rateLimit({
   handler: authRateLimitHandler,
 });
 
+const perEmailRateLimitHandler = (_req: Request, res: Response) => {
+  res.status(429).json({
+    error: "Too many magic link requests for this email. Please wait a few minutes and try again.",
+  });
+};
+
+const magicLinkEmailLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 3,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  handler: perEmailRateLimitHandler,
+  keyGenerator: (req: Request) => {
+    const rawEmail = typeof req.body?.email === "string" ? req.body.email : "";
+    return `magic-link-email:${rawEmail.toLowerCase().trim()}`;
+  },
+  skip: (req: Request) => {
+    const rawEmail = typeof req.body?.email === "string" ? req.body.email : "";
+    const normalized = rawEmail.toLowerCase().trim();
+    return !normalized || normalized === DEMO_EMAIL;
+  },
+});
+
 const googleAuthLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 10,
@@ -47,7 +70,7 @@ const COOKIE_OPTIONS = {
   path: "/",
 };
 
-router.post("/auth/magic-link", magicLinkLimiter, async (req: Request, res: Response) => {
+router.post("/auth/magic-link", magicLinkLimiter, magicLinkEmailLimiter, async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
 
