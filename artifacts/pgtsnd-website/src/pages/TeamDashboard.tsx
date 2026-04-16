@@ -356,14 +356,6 @@ export default function TeamDashboard() {
   const activeProjects = projects.filter((p) => isActiveStatus(p.status));
   const displayProjects = projects.filter((p) => p.status !== "archived");
 
-  const phases = ["pre_production", "production", "post_production", "review", "delivered"];
-  const pipeline = phases.map((phase) => ({
-    phase: formatPhase(phase),
-    count: projects.filter((p) => p.phase === phase && p.status !== "archived").length,
-  }));
-
-  const crewMembers = users.filter((u) => u.role !== "client");
-
   const totalBudget = projects.reduce((sum, p) => sum + (p.budget ?? 0), 0);
   const activeBudget = activeProjects.reduce((sum, p) => sum + (p.budget ?? 0), 0);
   const deliveredBudget = projects
@@ -421,74 +413,7 @@ export default function TeamDashboard() {
           })}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
-          <div>
-            <h2 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "14px" })}>
-              Pipeline
-            </h2>
-            <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", padding: "24px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0", marginBottom: "16px" }}>
-                {pipeline.map((stage, i) => (
-                  <div key={stage.phase} style={{ flex: 1, position: "relative" }}>
-                    <div style={{
-                      height: "4px",
-                      background: stage.count > 0 ? t.accent : t.border,
-                      borderRadius: i === 0 ? "2px 0 0 2px" : i === pipeline.length - 1 ? "0 2px 2px 0" : "0",
-                    }} />
-                    <div style={{
-                      position: "absolute", top: "-4px", left: "50%", transform: "translateX(-50%)",
-                      width: "12px", height: "12px", borderRadius: "50%",
-                      background: stage.count > 0 ? t.accent : t.border,
-                      border: `2px solid ${t.bgCard}`,
-                    }} />
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: "flex" }}>
-                {pipeline.map((stage) => (
-                  <div key={stage.phase} style={{ flex: 1, textAlign: "center" }}>
-                    <p style={f({ fontWeight: 700, fontSize: "18px", color: stage.count > 0 ? t.text : t.textMuted, marginBottom: "2px" })}>{stage.count}</p>
-                    <p style={f({ fontWeight: 400, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.04em" })}>{stage.phase}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h2 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "14px" })}>
-              Crew Status
-            </h2>
-            <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", overflow: "hidden" }}>
-              {crewMembers.map((member, i) => {
-                return (
-                  <div key={member.id} style={{
-                    display: "flex", alignItems: "center", padding: "12px 20px",
-                    borderBottom: i < crewMembers.length - 1 ? `1px solid ${t.borderSubtle}` : "none",
-                  }}>
-                    <div style={{
-                      width: "32px", height: "32px", borderRadius: "50%", background: t.activeNav,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      ...f({ fontWeight: 700, fontSize: "10px", color: t.textTertiary }),
-                      marginRight: "12px",
-                    }}>{member.initials ?? member.name.split(" ").map(n => n[0]).join("")}</div>
-                    <div style={{ flex: 1 }}>
-                      <p style={f({ fontWeight: 600, fontSize: "13px", color: t.text })}>{member.name}</p>
-                      <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>{member.title ?? member.role}</p>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <p style={f({ fontWeight: 500, fontSize: "11px", color: t.textMuted })}>
-                        {member.role === "owner" ? "Active" : "Team"}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        <div style={{ marginTop: "40px" }}>
+        <div>
           <h2 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "14px" })}>
             Revenue Snapshot
           </h2>
