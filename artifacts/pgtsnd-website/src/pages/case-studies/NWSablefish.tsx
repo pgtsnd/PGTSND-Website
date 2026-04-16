@@ -351,7 +351,7 @@ export default function NWSablefish() {
             <img
               src={"/images/case-studies/nw-sablefish/NWsablefish-fish-gold.png"}
               alt="NW Sablefish"
-              style={{ width: "150px", height: "auto", transform: "translateY(80px)" }}
+              style={{ width: "150px", height: "auto", transform: "translateY(80px)", position: "relative", zIndex: 10 }}
             />
             <ScrollBadge position="bottom-right" inline />
           </div>
