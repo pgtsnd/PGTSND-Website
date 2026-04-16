@@ -15,6 +15,7 @@ import {
   renderReviewReadyEmail,
   renderNewCommentEmail,
   renderPublicCommentEmail,
+  renderCommentResolvedEmail,
 } from "./email-templates";
 
 async function filterOutProjectMutes(
@@ -433,6 +434,91 @@ export async function notifyDeliverableApproved(opts: {
     logger.error(
       { err, deliverableId: opts.deliverableId },
       "notifyDeliverableApproved failed",
+    );
+  }
+}
+
+/**
+ * Sent when a team member resolves a video review comment.
+ * Notifies the original comment author with the resolution note (if any) and
+ * a deep link back to the review. Anonymous public reviewers (no authorId)
+ * are gracefully skipped.
+ */
+export async function notifyVideoCommentResolved(opts: {
+  commentId: string;
+  resolverUserId: string | null;
+  resolverName: string;
+  resolutionNote: string | null;
+}): Promise<void> {
+  try {
+    const [comment] = await db
+      .select()
+      .from(videoCommentsTable)
+      .where(eq(videoCommentsTable.id, opts.commentId))
+      .limit(1);
+    if (!comment) return;
+
+    // Anonymous/public reviewers without an account are gracefully skipped.
+    if (!comment.authorId) return;
+
+    // Don't notify the resolver if they happen to be the original author.
+    if (comment.authorId === opts.resolverUserId) return;
+
+    const ctx = await loadDeliverableContext(comment.deliverableId);
+    if (!ctx) return;
+    const { deliverable, project } = ctx;
+
+    const [author] = await db
+      .select({
+        id: usersTable.id,
+        email: usersTable.email,
+        name: usersTable.name,
+        role: usersTable.role,
+        emailNotifyComments: usersTable.emailNotifyComments,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.id, comment.authorId))
+      .limit(1);
+
+    if (!author || !author.email) return;
+    if (!author.emailNotifyComments) return;
+
+    // Respect per-project mute setting (consistent with other notifications).
+    const allowed = await filterOutProjectMutes(project.id, [author.id]);
+    if (allowed.length === 0) return;
+
+    const link =
+      author.role === "client"
+        ? clientReviewLink(deliverable.id)
+        : teamReviewLink(project.id, deliverable.id);
+
+    const tsLabel = formatTimestamp(comment.timestampSeconds);
+
+    await sendEmail({
+      to: author.email,
+      subject: `Resolved: your comment on "${deliverable.title}"`,
+      text:
+        `Hi ${author.name ?? "there"},\n\n` +
+        `${opts.resolverName} marked your comment at ${tsLabel} on "${deliverable.title}" (${project.name}) as resolved.\n\n` +
+        `Your comment:\n"${comment.content}"\n\n` +
+        (opts.resolutionNote ? `Resolution note:\n"${opts.resolutionNote}"\n\n` : "") +
+        `View the review: ${link}\n\n` +
+        `— PGTSND Productions`,
+      html: renderCommentResolvedEmail({
+        recipientName: author.name,
+        resolverName: opts.resolverName,
+        projectName: project.name,
+        deliverableTitle: deliverable.title,
+        originalComment: comment.content,
+        timestampLabel: tsLabel,
+        resolutionNote: opts.resolutionNote,
+        link,
+      }),
+    });
+  } catch (err) {
+    logger.error(
+      { err, commentId: opts.commentId },
+      "notifyVideoCommentResolved failed",
     );
   }
 }

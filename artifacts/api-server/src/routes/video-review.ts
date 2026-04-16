@@ -17,7 +17,10 @@ import {
   resolveProjectFromDeliverable,
   resolveProjectFromVideoComment,
 } from "../middleware/project-access";
-import { notifyNewVideoComment } from "../services/notifications";
+import {
+  notifyNewVideoComment,
+  notifyVideoCommentResolved,
+} from "../services/notifications";
 
 const router = Router();
 
@@ -97,6 +100,12 @@ router.patch(
       return;
     }
 
+    const [previous] = await db
+      .select({ resolvedAt: videoCommentsTable.resolvedAt })
+      .from(videoCommentsTable)
+      .where(eq(videoCommentsTable.id, req.params.commentId))
+      .limit(1);
+
     const [updated] = await db
       .update(videoCommentsTable)
       .set(
@@ -116,6 +125,18 @@ router.patch(
       )
       .where(eq(videoCommentsTable.id, req.params.commentId))
       .returning();
+
+    // Only notify on the unresolved -> resolved transition to avoid
+    // duplicate emails if the resolve action is repeated.
+    const wasResolved = Boolean(previous?.resolvedAt);
+    if (resolved && updated && !wasResolved) {
+      void notifyVideoCommentResolved({
+        commentId: updated.id,
+        resolverUserId: req.user!.id,
+        resolverName: req.user!.name ?? "A team member",
+        resolutionNote: updated.resolvedNote,
+      });
+    }
 
     res.json(updated);
   },
