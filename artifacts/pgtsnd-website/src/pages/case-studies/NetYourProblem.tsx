@@ -300,6 +300,69 @@ export default function NetYourProblem() {
           </div>
         </section>
 
+        <section style={{ padding: "120px 0 120px", position: "relative" }}>
+          <div style={{ position: "absolute", left: "24px", top: "50%", transform: "translateY(-50%)" }}>
+            <ScrollBadge position="bottom-right" inline />
+          </div>
+
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: "60px", padding: "0 80px 0 100px" }}>
+            <div
+              style={{
+                flex: "1 1 60%",
+                maxWidth: "720px",
+                height: "500px",
+                border: "2px solid rgba(255,255,255,0.15)",
+                overflow: "hidden",
+                overflowY: "auto",
+                background: "#ffffff",
+              }}
+            >
+              <img
+                src="/images/case-studies/net-your-problem/nyp-website-screenshot.png"
+                alt="Net Your Problem Website"
+                style={{ width: "100%", display: "block" }}
+              />
+            </div>
+
+            <div style={{ flex: "0 0 auto", position: "relative", width: "340px" }}>
+              <div style={{ position: "relative" }}>
+                <div style={{
+                  background: "#1a1a1a",
+                  borderRadius: "8px 8px 0 0",
+                  padding: "8px 12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}>
+                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#ff5f57" }} />
+                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#febc2e" }} />
+                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#28c840" }} />
+                </div>
+                <div style={{ overflow: "hidden", borderRadius: "0 0 4px 4px" }}>
+                  <img
+                    src="/images/case-studies/net-your-problem/nyp-website-screenshot.png"
+                    alt="Net Your Problem Website Preview"
+                    style={{ width: "100%", display: "block" }}
+                  />
+                </div>
+                <div style={{
+                  background: "#1a1a1a",
+                  height: "16px",
+                  borderRadius: "0 0 2px 2px",
+                  marginBottom: "4px",
+                }} />
+                <div style={{
+                  background: "#2a2a2a",
+                  height: "8px",
+                  borderRadius: "0 0 4px 4px",
+                  width: "120%",
+                  marginLeft: "-10%",
+                }} />
+              </div>
+            </div>
+          </div>
+        </section>
+
         <GalleryCarousel images={galleryImages} />
 
         <section style={{ padding: "40px 80px 80px" }}>
