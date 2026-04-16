@@ -421,6 +421,81 @@ async function seed() {
     },
   ]);
 
+  await db.insert(invoicesTable).values([
+    {
+      projectId: springCampaign.id,
+      invoiceNumber: "INV-2026-001",
+      description: "Spring Campaign — Phase 1 deposit",
+      amount: 7500,
+      status: "paid",
+      dueDate: new Date("2026-03-15"),
+      paidAt: new Date("2026-03-12"),
+      paymentMethod: "Stripe",
+    },
+    {
+      projectId: springCampaign.id,
+      invoiceNumber: "INV-2026-002",
+      description: "Spring Campaign — Phase 2 milestone",
+      amount: 5000,
+      status: "sent",
+      dueDate: new Date("2026-05-01"),
+    },
+    {
+      projectId: springCampaign.id,
+      invoiceNumber: "INV-2026-003",
+      description: "Spring Campaign — Final delivery",
+      amount: 2500,
+      status: "draft",
+      dueDate: new Date("2026-05-20"),
+    },
+    {
+      projectId: productLaunch.id,
+      invoiceNumber: "INV-2026-004",
+      description: "Product Launch Teaser — Full project",
+      amount: 8000,
+      status: "sent",
+      dueDate: new Date("2026-04-20"),
+    },
+    {
+      projectId: annualReport.id,
+      invoiceNumber: "INV-2025-010",
+      description: "Annual Report Video — Full project",
+      amount: 12000,
+      status: "paid",
+      dueDate: new Date("2026-01-30"),
+      paidAt: new Date("2026-01-25"),
+      paymentMethod: "Wire Transfer",
+    },
+    {
+      projectId: investorDeck.id,
+      invoiceNumber: "INV-2025-011",
+      description: "Investor Deck Video — Full project",
+      amount: 6000,
+      status: "paid",
+      dueDate: new Date("2026-02-10"),
+      paidAt: new Date("2026-02-08"),
+      paymentMethod: "Stripe",
+    },
+  ]);
+
+  await db.insert(reviewRemindersTable).values([
+    {
+      deliverableId: roughCutDeliverable[0].id,
+      reminderDay: 1,
+      sentAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    },
+    {
+      deliverableId: roughCutDeliverable[1].id,
+      reminderDay: 1,
+      sentAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+    },
+    {
+      deliverableId: roughCutDeliverable[1].id,
+      reminderDay: 3,
+      sentAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    },
+  ]);
+
   console.log("Seed complete!");
   process.exit(0);
 }

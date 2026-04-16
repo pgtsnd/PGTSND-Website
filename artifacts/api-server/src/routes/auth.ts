@@ -44,6 +44,21 @@ router.post("/auth/magic-link", async (req: Request, res: Response) => {
       return;
     }
 
+    if (process.env.NODE_ENV === "development") {
+      const [existingUser] = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, normalizedEmail))
+        .limit(1);
+
+      if (existingUser) {
+        const token = signToken({ userId: existingUser.id, email: existingUser.email, role: existingUser.role });
+        res.cookie(COOKIE_NAME, token, COOKIE_OPTIONS);
+        res.json({ success: true, demo: true, redirect: getDashboardPath(existingUser.role) });
+        return;
+      }
+    }
+
     const magicToken = await createMagicLink(normalizedEmail);
 
     const baseUrl = process.env.APP_URL || `https://${process.env.REPLIT_DEV_DOMAIN || "localhost:3000"}`;
@@ -170,7 +185,7 @@ router.get("/auth/google/callback", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/auth/me", (req: Request, res: Response) => {
+router.get("/auth/me", async (req: Request, res: Response) => {
   const token = req.cookies?.[COOKIE_NAME];
 
   if (!token) {
@@ -185,11 +200,31 @@ router.get("/auth/me", (req: Request, res: Response) => {
     return;
   }
 
+  const [user] = await db
+    .select({
+      id: usersTable.id,
+      email: usersTable.email,
+      name: usersTable.name,
+      role: usersTable.role,
+      avatarUrl: usersTable.avatarUrl,
+    })
+    .from(usersTable)
+    .where(eq(usersTable.id, payload.userId))
+    .limit(1);
+
+  if (!user) {
+    res.clearCookie(COOKIE_NAME, { path: "/" });
+    res.status(401).json({ error: "User not found" });
+    return;
+  }
+
   res.json({
     user: {
-      id: payload.userId,
-      email: payload.email,
-      role: payload.role,
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      avatarUrl: user.avatarUrl,
     },
   });
 });
