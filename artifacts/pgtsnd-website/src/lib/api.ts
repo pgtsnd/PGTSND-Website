@@ -279,8 +279,28 @@ export const api = {
 
   getClientInvoices: () => apiFetch<Invoice[]>("/client/invoices"),
 
+  getAllInvoices: () => apiFetch<Invoice[]>("/invoices"),
+
   getProjectInvoices: (projectId: string) =>
     apiFetch<Invoice[]>(`/projects/${projectId}/invoices`),
+
+  createInvoice: (projectId: string, data: { description: string; amount: number; invoiceNumber?: string; status?: string; dueDate?: string }) =>
+    apiFetch<Invoice>(`/projects/${projectId}/invoices`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateInvoice: (id: string, data: Partial<Pick<Invoice, "status" | "description" | "amount" | "dueDate" | "invoiceNumber">>) =>
+    apiFetch<Invoice>(`/invoices/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  deleteInvoice: (id: string) =>
+    apiFetch<{ message: string }>(`/invoices/${id}`, { method: "DELETE" }),
+
+  sendInvoice: (id: string) =>
+    apiFetch<Invoice>(`/invoices/${id}/send`, { method: "POST" }),
 
   getDocuSignSigningUrl: (contractId: string) =>
     apiFetch<{ url: string }>(`/integrations/docusign/signing-url/${contractId}`),

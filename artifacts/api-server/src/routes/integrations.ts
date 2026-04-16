@@ -150,6 +150,15 @@ router.delete(
 );
 
 router.get(
+  "/invoices",
+  requireRole("owner", "partner"),
+  async (_req, res) => {
+    const invoices = await db.select().from(invoicesTable);
+    validateAndSendArray(res, selectInvoiceSchema, invoices);
+  },
+);
+
+router.get(
   "/projects/:projectId/invoices",
   requireProjectAccess("projectId"),
   async (req, res) => {
@@ -166,18 +175,33 @@ router.post(
   requireRole("owner", "partner"),
   requireProjectAccess("projectId"),
   async (req, res) => {
-    try {
-      const invoice = await stripeService.createInvoice({
-        projectId: req.params.projectId,
-        description: req.body.description,
-        amount: req.body.amount,
-        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined,
-        customerEmail: req.body.customerEmail,
-      });
-      validateAndSend(res, selectInvoiceSchema, invoice, 201);
-    } catch (err) {
-      res.status(500).json({ error: "Failed to create invoice" });
+    const parsed = insertInvoiceSchema.safeParse({
+      ...req.body,
+      projectId: req.params.projectId,
+      dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined,
+    });
+    if (!parsed.success) {
+      res.status(400).json({ error: "Validation failed", details: parsed.error.issues });
+      return;
     }
+    const [invoice] = await db.insert(invoicesTable).values(parsed.data).returning();
+    validateAndSend(res, selectInvoiceSchema, invoice, 201);
+  },
+);
+
+router.delete(
+  "/invoices/:id",
+  requireRole("owner", "partner"),
+  async (req, res) => {
+    const [invoice] = await db
+      .delete(invoicesTable)
+      .where(eq(invoicesTable.id, req.params.id))
+      .returning();
+    if (!invoice) {
+      res.status(404).json({ error: "Invoice not found" });
+      return;
+    }
+    res.json({ message: "Invoice deleted" });
   },
 );
 
