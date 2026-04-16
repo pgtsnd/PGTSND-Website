@@ -327,6 +327,9 @@ export default function Contact() {
                   </div>
                 ))}
               </div>
+              <p style={f({ fontWeight: 400, fontSize: "10px", color: "rgba(255,255,255,0.3)", lineHeight: 1.7, marginTop: "32px", maxWidth: "420px" })}>
+                By calling or texting PGTSND Productions, you agree to receive text messages related to your inquiry, including follow-ups to missed calls. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out and HELP for assistance.
+              </p>
             </div>
           </div>
         </section>
