@@ -22,7 +22,33 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+- `pnpm --filter @workspace/db run seed` — seed demo data into the database
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
+
+## Database Schema
+
+All tables use text UUIDs as primary keys (generated via `randomUUID()`).
+
+- **users** — All system users with roles: owner, partner, crew, client
+- **organizations** — Client companies/organizations
+- **projects** — Central entity with lifecycle: lead → active → in_progress → review → delivered → archived. Has phases: pre_production, production, post_production, review, delivered
+- **project_members** — Many-to-many join between projects and users (composite PK)
+- **tasks** — Belong to projects, track status (todo/in_progress/done/blocked), progress, assignee, dependencies
+- **task_items** — Checklist items within tasks
+- **deliverables** — Link to projects (and optionally tasks), with review states: draft, pending, in_review, approved, revision_requested
+- **reviews** — Review records for deliverables, linked to a reviewer
+- **messages** — Project-scoped messages with read status
+- **contracts** — Project contracts (SOW, amendments, etc.) with status: draft, sent, signed, expired
+
+## API Architecture
+
+- All API routes mounted at `/api` via Express router
+- Health check at `/api/healthz` (unauthenticated)
+- All other routes require `x-user-id` header for auth (placeholder for real auth)
+- Role-based access control middleware: owner/partner see everything, crew see assigned projects, clients see own projects
+- Zod validation on all create/update inputs via Drizzle-Zod generated schemas
+- OpenAPI spec at `lib/api-spec/openapi.yaml` documents all endpoints
+- Codegen produces `@workspace/api-zod` (Zod schemas) and `@workspace/api-client-react` (React Query hooks)
 
 ## Artifacts
 

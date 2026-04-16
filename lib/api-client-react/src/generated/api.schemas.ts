@@ -8,3 +8,562 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface Error {
+  error: string;
+}
+
+export type ValidationErrorDetailsItem = { [key: string]: unknown };
+
+export interface ValidationError {
+  error: string;
+  details?: ValidationErrorDetailsItem[];
+}
+
+export interface DeleteResult {
+  message: string;
+}
+
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
+export const UserRole = {
+  owner: "owner",
+  partner: "partner",
+  crew: "crew",
+  client: "client",
+} as const;
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  avatarUrl?: string | null;
+  phone?: string | null;
+  title?: string | null;
+  initials?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateUserRole =
+  (typeof CreateUserRole)[keyof typeof CreateUserRole];
+
+export const CreateUserRole = {
+  owner: "owner",
+  partner: "partner",
+  crew: "crew",
+  client: "client",
+} as const;
+
+export interface CreateUser {
+  email: string;
+  name: string;
+  role?: CreateUserRole;
+  avatarUrl?: string;
+  phone?: string;
+  title?: string;
+  initials?: string;
+}
+
+export interface UpdateUser {
+  name?: string;
+  avatarUrl?: string;
+  phone?: string;
+  title?: string;
+  initials?: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateOrganization {
+  name: string;
+  contactName?: string;
+  contactEmail?: string;
+  phone?: string;
+  website?: string;
+  notes?: string;
+}
+
+export interface UpdateOrganization {
+  name?: string;
+  contactName?: string;
+  contactEmail?: string;
+  phone?: string;
+  website?: string;
+  notes?: string;
+}
+
+export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus];
+
+export const ProjectStatus = {
+  lead: "lead",
+  active: "active",
+  in_progress: "in_progress",
+  review: "review",
+  delivered: "delivered",
+  archived: "archived",
+} as const;
+
+export type ProjectPhase = (typeof ProjectPhase)[keyof typeof ProjectPhase];
+
+export const ProjectPhase = {
+  pre_production: "pre_production",
+  production: "production",
+  post_production: "post_production",
+  review: "review",
+  delivered: "delivered",
+} as const;
+
+export interface Project {
+  id: string;
+  name: string;
+  description?: string | null;
+  status: ProjectStatus;
+  phase: ProjectPhase;
+  organizationId?: string | null;
+  clientId?: string | null;
+  progress: number;
+  dueDate?: string | null;
+  startDate?: string | null;
+  budget?: number | null;
+  thumbnail?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateProjectStatus =
+  (typeof CreateProjectStatus)[keyof typeof CreateProjectStatus];
+
+export const CreateProjectStatus = {
+  lead: "lead",
+  active: "active",
+  in_progress: "in_progress",
+  review: "review",
+  delivered: "delivered",
+  archived: "archived",
+} as const;
+
+export type CreateProjectPhase =
+  (typeof CreateProjectPhase)[keyof typeof CreateProjectPhase];
+
+export const CreateProjectPhase = {
+  pre_production: "pre_production",
+  production: "production",
+  post_production: "post_production",
+  review: "review",
+  delivered: "delivered",
+} as const;
+
+export interface CreateProject {
+  name: string;
+  description?: string;
+  status?: CreateProjectStatus;
+  phase?: CreateProjectPhase;
+  organizationId?: string;
+  clientId?: string;
+  progress?: number;
+  dueDate?: string;
+  startDate?: string;
+  budget?: number;
+  thumbnail?: string;
+}
+
+export type UpdateProjectStatus =
+  (typeof UpdateProjectStatus)[keyof typeof UpdateProjectStatus];
+
+export const UpdateProjectStatus = {
+  lead: "lead",
+  active: "active",
+  in_progress: "in_progress",
+  review: "review",
+  delivered: "delivered",
+  archived: "archived",
+} as const;
+
+export type UpdateProjectPhase =
+  (typeof UpdateProjectPhase)[keyof typeof UpdateProjectPhase];
+
+export const UpdateProjectPhase = {
+  pre_production: "pre_production",
+  production: "production",
+  post_production: "post_production",
+  review: "review",
+  delivered: "delivered",
+} as const;
+
+export interface UpdateProject {
+  name?: string;
+  description?: string;
+  status?: UpdateProjectStatus;
+  phase?: UpdateProjectPhase;
+  organizationId?: string;
+  clientId?: string;
+  progress?: number;
+  dueDate?: string;
+  startDate?: string;
+  budget?: number;
+  thumbnail?: string;
+}
+
+export interface ProjectMember {
+  projectId: string;
+  userId: string;
+  role?: string | null;
+  createdAt: string;
+}
+
+export interface CreateProjectMember {
+  userId: string;
+  role?: string;
+}
+
+export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
+
+export const TaskStatus = {
+  todo: "todo",
+  in_progress: "in_progress",
+  done: "done",
+  blocked: "blocked",
+} as const;
+
+export interface Task {
+  id: string;
+  projectId: string;
+  title: string;
+  description?: string | null;
+  status: TaskStatus;
+  assigneeId?: string | null;
+  progress: number;
+  dueDate?: string | null;
+  sortOrder: number;
+  dependsOnTaskId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateTaskStatus =
+  (typeof CreateTaskStatus)[keyof typeof CreateTaskStatus];
+
+export const CreateTaskStatus = {
+  todo: "todo",
+  in_progress: "in_progress",
+  done: "done",
+  blocked: "blocked",
+} as const;
+
+export interface CreateTask {
+  title: string;
+  description?: string;
+  status?: CreateTaskStatus;
+  assigneeId?: string;
+  progress?: number;
+  dueDate?: string;
+  sortOrder?: number;
+  dependsOnTaskId?: string;
+}
+
+export type UpdateTaskStatus =
+  (typeof UpdateTaskStatus)[keyof typeof UpdateTaskStatus];
+
+export const UpdateTaskStatus = {
+  todo: "todo",
+  in_progress: "in_progress",
+  done: "done",
+  blocked: "blocked",
+} as const;
+
+export interface UpdateTask {
+  title?: string;
+  description?: string;
+  status?: UpdateTaskStatus;
+  assigneeId?: string;
+  progress?: number;
+  dueDate?: string;
+  sortOrder?: number;
+  dependsOnTaskId?: string;
+}
+
+export interface TaskItem {
+  id: string;
+  taskId: string;
+  title: string;
+  completed: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface CreateTaskItem {
+  title: string;
+  completed?: boolean;
+  sortOrder?: number;
+}
+
+export interface UpdateTaskItem {
+  title?: string;
+  completed?: boolean;
+  sortOrder?: number;
+}
+
+export type DeliverableType =
+  (typeof DeliverableType)[keyof typeof DeliverableType];
+
+export const DeliverableType = {
+  video: "video",
+  graphics: "graphics",
+  document: "document",
+  audio: "audio",
+  other: "other",
+} as const;
+
+export type DeliverableStatus =
+  (typeof DeliverableStatus)[keyof typeof DeliverableStatus];
+
+export const DeliverableStatus = {
+  draft: "draft",
+  pending: "pending",
+  in_review: "in_review",
+  approved: "approved",
+  revision_requested: "revision_requested",
+} as const;
+
+export interface Deliverable {
+  id: string;
+  projectId: string;
+  taskId?: string | null;
+  title: string;
+  description?: string | null;
+  type: DeliverableType;
+  status: DeliverableStatus;
+  fileUrl?: string | null;
+  version?: string | null;
+  submittedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateDeliverableType =
+  (typeof CreateDeliverableType)[keyof typeof CreateDeliverableType];
+
+export const CreateDeliverableType = {
+  video: "video",
+  graphics: "graphics",
+  document: "document",
+  audio: "audio",
+  other: "other",
+} as const;
+
+export type CreateDeliverableStatus =
+  (typeof CreateDeliverableStatus)[keyof typeof CreateDeliverableStatus];
+
+export const CreateDeliverableStatus = {
+  draft: "draft",
+  pending: "pending",
+  in_review: "in_review",
+  approved: "approved",
+  revision_requested: "revision_requested",
+} as const;
+
+export interface CreateDeliverable {
+  title: string;
+  description?: string;
+  taskId?: string;
+  type?: CreateDeliverableType;
+  status?: CreateDeliverableStatus;
+  fileUrl?: string;
+  version?: string;
+  submittedAt?: string;
+}
+
+export type UpdateDeliverableType =
+  (typeof UpdateDeliverableType)[keyof typeof UpdateDeliverableType];
+
+export const UpdateDeliverableType = {
+  video: "video",
+  graphics: "graphics",
+  document: "document",
+  audio: "audio",
+  other: "other",
+} as const;
+
+export type UpdateDeliverableStatus =
+  (typeof UpdateDeliverableStatus)[keyof typeof UpdateDeliverableStatus];
+
+export const UpdateDeliverableStatus = {
+  draft: "draft",
+  pending: "pending",
+  in_review: "in_review",
+  approved: "approved",
+  revision_requested: "revision_requested",
+} as const;
+
+export interface UpdateDeliverable {
+  title?: string;
+  description?: string;
+  type?: UpdateDeliverableType;
+  status?: UpdateDeliverableStatus;
+  fileUrl?: string;
+  version?: string;
+  submittedAt?: string;
+}
+
+export type ReviewStatus = (typeof ReviewStatus)[keyof typeof ReviewStatus];
+
+export const ReviewStatus = {
+  pending: "pending",
+  approved: "approved",
+  revision_requested: "revision_requested",
+} as const;
+
+export interface Review {
+  id: string;
+  deliverableId: string;
+  reviewerId: string;
+  status: ReviewStatus;
+  comment?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateReviewStatus =
+  (typeof CreateReviewStatus)[keyof typeof CreateReviewStatus];
+
+export const CreateReviewStatus = {
+  pending: "pending",
+  approved: "approved",
+  revision_requested: "revision_requested",
+} as const;
+
+export interface CreateReview {
+  status: CreateReviewStatus;
+  comment?: string;
+}
+
+export type UpdateReviewStatus =
+  (typeof UpdateReviewStatus)[keyof typeof UpdateReviewStatus];
+
+export const UpdateReviewStatus = {
+  pending: "pending",
+  approved: "approved",
+  revision_requested: "revision_requested",
+} as const;
+
+export interface UpdateReview {
+  status?: UpdateReviewStatus;
+  comment?: string;
+}
+
+export interface Message {
+  id: string;
+  projectId: string;
+  senderId: string;
+  content: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface CreateMessage {
+  content: string;
+}
+
+export type ContractStatus =
+  (typeof ContractStatus)[keyof typeof ContractStatus];
+
+export const ContractStatus = {
+  draft: "draft",
+  sent: "sent",
+  signed: "signed",
+  expired: "expired",
+} as const;
+
+export interface Contract {
+  id: string;
+  projectId: string;
+  title: string;
+  type?: string | null;
+  status: ContractStatus;
+  amount?: number | null;
+  documentUrl?: string | null;
+  sentAt?: string | null;
+  signedAt?: string | null;
+  expiresAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateContractStatus =
+  (typeof CreateContractStatus)[keyof typeof CreateContractStatus];
+
+export const CreateContractStatus = {
+  draft: "draft",
+  sent: "sent",
+  signed: "signed",
+  expired: "expired",
+} as const;
+
+export interface CreateContract {
+  title: string;
+  type?: string;
+  status?: CreateContractStatus;
+  amount?: number;
+  documentUrl?: string;
+  sentAt?: string;
+  signedAt?: string;
+  expiresAt?: string;
+}
+
+export type UpdateContractStatus =
+  (typeof UpdateContractStatus)[keyof typeof UpdateContractStatus];
+
+export const UpdateContractStatus = {
+  draft: "draft",
+  sent: "sent",
+  signed: "signed",
+  expired: "expired",
+} as const;
+
+export interface UpdateContract {
+  title?: string;
+  type?: string;
+  status?: UpdateContractStatus;
+  amount?: number;
+  documentUrl?: string;
+  sentAt?: string;
+  signedAt?: string;
+  expiresAt?: string;
+}
+
+/**
+ * Authentication required
+ */
+export type UnauthorizedResponse = Error;
+
+/**
+ * Insufficient permissions
+ */
+export type ForbiddenResponse = Error;
+
+/**
+ * Resource not found
+ */
+export type NotFoundResponse = Error;
+
+/**
+ * Validation failed
+ */
+export type ValidationErrorResponse = ValidationError;
+
+/**
+ * Resource deleted
+ */
+export type DeleteSuccessResponse = DeleteResult;

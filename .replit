@@ -38,3 +38,6 @@ externalPort = 3000
 [[ports]]
 localPort = 22476
 externalPort = 5000
+
+[nix]
+channel = "stable-25_05"

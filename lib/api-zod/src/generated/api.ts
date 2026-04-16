@@ -14,3 +14,979 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Returns all users. Requires owner or partner role.
+ * @summary List all users
+ */
+export const ListUsersResponseItem = zod.object({
+  id: zod.string(),
+  email: zod.string(),
+  name: zod.string(),
+  role: zod.enum(["owner", "partner", "crew", "client"]),
+  avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  title: zod.string().nullish(),
+  initials: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListUsersResponse = zod.array(ListUsersResponseItem);
+
+/**
+ * @summary Create a user
+ */
+export const CreateUserBody = zod.object({
+  email: zod.string(),
+  name: zod.string(),
+  role: zod.enum(["owner", "partner", "crew", "client"]).optional(),
+  avatarUrl: zod.string().optional(),
+  phone: zod.string().optional(),
+  title: zod.string().optional(),
+  initials: zod.string().optional(),
+});
+
+/**
+ * Returns the profile of the currently authenticated user.
+ * @summary Get the current authenticated user
+ */
+export const GetCurrentUserResponse = zod.object({
+  id: zod.string(),
+  email: zod.string(),
+  name: zod.string(),
+  role: zod.enum(["owner", "partner", "crew", "client"]),
+  avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  title: zod.string().nullish(),
+  initials: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * Requires owner or partner role.
+ * @summary Get a user by ID
+ */
+export const GetUserParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetUserResponse = zod.object({
+  id: zod.string(),
+  email: zod.string(),
+  name: zod.string(),
+  role: zod.enum(["owner", "partner", "crew", "client"]),
+  avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  title: zod.string().nullish(),
+  initials: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update a user
+ */
+export const UpdateUserParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateUserBody = zod.object({
+  name: zod.string().optional(),
+  avatarUrl: zod.string().optional(),
+  phone: zod.string().optional(),
+  title: zod.string().optional(),
+  initials: zod.string().optional(),
+});
+
+export const UpdateUserResponse = zod.object({
+  id: zod.string(),
+  email: zod.string(),
+  name: zod.string(),
+  role: zod.enum(["owner", "partner", "crew", "client"]),
+  avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  title: zod.string().nullish(),
+  initials: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a user
+ */
+export const DeleteUserParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteUserResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List organizations
+ */
+export const ListOrganizationsResponseItem = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  contactName: zod.string().nullish(),
+  contactEmail: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  website: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListOrganizationsResponse = zod.array(
+  ListOrganizationsResponseItem,
+);
+
+/**
+ * @summary Create an organization
+ */
+export const CreateOrganizationBody = zod.object({
+  name: zod.string(),
+  contactName: zod.string().optional(),
+  contactEmail: zod.string().optional(),
+  phone: zod.string().optional(),
+  website: zod.string().optional(),
+  notes: zod.string().optional(),
+});
+
+/**
+ * @summary Get an organization by ID
+ */
+export const GetOrganizationParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetOrganizationResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  contactName: zod.string().nullish(),
+  contactEmail: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  website: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update an organization
+ */
+export const UpdateOrganizationParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateOrganizationBody = zod.object({
+  name: zod.string().optional(),
+  contactName: zod.string().optional(),
+  contactEmail: zod.string().optional(),
+  phone: zod.string().optional(),
+  website: zod.string().optional(),
+  notes: zod.string().optional(),
+});
+
+export const UpdateOrganizationResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  contactName: zod.string().nullish(),
+  contactEmail: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  website: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete an organization
+ */
+export const DeleteOrganizationParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteOrganizationResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * Returns projects scoped by user role. Owners see all, crew see assigned, clients see own.
+ * @summary List projects
+ */
+export const ListProjectsResponseItem = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.enum([
+    "lead",
+    "active",
+    "in_progress",
+    "review",
+    "delivered",
+    "archived",
+  ]),
+  phase: zod.enum([
+    "pre_production",
+    "production",
+    "post_production",
+    "review",
+    "delivered",
+  ]),
+  organizationId: zod.string().nullish(),
+  clientId: zod.string().nullish(),
+  progress: zod.number(),
+  dueDate: zod.coerce.date().nullish(),
+  startDate: zod.coerce.date().nullish(),
+  budget: zod.number().nullish(),
+  thumbnail: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListProjectsResponse = zod.array(ListProjectsResponseItem);
+
+/**
+ * @summary Create a project
+ */
+export const CreateProjectBody = zod.object({
+  name: zod.string(),
+  description: zod.string().optional(),
+  status: zod
+    .enum(["lead", "active", "in_progress", "review", "delivered", "archived"])
+    .optional(),
+  phase: zod
+    .enum([
+      "pre_production",
+      "production",
+      "post_production",
+      "review",
+      "delivered",
+    ])
+    .optional(),
+  organizationId: zod.string().optional(),
+  clientId: zod.string().optional(),
+  progress: zod.number().optional(),
+  dueDate: zod.coerce.date().optional(),
+  startDate: zod.coerce.date().optional(),
+  budget: zod.number().optional(),
+  thumbnail: zod.string().optional(),
+});
+
+/**
+ * @summary Get a project by ID
+ */
+export const GetProjectParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetProjectResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.enum([
+    "lead",
+    "active",
+    "in_progress",
+    "review",
+    "delivered",
+    "archived",
+  ]),
+  phase: zod.enum([
+    "pre_production",
+    "production",
+    "post_production",
+    "review",
+    "delivered",
+  ]),
+  organizationId: zod.string().nullish(),
+  clientId: zod.string().nullish(),
+  progress: zod.number(),
+  dueDate: zod.coerce.date().nullish(),
+  startDate: zod.coerce.date().nullish(),
+  budget: zod.number().nullish(),
+  thumbnail: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update a project
+ */
+export const UpdateProjectParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateProjectBody = zod.object({
+  name: zod.string().optional(),
+  description: zod.string().optional(),
+  status: zod
+    .enum(["lead", "active", "in_progress", "review", "delivered", "archived"])
+    .optional(),
+  phase: zod
+    .enum([
+      "pre_production",
+      "production",
+      "post_production",
+      "review",
+      "delivered",
+    ])
+    .optional(),
+  organizationId: zod.string().optional(),
+  clientId: zod.string().optional(),
+  progress: zod.number().optional(),
+  dueDate: zod.coerce.date().optional(),
+  startDate: zod.coerce.date().optional(),
+  budget: zod.number().optional(),
+  thumbnail: zod.string().optional(),
+});
+
+export const UpdateProjectResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.enum([
+    "lead",
+    "active",
+    "in_progress",
+    "review",
+    "delivered",
+    "archived",
+  ]),
+  phase: zod.enum([
+    "pre_production",
+    "production",
+    "post_production",
+    "review",
+    "delivered",
+  ]),
+  organizationId: zod.string().nullish(),
+  clientId: zod.string().nullish(),
+  progress: zod.number(),
+  dueDate: zod.coerce.date().nullish(),
+  startDate: zod.coerce.date().nullish(),
+  budget: zod.number().nullish(),
+  thumbnail: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a project
+ */
+export const DeleteProjectParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteProjectResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List project members
+ */
+export const ListProjectMembersParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const ListProjectMembersResponseItem = zod.object({
+  projectId: zod.string(),
+  userId: zod.string(),
+  role: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListProjectMembersResponse = zod.array(
+  ListProjectMembersResponseItem,
+);
+
+/**
+ * @summary Add a member to a project
+ */
+export const AddProjectMemberParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const AddProjectMemberBody = zod.object({
+  userId: zod.string(),
+  role: zod.string().optional(),
+});
+
+/**
+ * @summary Remove a member from a project
+ */
+export const RemoveProjectMemberParams = zod.object({
+  projectId: zod.coerce.string(),
+  userId: zod.coerce.string(),
+});
+
+export const RemoveProjectMemberResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List tasks for a project
+ */
+export const ListProjectTasksParams = zod.object({
+  projectId: zod.coerce.string(),
+});
+
+export const ListProjectTasksResponseItem = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.enum(["todo", "in_progress", "done", "blocked"]),
+  assigneeId: zod.string().nullish(),
+  progress: zod.number(),
+  dueDate: zod.coerce.date().nullish(),
+  sortOrder: zod.number(),
+  dependsOnTaskId: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListProjectTasksResponse = zod.array(ListProjectTasksResponseItem);
+
+/**
+ * @summary Create a task in a project
+ */
+export const CreateTaskParams = zod.object({
+  projectId: zod.coerce.string(),
+});
+
+export const CreateTaskBody = zod.object({
+  title: zod.string(),
+  description: zod.string().optional(),
+  status: zod.enum(["todo", "in_progress", "done", "blocked"]).optional(),
+  assigneeId: zod.string().optional(),
+  progress: zod.number().optional(),
+  dueDate: zod.coerce.date().optional(),
+  sortOrder: zod.number().optional(),
+  dependsOnTaskId: zod.string().optional(),
+});
+
+/**
+ * @summary Get a task by ID
+ */
+export const GetTaskParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetTaskResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.enum(["todo", "in_progress", "done", "blocked"]),
+  assigneeId: zod.string().nullish(),
+  progress: zod.number(),
+  dueDate: zod.coerce.date().nullish(),
+  sortOrder: zod.number(),
+  dependsOnTaskId: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update a task
+ */
+export const UpdateTaskParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateTaskBody = zod.object({
+  title: zod.string().optional(),
+  description: zod.string().optional(),
+  status: zod.enum(["todo", "in_progress", "done", "blocked"]).optional(),
+  assigneeId: zod.string().optional(),
+  progress: zod.number().optional(),
+  dueDate: zod.coerce.date().optional(),
+  sortOrder: zod.number().optional(),
+  dependsOnTaskId: zod.string().optional(),
+});
+
+export const UpdateTaskResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.enum(["todo", "in_progress", "done", "blocked"]),
+  assigneeId: zod.string().nullish(),
+  progress: zod.number(),
+  dueDate: zod.coerce.date().nullish(),
+  sortOrder: zod.number(),
+  dependsOnTaskId: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a task
+ */
+export const DeleteTaskParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteTaskResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List checklist items for a task
+ */
+export const ListTaskItemsParams = zod.object({
+  taskId: zod.coerce.string(),
+});
+
+export const ListTaskItemsResponseItem = zod.object({
+  id: zod.string(),
+  taskId: zod.string(),
+  title: zod.string(),
+  completed: zod.boolean(),
+  sortOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+export const ListTaskItemsResponse = zod.array(ListTaskItemsResponseItem);
+
+/**
+ * @summary Create a checklist item
+ */
+export const CreateTaskItemParams = zod.object({
+  taskId: zod.coerce.string(),
+});
+
+export const CreateTaskItemBody = zod.object({
+  title: zod.string(),
+  completed: zod.boolean().optional(),
+  sortOrder: zod.number().optional(),
+});
+
+/**
+ * @summary Update a checklist item
+ */
+export const UpdateTaskItemParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateTaskItemBody = zod.object({
+  title: zod.string().optional(),
+  completed: zod.boolean().optional(),
+  sortOrder: zod.number().optional(),
+});
+
+export const UpdateTaskItemResponse = zod.object({
+  id: zod.string(),
+  taskId: zod.string(),
+  title: zod.string(),
+  completed: zod.boolean(),
+  sortOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a checklist item
+ */
+export const DeleteTaskItemParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteTaskItemResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List deliverables for a project
+ */
+export const ListProjectDeliverablesParams = zod.object({
+  projectId: zod.coerce.string(),
+});
+
+export const ListProjectDeliverablesResponseItem = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  taskId: zod.string().nullish(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  type: zod.enum(["video", "graphics", "document", "audio", "other"]),
+  status: zod.enum([
+    "draft",
+    "pending",
+    "in_review",
+    "approved",
+    "revision_requested",
+  ]),
+  fileUrl: zod.string().nullish(),
+  version: zod.string().nullish(),
+  submittedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListProjectDeliverablesResponse = zod.array(
+  ListProjectDeliverablesResponseItem,
+);
+
+/**
+ * @summary Create a deliverable
+ */
+export const CreateDeliverableParams = zod.object({
+  projectId: zod.coerce.string(),
+});
+
+export const CreateDeliverableBody = zod.object({
+  title: zod.string(),
+  description: zod.string().optional(),
+  taskId: zod.string().optional(),
+  type: zod
+    .enum(["video", "graphics", "document", "audio", "other"])
+    .optional(),
+  status: zod
+    .enum(["draft", "pending", "in_review", "approved", "revision_requested"])
+    .optional(),
+  fileUrl: zod.string().optional(),
+  version: zod.string().optional(),
+  submittedAt: zod.coerce.date().optional(),
+});
+
+/**
+ * @summary Get a deliverable by ID
+ */
+export const GetDeliverableParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetDeliverableResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  taskId: zod.string().nullish(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  type: zod.enum(["video", "graphics", "document", "audio", "other"]),
+  status: zod.enum([
+    "draft",
+    "pending",
+    "in_review",
+    "approved",
+    "revision_requested",
+  ]),
+  fileUrl: zod.string().nullish(),
+  version: zod.string().nullish(),
+  submittedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update a deliverable
+ */
+export const UpdateDeliverableParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateDeliverableBody = zod.object({
+  title: zod.string().optional(),
+  description: zod.string().optional(),
+  type: zod
+    .enum(["video", "graphics", "document", "audio", "other"])
+    .optional(),
+  status: zod
+    .enum(["draft", "pending", "in_review", "approved", "revision_requested"])
+    .optional(),
+  fileUrl: zod.string().optional(),
+  version: zod.string().optional(),
+  submittedAt: zod.coerce.date().optional(),
+});
+
+export const UpdateDeliverableResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  taskId: zod.string().nullish(),
+  title: zod.string(),
+  description: zod.string().nullish(),
+  type: zod.enum(["video", "graphics", "document", "audio", "other"]),
+  status: zod.enum([
+    "draft",
+    "pending",
+    "in_review",
+    "approved",
+    "revision_requested",
+  ]),
+  fileUrl: zod.string().nullish(),
+  version: zod.string().nullish(),
+  submittedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a deliverable
+ */
+export const DeleteDeliverableParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteDeliverableResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List reviews for a deliverable
+ */
+export const ListDeliverableReviewsParams = zod.object({
+  deliverableId: zod.coerce.string(),
+});
+
+export const ListDeliverableReviewsResponseItem = zod.object({
+  id: zod.string(),
+  deliverableId: zod.string(),
+  reviewerId: zod.string(),
+  status: zod.enum(["pending", "approved", "revision_requested"]),
+  comment: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListDeliverableReviewsResponse = zod.array(
+  ListDeliverableReviewsResponseItem,
+);
+
+/**
+ * @summary Create a review
+ */
+export const CreateReviewParams = zod.object({
+  deliverableId: zod.coerce.string(),
+});
+
+export const CreateReviewBody = zod.object({
+  status: zod.enum(["pending", "approved", "revision_requested"]),
+  comment: zod.string().optional(),
+});
+
+/**
+ * @summary Get a review by ID
+ */
+export const GetReviewParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetReviewResponse = zod.object({
+  id: zod.string(),
+  deliverableId: zod.string(),
+  reviewerId: zod.string(),
+  status: zod.enum(["pending", "approved", "revision_requested"]),
+  comment: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update a review
+ */
+export const UpdateReviewParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateReviewBody = zod.object({
+  status: zod.enum(["pending", "approved", "revision_requested"]).optional(),
+  comment: zod.string().optional(),
+});
+
+export const UpdateReviewResponse = zod.object({
+  id: zod.string(),
+  deliverableId: zod.string(),
+  reviewerId: zod.string(),
+  status: zod.enum(["pending", "approved", "revision_requested"]),
+  comment: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a review
+ */
+export const DeleteReviewParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteReviewResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List messages for a project
+ */
+export const ListProjectMessagesParams = zod.object({
+  projectId: zod.coerce.string(),
+});
+
+export const ListProjectMessagesResponseItem = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  senderId: zod.string(),
+  content: zod.string(),
+  read: zod.boolean(),
+  createdAt: zod.coerce.date(),
+});
+export const ListProjectMessagesResponse = zod.array(
+  ListProjectMessagesResponseItem,
+);
+
+/**
+ * @summary Send a message in a project
+ */
+export const CreateMessageParams = zod.object({
+  projectId: zod.coerce.string(),
+});
+
+export const CreateMessageBody = zod.object({
+  content: zod.string(),
+});
+
+/**
+ * @summary Mark a message as read
+ */
+export const MarkMessageReadParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const MarkMessageReadResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  senderId: zod.string(),
+  content: zod.string(),
+  read: zod.boolean(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get a message by ID
+ */
+export const GetMessageParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetMessageResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  senderId: zod.string(),
+  content: zod.string(),
+  read: zod.boolean(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a message
+ */
+export const DeleteMessageParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteMessageResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List contracts for a project
+ */
+export const ListProjectContractsParams = zod.object({
+  projectId: zod.coerce.string(),
+});
+
+export const ListProjectContractsResponseItem = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  title: zod.string(),
+  type: zod.string().nullish(),
+  status: zod.enum(["draft", "sent", "signed", "expired"]),
+  amount: zod.number().nullish(),
+  documentUrl: zod.string().nullish(),
+  sentAt: zod.coerce.date().nullish(),
+  signedAt: zod.coerce.date().nullish(),
+  expiresAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListProjectContractsResponse = zod.array(
+  ListProjectContractsResponseItem,
+);
+
+/**
+ * @summary Create a contract
+ */
+export const CreateContractParams = zod.object({
+  projectId: zod.coerce.string(),
+});
+
+export const CreateContractBody = zod.object({
+  title: zod.string(),
+  type: zod.string().optional(),
+  status: zod.enum(["draft", "sent", "signed", "expired"]).optional(),
+  amount: zod.number().optional(),
+  documentUrl: zod.string().optional(),
+  sentAt: zod.coerce.date().optional(),
+  signedAt: zod.coerce.date().optional(),
+  expiresAt: zod.coerce.date().optional(),
+});
+
+/**
+ * @summary Get a contract by ID
+ */
+export const GetContractParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetContractResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  title: zod.string(),
+  type: zod.string().nullish(),
+  status: zod.enum(["draft", "sent", "signed", "expired"]),
+  amount: zod.number().nullish(),
+  documentUrl: zod.string().nullish(),
+  sentAt: zod.coerce.date().nullish(),
+  signedAt: zod.coerce.date().nullish(),
+  expiresAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update a contract
+ */
+export const UpdateContractParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateContractBody = zod.object({
+  title: zod.string().optional(),
+  type: zod.string().optional(),
+  status: zod.enum(["draft", "sent", "signed", "expired"]).optional(),
+  amount: zod.number().optional(),
+  documentUrl: zod.string().optional(),
+  sentAt: zod.coerce.date().optional(),
+  signedAt: zod.coerce.date().optional(),
+  expiresAt: zod.coerce.date().optional(),
+});
+
+export const UpdateContractResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  title: zod.string(),
+  type: zod.string().nullish(),
+  status: zod.enum(["draft", "sent", "signed", "expired"]),
+  amount: zod.number().nullish(),
+  documentUrl: zod.string().nullish(),
+  sentAt: zod.coerce.date().nullish(),
+  signedAt: zod.coerce.date().nullish(),
+  expiresAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a contract
+ */
+export const DeleteContractParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteContractResponse = zod.object({
+  message: zod.string(),
+});

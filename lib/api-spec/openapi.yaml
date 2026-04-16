@@ -10,6 +10,22 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: users
+    description: User management
+  - name: organizations
+    description: Organization/client company management
+  - name: projects
+    description: Project management
+  - name: tasks
+    description: Task management
+  - name: deliverables
+    description: Deliverable management
+  - name: reviews
+    description: Review management
+  - name: messages
+    description: Project messaging
+  - name: contracts
+    description: Contract management
 paths:
   /healthz:
     get:
@@ -24,7 +40,933 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users
+      description: Returns all users. Requires owner or partner role.
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUser"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/me:
+    get:
+      operationId: getCurrentUser
+      tags: [users]
+      summary: Get the current authenticated user
+      description: Returns the profile of the currently authenticated user.
+      responses:
+        "200":
+          description: Current user details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get a user by ID
+      description: Requires owner or partner role.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update a user
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUser"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      summary: Delete a user
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeleteSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /organizations:
+    get:
+      operationId: listOrganizations
+      tags: [organizations]
+      summary: List organizations
+      responses:
+        "200":
+          description: List of organizations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Organization"
+    post:
+      operationId: createOrganization
+      tags: [organizations]
+      summary: Create an organization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrganization"
+      responses:
+        "201":
+          description: Organization created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /organizations/{id}:
+    get:
+      operationId: getOrganization
+      tags: [organizations]
+      summary: Get an organization by ID
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Organization details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateOrganization
+      tags: [organizations]
+      summary: Update an organization
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrganization"
+      responses:
+        "200":
+          description: Organization updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteOrganization
+      tags: [organizations]
+      summary: Delete an organization
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeleteSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List projects
+      description: Returns projects scoped by user role. Owners see all, crew see assigned, clients see own.
+      responses:
+        "200":
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create a project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProject"
+      responses:
+        "201":
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Get a project by ID
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update a project
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProject"
+      responses:
+        "200":
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      summary: Delete a project
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeleteSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /projects/{id}/members:
+    get:
+      operationId: listProjectMembers
+      tags: [projects]
+      summary: List project members
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: List of project members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectMember"
+    post:
+      operationId: addProjectMember
+      tags: [projects]
+      summary: Add a member to a project
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectMember"
+      responses:
+        "201":
+          description: Member added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectMember"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /projects/{projectId}/members/{userId}:
+    delete:
+      operationId: removeProjectMember
+      tags: [projects]
+      summary: Remove a member from a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/DeleteSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /projects/{projectId}/tasks:
+    get:
+      operationId: listProjectTasks
+      tags: [tasks]
+      summary: List tasks for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a task in a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTask"
+      responses:
+        "201":
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /tasks/{id}:
+    get:
+      operationId: getTask
+      tags: [tasks]
+      summary: Get a task by ID
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTask"
+      responses:
+        "200":
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeleteSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /tasks/{taskId}/items:
+    get:
+      operationId: listTaskItems
+      tags: [tasks]
+      summary: List checklist items for a task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of task items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TaskItem"
+    post:
+      operationId: createTaskItem
+      tags: [tasks]
+      summary: Create a checklist item
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskItem"
+      responses:
+        "201":
+          description: Task item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskItem"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /task-items/{id}:
+    patch:
+      operationId: updateTaskItem
+      tags: [tasks]
+      summary: Update a checklist item
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskItem"
+      responses:
+        "200":
+          description: Task item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskItem"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteTaskItem
+      tags: [tasks]
+      summary: Delete a checklist item
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeleteSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /projects/{projectId}/deliverables:
+    get:
+      operationId: listProjectDeliverables
+      tags: [deliverables]
+      summary: List deliverables for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of deliverables
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deliverable"
+    post:
+      operationId: createDeliverable
+      tags: [deliverables]
+      summary: Create a deliverable
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeliverable"
+      responses:
+        "201":
+          description: Deliverable created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deliverable"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /deliverables/{id}:
+    get:
+      operationId: getDeliverable
+      tags: [deliverables]
+      summary: Get a deliverable by ID
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Deliverable details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deliverable"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateDeliverable
+      tags: [deliverables]
+      summary: Update a deliverable
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDeliverable"
+      responses:
+        "200":
+          description: Deliverable updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deliverable"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteDeliverable
+      tags: [deliverables]
+      summary: Delete a deliverable
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeleteSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /deliverables/{deliverableId}/reviews:
+    get:
+      operationId: listDeliverableReviews
+      tags: [reviews]
+      summary: List reviews for a deliverable
+      parameters:
+        - name: deliverableId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Create a review
+      parameters:
+        - name: deliverableId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReview"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /reviews/{id}:
+    get:
+      operationId: getReview
+      tags: [reviews]
+      summary: Get a review by ID
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Review details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateReview
+      tags: [reviews]
+      summary: Update a review
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReview"
+      responses:
+        "200":
+          description: Review updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteReview
+      tags: [reviews]
+      summary: Delete a review
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeleteSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /projects/{projectId}/messages:
+    get:
+      operationId: listProjectMessages
+      tags: [messages]
+      summary: List messages for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: createMessage
+      tags: [messages]
+      summary: Send a message in a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMessage"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /messages/{id}/read:
+    patch:
+      operationId: markMessageRead
+      tags: [messages]
+      summary: Mark a message as read
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Message marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /messages/{id}:
+    get:
+      operationId: getMessage
+      tags: [messages]
+      summary: Get a message by ID
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Message details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteMessage
+      tags: [messages]
+      summary: Delete a message
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeleteSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /projects/{projectId}/contracts:
+    get:
+      operationId: listProjectContracts
+      tags: [contracts]
+      summary: List contracts for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of contracts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Contract"
+    post:
+      operationId: createContract
+      tags: [contracts]
+      summary: Create a contract
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateContract"
+      responses:
+        "201":
+          description: Contract created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contract"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /contracts/{id}:
+    get:
+      operationId: getContract
+      tags: [contracts]
+      summary: Get a contract by ID
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Contract details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contract"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateContract
+      tags: [contracts]
+      summary: Update a contract
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateContract"
+      responses:
+        "200":
+          description: Contract updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contract"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteContract
+      tags: [contracts]
+      summary: Delete a contract
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeleteSuccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationError"
+    DeleteSuccess:
+      description: Resource deleted
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DeleteResult"
+
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +976,722 @@ components:
       required:
         - status
 
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+      required:
+        - error
+
+    DeleteResult:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [owner, partner, crew, client]
+        avatarUrl:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        initials:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - name
+        - role
+        - createdAt
+        - updatedAt
+
+    CreateUser:
+      type: object
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [owner, partner, crew, client]
+        avatarUrl:
+          type: string
+        phone:
+          type: string
+        title:
+          type: string
+        initials:
+          type: string
+      required:
+        - email
+        - name
+
+    UpdateUser:
+      type: object
+      properties:
+        name:
+          type: string
+        avatarUrl:
+          type: string
+        phone:
+          type: string
+        title:
+          type: string
+        initials:
+          type: string
+
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        contactName:
+          type: string
+          nullable: true
+        contactEmail:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - createdAt
+        - updatedAt
+
+    CreateOrganization:
+      type: object
+      properties:
+        name:
+          type: string
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        notes:
+          type: string
+      required:
+        - name
+
+    UpdateOrganization:
+      type: object
+      properties:
+        name:
+          type: string
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        notes:
+          type: string
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [lead, active, in_progress, review, delivered, archived]
+        phase:
+          type: string
+          enum: [pre_production, production, post_production, review, delivered]
+        organizationId:
+          type: string
+          nullable: true
+        clientId:
+          type: string
+          nullable: true
+        progress:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+        startDate:
+          type: string
+          format: date-time
+          nullable: true
+        budget:
+          type: integer
+          nullable: true
+        thumbnail:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - status
+        - phase
+        - progress
+        - createdAt
+        - updatedAt
+
+    CreateProject:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [lead, active, in_progress, review, delivered, archived]
+        phase:
+          type: string
+          enum: [pre_production, production, post_production, review, delivered]
+        organizationId:
+          type: string
+        clientId:
+          type: string
+        progress:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+        startDate:
+          type: string
+          format: date-time
+        budget:
+          type: integer
+        thumbnail:
+          type: string
+      required:
+        - name
+
+    UpdateProject:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [lead, active, in_progress, review, delivered, archived]
+        phase:
+          type: string
+          enum: [pre_production, production, post_production, review, delivered]
+        organizationId:
+          type: string
+        clientId:
+          type: string
+        progress:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+        startDate:
+          type: string
+          format: date-time
+        budget:
+          type: integer
+        thumbnail:
+          type: string
+
+    ProjectMember:
+      type: object
+      properties:
+        projectId:
+          type: string
+        userId:
+          type: string
+        role:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - projectId
+        - userId
+        - createdAt
+
+    CreateProjectMember:
+      type: object
+      properties:
+        userId:
+          type: string
+        role:
+          type: string
+      required:
+        - userId
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [todo, in_progress, done, blocked]
+        assigneeId:
+          type: string
+          nullable: true
+        progress:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+        sortOrder:
+          type: integer
+        dependsOnTaskId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - projectId
+        - title
+        - status
+        - progress
+        - sortOrder
+        - createdAt
+        - updatedAt
+
+    CreateTask:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [todo, in_progress, done, blocked]
+        assigneeId:
+          type: string
+        progress:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+        sortOrder:
+          type: integer
+        dependsOnTaskId:
+          type: string
+      required:
+        - title
+
+    UpdateTask:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [todo, in_progress, done, blocked]
+        assigneeId:
+          type: string
+        progress:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+        sortOrder:
+          type: integer
+        dependsOnTaskId:
+          type: string
+
+    TaskItem:
+      type: object
+      properties:
+        id:
+          type: string
+        taskId:
+          type: string
+        title:
+          type: string
+        completed:
+          type: boolean
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - taskId
+        - title
+        - completed
+        - sortOrder
+        - createdAt
+
+    CreateTaskItem:
+      type: object
+      properties:
+        title:
+          type: string
+        completed:
+          type: boolean
+        sortOrder:
+          type: integer
+      required:
+        - title
+
+    UpdateTaskItem:
+      type: object
+      properties:
+        title:
+          type: string
+        completed:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    Deliverable:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        taskId:
+          type: string
+          nullable: true
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [video, graphics, document, audio, other]
+        status:
+          type: string
+          enum: [draft, pending, in_review, approved, revision_requested]
+        fileUrl:
+          type: string
+          nullable: true
+        version:
+          type: string
+          nullable: true
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - projectId
+        - title
+        - type
+        - status
+        - createdAt
+        - updatedAt
+
+    CreateDeliverable:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        taskId:
+          type: string
+        type:
+          type: string
+          enum: [video, graphics, document, audio, other]
+        status:
+          type: string
+          enum: [draft, pending, in_review, approved, revision_requested]
+        fileUrl:
+          type: string
+        version:
+          type: string
+        submittedAt:
+          type: string
+          format: date-time
+      required:
+        - title
+
+    UpdateDeliverable:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [video, graphics, document, audio, other]
+        status:
+          type: string
+          enum: [draft, pending, in_review, approved, revision_requested]
+        fileUrl:
+          type: string
+        version:
+          type: string
+        submittedAt:
+          type: string
+          format: date-time
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+        deliverableId:
+          type: string
+        reviewerId:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, revision_requested]
+        comment:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - deliverableId
+        - reviewerId
+        - status
+        - createdAt
+        - updatedAt
+
+    CreateReview:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, revision_requested]
+        comment:
+          type: string
+      required:
+        - status
+
+    UpdateReview:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, revision_requested]
+        comment:
+          type: string
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        senderId:
+          type: string
+        content:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - projectId
+        - senderId
+        - content
+        - read
+        - createdAt
+
+    CreateMessage:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    Contract:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, sent, signed, expired]
+        amount:
+          type: integer
+          nullable: true
+        documentUrl:
+          type: string
+          nullable: true
+        sentAt:
+          type: string
+          format: date-time
+          nullable: true
+        signedAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - projectId
+        - title
+        - status
+        - createdAt
+        - updatedAt
+
+    CreateContract:
+      type: object
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+          enum: [draft, sent, signed, expired]
+        amount:
+          type: integer
+        documentUrl:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        signedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+        - title
+
+    UpdateContract:
+      type: object
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+          enum: [draft, sent, signed, expired]
+        amount:
+          type: integer
+        documentUrl:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        signedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
