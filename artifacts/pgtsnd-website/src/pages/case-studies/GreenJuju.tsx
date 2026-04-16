@@ -476,6 +476,9 @@ export default function GreenJuju() {
                 </p>
               </div>
             ))}
+            <div style={{ marginTop: "40px", display: "flex", justifyContent: "flex-start" }}>
+              <ScrollBadge position="bottom-right" inline />
+            </div>
           </div>
         </section>
 
