@@ -617,73 +617,44 @@ function SnackCutoutSlideIn() {
 }
 
 function VeggieScrollBar() {
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
+  const sectionRef = useRef<HTMLDivElement | null>(null);
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
-    const section = sectionRef.current;
-    const img = imgRef.current;
-    if (!section || !img) return;
-
-    let ticking = false;
-    const update = () => {
-      ticking = false;
-      const rect = section.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const total = vh + rect.height;
-      const scrolled = vh - rect.top;
-      const progress = Math.max(0, Math.min(1, scrolled / total));
-      const maxShift = Math.max(0, img.scrollWidth - section.clientWidth);
-      img.style.transform = `translateX(${-maxShift * progress}px)`;
+    const handleScroll = () => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      const progress = 1 - (rect.top + rect.height) / (viewH + rect.height);
+      const clamped = Math.max(0, Math.min(1, progress));
+      setOffset(clamped * 10);
     };
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    };
-
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", update);
-    img.addEventListener("load", update);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", update);
-      img.removeEventListener("load", update);
-    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <section ref={sectionRef} style={{ padding: "0", position: "relative" }}>
-      <div
-        style={{
-          width: "100%",
-          height: "320px",
-          overflow: "hidden",
-          background: "#000",
-          position: "relative",
-        }}
-      >
-        <img
-          ref={imgRef}
-          src={"/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg"}
-          alt="Green Juju Products"
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: 0,
-            width: "260vw",
-            height: "auto",
-            maxWidth: "none",
-            display: "block",
-            transform: "translate3d(0, -50%, 0)",
-            willChange: "transform",
-          }}
-        />
-      </div>
-      <div style={{ position: "absolute", bottom: "30px", right: "30px" }}>
-        <ScrollBadge position="bottom-right" inline />
+    <section style={{ padding: "0", position: "relative" }}>
+      <div ref={sectionRef} style={{ position: "relative", overflow: "visible" }}>
+        <div style={{ width: "100%", height: "clamp(340px, 40vw, 520px)", overflow: "hidden", background: "#000" }}>
+          <img
+            src={"/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg"}
+            alt="Green Juju Products"
+            style={{
+              width: "115%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center center",
+              display: "block",
+              transform: `translateX(${-7.5 + offset}%)`,
+              willChange: "transform",
+            }}
+          />
+        </div>
+        <div style={{ position: "absolute", bottom: "30px", right: "30px" }}>
+          <ScrollBadge position="bottom-right" inline />
+        </div>
       </div>
     </section>
   );
