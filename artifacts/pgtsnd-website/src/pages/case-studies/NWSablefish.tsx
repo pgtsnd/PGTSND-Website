@@ -153,14 +153,16 @@ export default function NWSablefish() {
         <BrandMockupsSlideIn />
 
         {/* Fish Tail + Color Palette + Testimonial */}
-        <section style={{ padding: "0 40px 40px", position: "relative" }}>
+        <section style={{ padding: "60px 40px 180px", position: "relative" }}>
           <div style={{ position: "relative", overflow: "visible" }}>
-            <img
-              src={"/images/case-studies/nw-sablefish/pgtsnd-fish-tail-nw-sablefish.jpg"}
-              alt="Sablefish on Ice"
-              style={{ width: "100%", height: "auto", display: "block" }}
-            />
-            <div style={{ position: "absolute", top: "40px", left: "60px", display: "flex", gap: "0" }}>
+            <div style={{ width: "100%", height: "clamp(260px, 28vw, 380px)", overflow: "hidden" }}>
+              <img
+                src={"/images/case-studies/nw-sablefish/pgtsnd-fish-tail-nw-sablefish.jpg"}
+                alt="Sablefish on Ice"
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 60%", display: "block" }}
+              />
+            </div>
+            <div style={{ position: "absolute", top: "-30px", left: "60px", display: "flex", gap: "0", zIndex: 3 }}>
               {brandColors.map((c, i) => (
                 <div
                   key={i}
@@ -176,14 +178,14 @@ export default function NWSablefish() {
                 />
               ))}
             </div>
-            <div style={{ position: "absolute", top: "30px", right: "60px" }}>
+            <div style={{ position: "absolute", top: "-20px", right: "60px", zIndex: 3 }}>
               <img
                 src={"/images/case-studies/nw-sablefish/NWsablefish-fish-gold.png"}
                 alt="NW Sablefish Logo"
-                style={{ width: "80px", height: "auto" }}
+                style={{ width: "100px", height: "auto" }}
               />
             </div>
-            <div style={{ position: "absolute", bottom: "-60px", right: "60px", maxWidth: "420px", zIndex: 2 }}>
+            <div style={{ position: "absolute", bottom: "-130px", right: "60px", maxWidth: "420px", zIndex: 2 }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
                 <img
                   src={"/images/about/katie-harris-headshot-pgtsnd-testimonial.jpg"}
@@ -192,7 +194,7 @@ export default function NWSablefish() {
                 />
               </div>
               <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px", background: "rgba(0,0,0,0.85)" }}>
-                <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
+                <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
                   &ldquo;PGTSND was an integral part of our campaign, helping us craft a compelling brand narrative and producing media assets that far exceeded our expectations.&rdquo;
                 </p>
                 <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
