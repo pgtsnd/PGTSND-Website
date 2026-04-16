@@ -37,6 +37,7 @@ import NWSablefish from "@/pages/case-studies/NWSablefish";
 import AlaskaWhitefishTrawlers from "@/pages/case-studies/AlaskaWhitefishTrawlers";
 import Lodge58North from "@/pages/case-studies/Lodge58North";
 import NetYourProblem from "@/pages/case-studies/NetYourProblem";
+import VallationOuterwear from "@/pages/case-studies/VallationOuterwear";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import NotFound from "@/pages/not-found";
@@ -81,6 +82,7 @@ function Router() {
       <Route path="/case-studies/alaska-whitefish-trawlers" component={AlaskaWhitefishTrawlers} />
       <Route path="/case-studies/lodge-58-north" component={Lodge58North} />
       <Route path="/case-studies/net-your-problem" component={NetYourProblem} />
+      <Route path="/case-studies/vallation-outerwear" component={VallationOuterwear} />
       <Route>
         {() => (
           <>
