@@ -41,7 +41,7 @@ async function seed() {
   await db.delete(usersTable);
 
   // ── TEAM USERS ──
-  const [testOwner, bri, marcus, jamie, alex, sam, kandice] = await db
+  const [testOwner, bri, marcus, jamie, alex, sam, kandice, testCrew] = await db
     .insert(usersTable)
     .values([
       {
@@ -93,11 +93,18 @@ async function seed() {
         title: "Project Manager",
         initials: "KM",
       },
+      {
+        email: "testcrew@pgtsnd.com",
+        name: "Test Crew",
+        role: "crew",
+        title: "Production Assistant",
+        initials: "TC",
+      },
     ])
     .returning();
 
   // ── CLIENTS ──
-  const [nicole, marcusTran, sarahChen, lenaPark, ryanHolt] = await db
+  const [nicole, marcusTran, sarahChen, lenaPark, ryanHolt, testClient] = await db
     .insert(usersTable)
     .values([
       {
@@ -129,6 +136,12 @@ async function seed() {
         name: "Ryan Holt",
         role: "client",
         initials: "RH",
+      },
+      {
+        email: "testclient@pgtsnd.com",
+        name: "Test Client",
+        role: "client",
+        initials: "CL",
       },
     ])
     .returning();
@@ -176,7 +189,7 @@ async function seed() {
         status: "in_progress",
         phase: "post_production",
         organizationId: netYourProblem.id,
-        clientId: nicole.id,
+        clientId: testClient.id,
         progress: 62,
         dueDate: new Date("2026-05-15"),
         startDate: new Date("2026-02-01"),
@@ -202,7 +215,7 @@ async function seed() {
         status: "review",
         phase: "review",
         organizationId: pacificNW.id,
-        clientId: sarahChen.id,
+        clientId: testClient.id,
         progress: 88,
         dueDate: new Date("2026-04-25"),
         startDate: new Date("2026-01-10"),
@@ -270,6 +283,10 @@ async function seed() {
     { projectId: proj5.id, userId: jamie.id, role: "Editor" },
     { projectId: proj5.id, userId: alex.id, role: "Colorist" },
     { projectId: proj5.id, userId: kandice.id, role: "PM" },
+
+    { projectId: proj1.id, userId: testCrew.id, role: "PA" },
+    { projectId: proj2.id, userId: testCrew.id, role: "PA" },
+    { projectId: proj4.id, userId: testCrew.id, role: "PA" },
   ]);
 
   // ── PROJECT 1 TASKS: Net Your Problem — Spring Campaign ──
@@ -835,7 +852,11 @@ async function seed() {
   ]);
 
   console.log("Seed complete!");
-  console.log("Test login: test@pgtsnd.com");
+  console.log("Test logins:");
+  console.log("  Owner:  test@pgtsnd.com       → /team/dashboard");
+  console.log("  Crew:   testcrew@pgtsnd.com   → /team/dashboard");
+  console.log("  Client: testclient@pgtsnd.com → /client-hub/dashboard");
+  console.log("Demo bypass: demo@pgtsnd.com (works on both portals)");
   console.log("5 projects seeded with full data.");
   process.exit(0);
 }

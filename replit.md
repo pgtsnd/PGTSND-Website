@@ -94,12 +94,14 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
   - **Crew** (`TeamCrew.tsx`): `/team/crew` — Real team members with roles, project assignments
   - **Settings** (`TeamSettings.tsx`): `/team/settings` — Profile update via `useUpdateProfile` mutation
   - Sidebar: Dashboard, Projects, Clients, Messages (badge), Schedule, Asset Library, Crew, Settings — user info from `currentUser`
-  - Seed users: bri@pgtsnd.com (owner), marcus/jamie/alex/sam@pgtsnd.com (crew), kandice@pgtsnd.com (partner), nicole@netyourproblem.com, marcus@tranarch.com, sarah@pacificnwhealth.com, lena@cascadecoffee.com (clients)
+  - Seed users: bri@pgtsnd.com (owner), marcus/jamie/alex/sam@pgtsnd.com (crew), testcrew@pgtsnd.com (crew/PA), kandice@pgtsnd.com (partner), nicole@netyourproblem.com, marcus@tranarch.com, lena@cascadecoffee.com, ryan@vallationouterwear.com (clients), testclient@pgtsnd.com (client, assigned to proj1+proj3)
   - Seed data includes: projects, tasks, deliverables, contracts, invoices, messages, review reminders
 - **Design**: Black background, white text, bold Montserrat 900 weight headings, pill-shaped CTA buttons, hamburger nav overlay
 - **Images**: Served locally from `public/images/` (migrated from Squarespace CDN)
 - **Logo**: Uses src/assets/logo.webp via @assets alias
-- **Authentication**: Magic link email login + Google SSO + demo bypass (`demo@pgtsnd.com`), JWT sessions in httpOnly cookies, role-based routing (client → client hub, crew/partner/owner → team portal), protected route guards on all dashboard pages. In dev mode, any seeded user email auto-logs in (no magic link needed): client users `nicole@netyourproblem.com`, `marcus@tranarch.com`, `sarah@pacificnwhealth.com`, `lena@cascadecoffee.com`
+- **Authentication**: Magic link email login + Google SSO + demo bypass (`demo@pgtsnd.com`), JWT sessions in httpOnly cookies, role-based routing (client → client hub, crew/partner/owner → team portal), protected route guards on all dashboard pages. In dev mode, any seeded user email auto-logs in (no magic link needed).
+  - **Test logins**: `test@pgtsnd.com` (owner → /team/dashboard, sees all 5 projects), `testcrew@pgtsnd.com` (crew → /team/dashboard, sees 3 assigned projects), `testclient@pgtsnd.com` (client → /client-hub/dashboard, sees 2 projects: Net Your Problem + Pacific NW Health)
+  - **Demo bypass**: `demo@pgtsnd.com` (owner role, works on both portals)
 - **External Integrations**: Backend service modules at `artifacts/api-server/src/services/` for Stripe (invoicing/payments), Google Drive (file storage), Slack (messaging bridge), DocuSign (contract signing). Each integration stores credentials in `integration_settings` DB table. Manage connections via Team Settings → Integrations panel. API routes at `/api/integrations/*` for status, config, and service-specific operations.
   - **Stripe**: Invoice creation, sending, payment tracking via webhooks (`/api/webhooks/stripe`)
   - **Google Drive**: Folder-scoped file listing, download URLs (`/api/integrations/drive/files`)
