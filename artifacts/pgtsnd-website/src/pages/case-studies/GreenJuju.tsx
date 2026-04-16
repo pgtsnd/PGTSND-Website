@@ -551,17 +551,54 @@ export default function GreenJuju() {
         </section>
 
         {/* Snack Cutout Full Width */}
-        <section style={{ padding: "0" }}>
-          <img
-            src={"/images/case-studies/green-juju/green-juju-snack-cutout-pgtsnd.png"}
-            alt="Green Juju snack"
-            style={{ width: "100%", height: "auto", display: "block" }}
-          />
-        </section>
+        <SnackCutoutSlideIn />
 
         <Footer />
       </div>
     </>
+  );
+}
+
+function SnackCutoutSlideIn() {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setVisible(true);
+            obs.disconnect();
+            break;
+          }
+        }
+      },
+      { threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <section ref={ref} style={{ padding: "0", overflow: "hidden" }}>
+      <img
+        src={"/images/case-studies/green-juju/green-juju-snack-cutout-pgtsnd.png"}
+        alt="Green Juju snack"
+        style={{
+          width: "100%",
+          height: "auto",
+          display: "block",
+          transform: visible ? "translateY(0)" : "translateY(100%)",
+          filter: visible ? "brightness(1)" : "brightness(0.25)",
+          transition:
+            "transform 1.2s cubic-bezier(0.22, 1, 0.36, 1), filter 1.2s ease-out",
+          willChange: "transform, filter",
+        }}
+      />
+    </section>
   );
 }
 
