@@ -4,6 +4,7 @@ import {
   organizationsTable,
   projectsTable,
   projectMembersTable,
+  phasesTable,
   tasksTable,
   taskItemsTable,
   deliverablesTable,
@@ -33,6 +34,7 @@ async function seed() {
   await db.delete(deliverablesTable);
   await db.delete(taskItemsTable);
   await db.delete(tasksTable);
+  await db.delete(phasesTable);
   await db.delete(projectMembersTable);
   await db.delete(projectsTable);
   await db.delete(organizationsTable);
@@ -289,26 +291,77 @@ async function seed() {
     { projectId: proj4.id, userId: testCrew.id, role: "PA" },
   ]);
 
+  // ── PHASES ──
+  const [p1Pre, p1Prod, p1Post, p1Delivery] = await db
+    .insert(phasesTable)
+    .values([
+      { projectId: proj1.id, name: "Pre-Production", sortOrder: 0 },
+      { projectId: proj1.id, name: "Production", sortOrder: 1 },
+      { projectId: proj1.id, name: "Post-Production", sortOrder: 2 },
+      { projectId: proj1.id, name: "Delivery", sortOrder: 3 },
+    ])
+    .returning();
+
+  const [p2Pre, p2Prod, p2Post, p2Delivery] = await db
+    .insert(phasesTable)
+    .values([
+      { projectId: proj2.id, name: "Pre-Production", sortOrder: 0 },
+      { projectId: proj2.id, name: "Production", sortOrder: 1 },
+      { projectId: proj2.id, name: "Post-Production", sortOrder: 2 },
+      { projectId: proj2.id, name: "Delivery", sortOrder: 3 },
+    ])
+    .returning();
+
+  const [p3Pre, p3Prod, p3Post, p3Delivery] = await db
+    .insert(phasesTable)
+    .values([
+      { projectId: proj3.id, name: "Pre-Production", sortOrder: 0 },
+      { projectId: proj3.id, name: "Production", sortOrder: 1 },
+      { projectId: proj3.id, name: "Post-Production", sortOrder: 2 },
+      { projectId: proj3.id, name: "Delivery", sortOrder: 3 },
+    ])
+    .returning();
+
+  const [p4Pre, p4Prod, p4Post, p4Delivery] = await db
+    .insert(phasesTable)
+    .values([
+      { projectId: proj4.id, name: "Pre-Production", sortOrder: 0 },
+      { projectId: proj4.id, name: "Production", sortOrder: 1 },
+      { projectId: proj4.id, name: "Post-Production", sortOrder: 2 },
+      { projectId: proj4.id, name: "Delivery", sortOrder: 3 },
+    ])
+    .returning();
+
+  const [p5Pre, p5Prod, p5Post, p5Delivery] = await db
+    .insert(phasesTable)
+    .values([
+      { projectId: proj5.id, name: "Pre-Production", sortOrder: 0 },
+      { projectId: proj5.id, name: "Production", sortOrder: 1 },
+      { projectId: proj5.id, name: "Post-Production", sortOrder: 2 },
+      { projectId: proj5.id, name: "Delivery", sortOrder: 3 },
+    ])
+    .returning();
+
   // ── PROJECT 1 TASKS: Net Your Problem — Spring Campaign ──
   const p1Tasks = await db
     .insert(tasksTable)
     .values([
-      { projectId: proj1.id, title: "Creative brief & moodboard", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 1 },
-      { projectId: proj1.id, title: "Script & storyboard", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 2 },
-      { projectId: proj1.id, title: "Location scouting — Kodiak", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 3 },
-      { projectId: proj1.id, title: "Talent casting & scheduling", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 4 },
-      { projectId: proj1.id, title: "Principal photography — Day 1 (Harbor)", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 5 },
-      { projectId: proj1.id, title: "Principal photography — Day 2 (Processing)", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 6 },
-      { projectId: proj1.id, title: "Principal photography — Day 3 (Community)", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 7 },
-      { projectId: proj1.id, title: "Rough cut assembly", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 8 },
-      { projectId: proj1.id, title: "Rough cut v2 — client feedback pass", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 9 },
-      { projectId: proj1.id, title: "Fine cut — hero film", status: "in_progress", assigneeId: jamie.id, progress: 70, sortOrder: 10 },
-      { projectId: proj1.id, title: "Color grade — hero film", status: "in_progress", assigneeId: alex.id, progress: 40, sortOrder: 11 },
-      { projectId: proj1.id, title: "Sound design & music licensing", status: "in_progress", assigneeId: jamie.id, progress: 25, sortOrder: 12 },
-      { projectId: proj1.id, title: "Social cutdowns (3x 15s)", status: "todo", assigneeId: jamie.id, progress: 0, sortOrder: 13 },
-      { projectId: proj1.id, title: "BTS content package", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 14 },
-      { projectId: proj1.id, title: "Client review — fine cut", status: "todo", progress: 0, sortOrder: 15 },
-      { projectId: proj1.id, title: "Final master & delivery", status: "todo", progress: 0, sortOrder: 16 },
+      { projectId: proj1.id, phaseId: p1Pre.id, title: "Creative brief & moodboard", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 1 },
+      { projectId: proj1.id, phaseId: p1Pre.id, title: "Script & storyboard", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 2 },
+      { projectId: proj1.id, phaseId: p1Pre.id, title: "Location scouting — Kodiak", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 3 },
+      { projectId: proj1.id, phaseId: p1Pre.id, title: "Talent casting & scheduling", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 4 },
+      { projectId: proj1.id, phaseId: p1Prod.id, title: "Principal photography — Day 1 (Harbor)", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 5 },
+      { projectId: proj1.id, phaseId: p1Prod.id, title: "Principal photography — Day 2 (Processing)", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 6 },
+      { projectId: proj1.id, phaseId: p1Prod.id, title: "Principal photography — Day 3 (Community)", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 7 },
+      { projectId: proj1.id, phaseId: p1Post.id, title: "Rough cut assembly", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 8 },
+      { projectId: proj1.id, phaseId: p1Post.id, title: "Rough cut v2 — client feedback pass", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 9 },
+      { projectId: proj1.id, phaseId: p1Post.id, title: "Fine cut — hero film", status: "in_progress", assigneeId: jamie.id, progress: 70, sortOrder: 10 },
+      { projectId: proj1.id, phaseId: p1Post.id, title: "Color grade — hero film", status: "in_progress", assigneeId: alex.id, progress: 40, sortOrder: 11 },
+      { projectId: proj1.id, phaseId: p1Post.id, title: "Sound design & music licensing", status: "in_progress", assigneeId: jamie.id, progress: 25, sortOrder: 12 },
+      { projectId: proj1.id, phaseId: p1Post.id, title: "Social cutdowns (3x 15s)", status: "todo", assigneeId: jamie.id, progress: 0, sortOrder: 13 },
+      { projectId: proj1.id, phaseId: p1Post.id, title: "BTS content package", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 14 },
+      { projectId: proj1.id, phaseId: p1Delivery.id, title: "Client review — fine cut", status: "todo", progress: 0, sortOrder: 15 },
+      { projectId: proj1.id, phaseId: p1Delivery.id, title: "Final master & delivery", status: "todo", progress: 0, sortOrder: 16 },
     ])
     .returning();
 
@@ -331,19 +384,19 @@ async function seed() {
   const p2Tasks = await db
     .insert(tasksTable)
     .values([
-      { projectId: proj2.id, title: "Discovery call & brief", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 1 },
-      { projectId: proj2.id, title: "Research & pre-interviews", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 2 },
-      { projectId: proj2.id, title: "Location scout — Studio + 2 project sites", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 3 },
-      { projectId: proj2.id, title: "Shoot day 1 — Studio interview & workspace", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 4 },
-      { projectId: proj2.id, title: "Shoot day 2 — Waterfront residence site", status: "in_progress", assigneeId: marcus.id, progress: 60, sortOrder: 5, dueDate: new Date("2026-04-22") },
-      { projectId: proj2.id, title: "Shoot day 3 — Community center project", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 6, dueDate: new Date("2026-04-28") },
-      { projectId: proj2.id, title: "Drone footage — all locations", status: "in_progress", assigneeId: sam.id, progress: 30, sortOrder: 7 },
-      { projectId: proj2.id, title: "Transcription & selects", status: "todo", assigneeId: jamie.id, progress: 0, sortOrder: 8 },
-      { projectId: proj2.id, title: "Rough cut — hero film", status: "todo", assigneeId: jamie.id, progress: 0, sortOrder: 9 },
-      { projectId: proj2.id, title: "Sizzle reel cut (90s)", status: "todo", assigneeId: jamie.id, progress: 0, sortOrder: 10 },
-      { projectId: proj2.id, title: "Client review round 1", status: "todo", progress: 0, sortOrder: 11 },
-      { projectId: proj2.id, title: "Color & sound finish", status: "todo", assigneeId: alex.id, progress: 0, sortOrder: 12 },
-      { projectId: proj2.id, title: "Final delivery", status: "todo", progress: 0, sortOrder: 13 },
+      { projectId: proj2.id, phaseId: p2Pre.id, title: "Discovery call & brief", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 1 },
+      { projectId: proj2.id, phaseId: p2Pre.id, title: "Research & pre-interviews", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 2 },
+      { projectId: proj2.id, phaseId: p2Pre.id, title: "Location scout — Studio + 2 project sites", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 3 },
+      { projectId: proj2.id, phaseId: p2Prod.id, title: "Shoot day 1 — Studio interview & workspace", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 4 },
+      { projectId: proj2.id, phaseId: p2Prod.id, title: "Shoot day 2 — Waterfront residence site", status: "in_progress", assigneeId: marcus.id, progress: 60, sortOrder: 5, dueDate: new Date("2026-04-22") },
+      { projectId: proj2.id, phaseId: p2Prod.id, title: "Shoot day 3 — Community center project", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 6, dueDate: new Date("2026-04-28") },
+      { projectId: proj2.id, phaseId: p2Prod.id, title: "Drone footage — all locations", status: "in_progress", assigneeId: sam.id, progress: 30, sortOrder: 7 },
+      { projectId: proj2.id, phaseId: p2Post.id, title: "Transcription & selects", status: "todo", assigneeId: jamie.id, progress: 0, sortOrder: 8 },
+      { projectId: proj2.id, phaseId: p2Post.id, title: "Rough cut — hero film", status: "todo", assigneeId: jamie.id, progress: 0, sortOrder: 9 },
+      { projectId: proj2.id, phaseId: p2Post.id, title: "Sizzle reel cut (90s)", status: "todo", assigneeId: jamie.id, progress: 0, sortOrder: 10 },
+      { projectId: proj2.id, phaseId: p2Post.id, title: "Client review round 1", status: "todo", progress: 0, sortOrder: 11 },
+      { projectId: proj2.id, phaseId: p2Post.id, title: "Color & sound finish", status: "todo", assigneeId: alex.id, progress: 0, sortOrder: 12 },
+      { projectId: proj2.id, phaseId: p2Delivery.id, title: "Final delivery", status: "todo", progress: 0, sortOrder: 13 },
     ])
     .returning();
 
@@ -361,18 +414,18 @@ async function seed() {
   const p3Tasks = await db
     .insert(tasksTable)
     .values([
-      { projectId: proj3.id, title: "Brief & data collection", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 1 },
-      { projectId: proj3.id, title: "Script from annual report doc", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 2 },
-      { projectId: proj3.id, title: "Interview filming — CEO & program leads", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 3 },
-      { projectId: proj3.id, title: "Motion graphics — data viz (6 charts)", status: "done", assigneeId: alex.id, progress: 100, sortOrder: 4 },
-      { projectId: proj3.id, title: "Rough cut assembly", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 5 },
-      { projectId: proj3.id, title: "Client review — rough cut", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 6 },
-      { projectId: proj3.id, title: "Revision pass — client notes", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 7 },
-      { projectId: proj3.id, title: "Color grade", status: "done", assigneeId: alex.id, progress: 100, sortOrder: 8 },
-      { projectId: proj3.id, title: "Sound mix & music", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 9 },
-      { projectId: proj3.id, title: "Fine cut — client review", status: "in_progress", assigneeId: jamie.id, progress: 80, sortOrder: 10, dueDate: new Date("2026-04-20") },
-      { projectId: proj3.id, title: "Final QC & master", status: "todo", progress: 0, sortOrder: 11 },
-      { projectId: proj3.id, title: "Delivery — multiple formats", status: "todo", progress: 0, sortOrder: 12 },
+      { projectId: proj3.id, phaseId: p3Pre.id, title: "Brief & data collection", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 1 },
+      { projectId: proj3.id, phaseId: p3Pre.id, title: "Script from annual report doc", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 2 },
+      { projectId: proj3.id, phaseId: p3Prod.id, title: "Interview filming — CEO & program leads", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 3 },
+      { projectId: proj3.id, phaseId: p3Post.id, title: "Motion graphics — data viz (6 charts)", status: "done", assigneeId: alex.id, progress: 100, sortOrder: 4 },
+      { projectId: proj3.id, phaseId: p3Post.id, title: "Rough cut assembly", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 5 },
+      { projectId: proj3.id, phaseId: p3Post.id, title: "Client review — rough cut", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 6 },
+      { projectId: proj3.id, phaseId: p3Post.id, title: "Revision pass — client notes", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 7 },
+      { projectId: proj3.id, phaseId: p3Post.id, title: "Color grade", status: "done", assigneeId: alex.id, progress: 100, sortOrder: 8 },
+      { projectId: proj3.id, phaseId: p3Post.id, title: "Sound mix & music", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 9 },
+      { projectId: proj3.id, phaseId: p3Post.id, title: "Fine cut — client review", status: "in_progress", assigneeId: jamie.id, progress: 80, sortOrder: 10, dueDate: new Date("2026-04-20") },
+      { projectId: proj3.id, phaseId: p3Delivery.id, title: "Final QC & master", status: "todo", progress: 0, sortOrder: 11 },
+      { projectId: proj3.id, phaseId: p3Delivery.id, title: "Delivery — multiple formats", status: "todo", progress: 0, sortOrder: 12 },
     ])
     .returning();
 
@@ -387,17 +440,17 @@ async function seed() {
   const p4Tasks = await db
     .insert(tasksTable)
     .values([
-      { projectId: proj4.id, title: "Series concept & episode outlines", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 1 },
-      { projectId: proj4.id, title: "Shot lists per episode", status: "in_progress", assigneeId: bri.id, progress: 50, sortOrder: 2 },
-      { projectId: proj4.id, title: "Location walk-through — Portland roastery", status: "todo", assigneeId: marcus.id, progress: 0, sortOrder: 3, dueDate: new Date("2026-04-25") },
-      { projectId: proj4.id, title: "Ep 1 — Origin (sourcing & green beans)", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 4 },
-      { projectId: proj4.id, title: "Ep 2 — Roast (the roasting process)", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 5 },
-      { projectId: proj4.id, title: "Ep 3 — Brew (cafe culture & baristas)", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 6 },
-      { projectId: proj4.id, title: "Ep 4 — Community (regulars & neighborhood)", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 7 },
-      { projectId: proj4.id, title: "Photography package (40 stills)", status: "todo", assigneeId: marcus.id, progress: 0, sortOrder: 8 },
-      { projectId: proj4.id, title: "Edit & post — all episodes", status: "todo", assigneeId: jamie.id, progress: 0, sortOrder: 9 },
-      { projectId: proj4.id, title: "Client review & revisions", status: "todo", progress: 0, sortOrder: 10 },
-      { projectId: proj4.id, title: "Final delivery — social formats", status: "todo", progress: 0, sortOrder: 11 },
+      { projectId: proj4.id, phaseId: p4Pre.id, title: "Series concept & episode outlines", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 1 },
+      { projectId: proj4.id, phaseId: p4Pre.id, title: "Shot lists per episode", status: "in_progress", assigneeId: bri.id, progress: 50, sortOrder: 2 },
+      { projectId: proj4.id, phaseId: p4Pre.id, title: "Location walk-through — Portland roastery", status: "todo", assigneeId: marcus.id, progress: 0, sortOrder: 3, dueDate: new Date("2026-04-25") },
+      { projectId: proj4.id, phaseId: p4Prod.id, title: "Ep 1 — Origin (sourcing & green beans)", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 4 },
+      { projectId: proj4.id, phaseId: p4Prod.id, title: "Ep 2 — Roast (the roasting process)", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 5 },
+      { projectId: proj4.id, phaseId: p4Prod.id, title: "Ep 3 — Brew (cafe culture & baristas)", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 6 },
+      { projectId: proj4.id, phaseId: p4Prod.id, title: "Ep 4 — Community (regulars & neighborhood)", status: "todo", assigneeId: sam.id, progress: 0, sortOrder: 7 },
+      { projectId: proj4.id, phaseId: p4Prod.id, title: "Photography package (40 stills)", status: "todo", assigneeId: marcus.id, progress: 0, sortOrder: 8 },
+      { projectId: proj4.id, phaseId: p4Post.id, title: "Edit & post — all episodes", status: "todo", assigneeId: jamie.id, progress: 0, sortOrder: 9 },
+      { projectId: proj4.id, phaseId: p4Post.id, title: "Client review & revisions", status: "todo", progress: 0, sortOrder: 10 },
+      { projectId: proj4.id, phaseId: p4Delivery.id, title: "Final delivery — social formats", status: "todo", progress: 0, sortOrder: 11 },
     ])
     .returning();
 
@@ -413,19 +466,19 @@ async function seed() {
   const p5Tasks = await db
     .insert(tasksTable)
     .values([
-      { projectId: proj5.id, title: "Creative direction & moodboard", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 1 },
-      { projectId: proj5.id, title: "Talent & model booking", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 2 },
-      { projectId: proj5.id, title: "Location permits — North Cascades", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 3 },
-      { projectId: proj5.id, title: "Shoot day 1 — Alpine ridgeline", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 4 },
-      { projectId: proj5.id, title: "Shoot day 2 — Forest & river", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 5 },
-      { projectId: proj5.id, title: "Shoot day 3 — Product flats & studio", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 6 },
-      { projectId: proj5.id, title: "Drone aerials — all locations", status: "done", assigneeId: sam.id, progress: 100, sortOrder: 7 },
-      { projectId: proj5.id, title: "Hero film edit", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 8 },
-      { projectId: proj5.id, title: "Product detail videos (x4)", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 9 },
-      { projectId: proj5.id, title: "Lookbook photo edit (60 stills)", status: "done", assigneeId: alex.id, progress: 100, sortOrder: 10 },
-      { projectId: proj5.id, title: "Color grade — all video", status: "done", assigneeId: alex.id, progress: 100, sortOrder: 11 },
-      { projectId: proj5.id, title: "Client review & final approval", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 12 },
-      { projectId: proj5.id, title: "Final delivery — all assets", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 13 },
+      { projectId: proj5.id, phaseId: p5Pre.id, title: "Creative direction & moodboard", status: "done", assigneeId: bri.id, progress: 100, sortOrder: 1 },
+      { projectId: proj5.id, phaseId: p5Pre.id, title: "Talent & model booking", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 2 },
+      { projectId: proj5.id, phaseId: p5Pre.id, title: "Location permits — North Cascades", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 3 },
+      { projectId: proj5.id, phaseId: p5Prod.id, title: "Shoot day 1 — Alpine ridgeline", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 4 },
+      { projectId: proj5.id, phaseId: p5Prod.id, title: "Shoot day 2 — Forest & river", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 5 },
+      { projectId: proj5.id, phaseId: p5Prod.id, title: "Shoot day 3 — Product flats & studio", status: "done", assigneeId: marcus.id, progress: 100, sortOrder: 6 },
+      { projectId: proj5.id, phaseId: p5Prod.id, title: "Drone aerials — all locations", status: "done", assigneeId: sam.id, progress: 100, sortOrder: 7 },
+      { projectId: proj5.id, phaseId: p5Post.id, title: "Hero film edit", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 8 },
+      { projectId: proj5.id, phaseId: p5Post.id, title: "Product detail videos (x4)", status: "done", assigneeId: jamie.id, progress: 100, sortOrder: 9 },
+      { projectId: proj5.id, phaseId: p5Post.id, title: "Lookbook photo edit (60 stills)", status: "done", assigneeId: alex.id, progress: 100, sortOrder: 10 },
+      { projectId: proj5.id, phaseId: p5Post.id, title: "Color grade — all video", status: "done", assigneeId: alex.id, progress: 100, sortOrder: 11 },
+      { projectId: proj5.id, phaseId: p5Delivery.id, title: "Client review & final approval", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 12 },
+      { projectId: proj5.id, phaseId: p5Delivery.id, title: "Final delivery — all assets", status: "done", assigneeId: kandice.id, progress: 100, sortOrder: 13 },
     ])
     .returning();
 

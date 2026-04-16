@@ -13,6 +13,7 @@ import { z } from "zod/v4";
 import { randomUUID } from "crypto";
 import { projectsTable } from "./projects";
 import { usersTable } from "./users";
+import { phasesTable } from "./phases";
 
 export const taskStatusEnum = pgEnum("task_status", [
   "todo",
@@ -30,6 +31,7 @@ export const tasksTable = pgTable(
     projectId: text("project_id")
       .notNull()
       .references(() => projectsTable.id, { onDelete: "cascade" }),
+    phaseId: text("phase_id").references(() => phasesTable.id, { onDelete: "set null" }),
     title: varchar("title", { length: 500 }).notNull(),
     description: text("description"),
     status: taskStatusEnum("status").notNull().default("todo"),

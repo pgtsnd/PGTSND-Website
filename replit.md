@@ -33,7 +33,8 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
 - **organizations** — Client companies/organizations
 - **projects** — Central entity with lifecycle: lead → active → in_progress → review → delivered → archived. Has phases: pre_production, production, post_production, review, delivered
 - **project_members** — Many-to-many join between projects and users (composite PK)
-- **tasks** — Belong to projects, track status (todo/in_progress/done/blocked), progress, assignee, dependencies
+- **phases** — Production phases within a project (Pre-Production, Production, Post-Production, Delivery). Has name, sortOrder, projectId FK
+- **tasks** — Belong to projects, track status (todo/in_progress/done/blocked), progress, assignee, dependencies. Optional phaseId FK to phases table
 - **task_items** — Checklist items within tasks
 - **deliverables** — Link to projects (and optionally tasks), with review states: draft, pending, in_review, approved, revision_requested
 - **reviews** — Review records for deliverables, linked to a reviewer
@@ -86,7 +87,7 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
   - **Hooks**: `useTeamData.ts` exports hooks (`useProjects`, `useOrganizations`, `useUsers`, `useProjectWithDetails`, `useDashboardData`, etc.) — all gated with `enabled: !!userId` where userId is derived from the JWT cookie session via `useAuth()`; API calls include `credentials: "include"` for automatic cookie auth
   - **Owner Dashboard** (`TeamDashboard.tsx`): Personalized welcome, Pipeline phase counts, Crew Status, Revenue Snapshot — all from real project/user data
   - **Projects** (`TeamProjects.tsx`): Real project cards with status filters, progress bars, organization names
-  - **Project Workspace** (`TeamProjectDetail.tsx`): `/team/projects/:id` — 5-tab workspace: Overview (stats + contracts, no Team section), Milestones (spreadsheet-style expandable rows with sub-task checklists via task_items API), Deliverables (expandable cards with descriptions/metadata), Assets (drag-drop upload zone + project folder grid), Review (video player with timestamped comments, push-to-client, shareable review links)
+  - **Project Workspace** (`TeamProjectDetail.tsx`): `/team/projects/:id` — 5-tab workspace: Overview (stats + contracts, no Team section), Milestones (3-level hierarchy: Phase → Milestone → Task with inline CRUD, progress bars per phase, collapsible sections; phases API at `/api/projects/:id/phases`), Deliverables (expandable cards with descriptions/metadata), Assets (drag-drop upload zone + project folder grid), Review (video player with timestamped comments, push-to-client, shareable review links)
   - **Clients** (`TeamClients.tsx`): `/team/clients` — Organization cards with project counts, revenue, expandable project lists
   - **Messages** (`TeamMessages.tsx`): `/team/messages` — Real messages grouped by project, send new messages via API
   - **Schedule** (`TeamSchedule.tsx`): `/team/schedule` — Timeline and Upcoming views from real project dates

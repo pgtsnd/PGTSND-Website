@@ -3,6 +3,7 @@ import {
   db,
   projectsTable,
   projectMembersTable,
+  phasesTable,
   deliverablesTable,
   tasksTable,
   taskItemsTable,
@@ -78,6 +79,17 @@ export async function resolveProjectFromDeliverable(
     .where(eq(deliverablesTable.id, deliverableId))
     .limit(1);
   return deliverable?.projectId ?? null;
+}
+
+export async function resolveProjectFromPhase(
+  phaseId: string,
+): Promise<string | null> {
+  const [phase] = await db
+    .select({ projectId: phasesTable.projectId })
+    .from(phasesTable)
+    .where(eq(phasesTable.id, phaseId))
+    .limit(1);
+  return phase?.projectId ?? null;
 }
 
 export async function resolveProjectFromTask(

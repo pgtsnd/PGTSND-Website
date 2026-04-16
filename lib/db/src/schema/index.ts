@@ -3,6 +3,7 @@ export * from "./magic-link-tokens";
 export * from "./organizations";
 export * from "./projects";
 export * from "./project-members";
+export * from "./phases";
 export * from "./tasks";
 export * from "./task-items";
 export * from "./deliverables";

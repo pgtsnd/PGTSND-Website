@@ -3,6 +3,7 @@ import {
   db,
   tasksTable,
   taskItemsTable,
+  phasesTable,
   insertTaskSchema,
   updateTaskSchema,
   insertTaskItemSchema,
@@ -10,7 +11,7 @@ import {
   selectTaskSchema,
   selectTaskItemSchema,
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { requireRole } from "../middleware/auth";
 import {
   requireProjectAccess,
@@ -65,6 +66,23 @@ router.post(
     if (!parsed.success) {
       res.status(400).json({ error: "Validation failed", details: parsed.error.issues });
       return;
+    }
+
+    if (parsed.data.phaseId) {
+      const [phase] = await db
+        .select()
+        .from(phasesTable)
+        .where(
+          and(
+            eq(phasesTable.id, parsed.data.phaseId),
+            eq(phasesTable.projectId, req.params.projectId),
+          ),
+        )
+        .limit(1);
+      if (!phase) {
+        res.status(400).json({ error: "Phase does not belong to this project" });
+        return;
+      }
     }
 
     const [task] = await db.insert(tasksTable).values(parsed.data).returning();

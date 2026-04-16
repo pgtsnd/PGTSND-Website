@@ -18,7 +18,6 @@ import {
 import {
   useListTaskItems,
   useUpdateTaskItem,
-  useCreateTask,
   useUpdateProject,
 } from "@workspace/api-client-react";
 
@@ -379,10 +378,13 @@ function OverviewTab({ project, tasks, doneTasks, contracts, projectId }: {
   );
 }
 
-function MilestoneRow({ task }: { task: Task }) {
+function MilestoneRow({ task, projectId, onRefresh }: { task: Task; projectId: string; onRefresh: () => void }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
   const [expanded, setExpanded] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const { data: items, refetch } = useListTaskItems(task.id, {
     query: { enabled: expanded },
   });
@@ -393,6 +395,24 @@ function MilestoneRow({ task }: { task: Task }) {
       { id: itemId, data: { completed: !currentCompleted } },
       { onSuccess: () => refetch() },
     );
+  };
+
+  const handleAddTask = async () => {
+    if (!newTaskTitle.trim()) return;
+    await api.createTaskItem(task.id, { title: newTaskTitle.trim(), sortOrder: (items?.length ?? 0) + 1 });
+    setNewTaskTitle("");
+    setShowAddTask(false);
+    refetch();
+  };
+
+  const handleDeleteTask = async (itemId: string) => {
+    await api.deleteTaskItem(itemId);
+    refetch();
+  };
+
+  const handleDeleteMilestone = async () => {
+    await api.deleteTask(task.id);
+    onRefresh();
   };
 
   const statusColors: Record<string, string> = {
@@ -413,28 +433,28 @@ function MilestoneRow({ task }: { task: Task }) {
 
   return (
     <div style={{
-      background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
+      background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "8px",
       overflow: "hidden",
     }}>
       <div
         onClick={() => setExpanded(!expanded)}
         style={{
-          display: "grid", gridTemplateColumns: "32px 1fr 120px 100px 100px",
-          alignItems: "center", gap: "12px",
-          padding: "14px 16px", cursor: "pointer",
+          display: "grid", gridTemplateColumns: "28px 1fr 100px 80px 80px 28px",
+          alignItems: "center", gap: "8px",
+          padding: "10px 12px", cursor: "pointer",
           borderBottom: expanded ? `1px solid ${t.border}` : "none",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
           {task.status === "done" ? (
             <div style={{
-              width: "20px", height: "20px", borderRadius: "4px", background: t.accent,
+              width: "18px", height: "18px", borderRadius: "4px", background: t.accent,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={t.accentText} strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.accentText} strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
             </div>
           ) : (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2"
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2"
               style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>
               <polyline points="9 18 15 12 9 6" />
             </svg>
@@ -443,7 +463,7 @@ function MilestoneRow({ task }: { task: Task }) {
 
         <div>
           <p style={f({
-            fontWeight: 600, fontSize: "13px", color: t.text,
+            fontWeight: 600, fontSize: "12px", color: t.text,
             textDecoration: task.status === "done" ? "line-through" : "none",
             opacity: task.status === "done" ? 0.6 : 1,
           })}>{task.title}</p>
@@ -451,16 +471,16 @@ function MilestoneRow({ task }: { task: Task }) {
 
         <div>
           <span style={f({
-            fontWeight: 500, fontSize: "10px", textTransform: "uppercase",
+            fontWeight: 500, fontSize: "9px", textTransform: "uppercase",
             color: statusColors[task.status] ?? t.textMuted,
             background: task.status === "done" ? "rgba(255,255,255,0.04)" : t.hoverBg,
-            padding: "4px 10px", borderRadius: "4px",
+            padding: "3px 8px", borderRadius: "4px",
           })}>{statusLabels[task.status] ?? task.status}</span>
         </div>
 
         <div>
           {task.dueDate && (
-            <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+            <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>
               {new Date(task.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             </p>
           )}
@@ -468,70 +488,255 @@ function MilestoneRow({ task }: { task: Task }) {
 
         <div style={{ textAlign: "right" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "4px", justifyContent: "flex-end" }}>
-            <div style={{ width: "40px", height: "3px", background: t.borderSubtle, borderRadius: "2px", overflow: "hidden" }}>
+            <div style={{ width: "36px", height: "3px", background: t.borderSubtle, borderRadius: "2px", overflow: "hidden" }}>
               <div style={{ width: `${task.progress}%`, height: "100%", background: statusColors[task.status] ?? t.textMuted, borderRadius: "2px" }} />
             </div>
-            <span style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted })}>{task.progress}%</span>
+            <span style={f({ fontWeight: 600, fontSize: "8px", color: t.textMuted })}>{task.progress}%</span>
           </div>
         </div>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", opacity: 0.3, display: "flex" }}
+            title="Delete milestone"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {confirmDelete && (
+        <div style={{ padding: "12px 16px", background: "rgba(255,80,80,0.05)", borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", gap: "12px" }}>
+          <p style={f({ fontWeight: 500, fontSize: "12px", color: t.text })}>Delete this milestone?</p>
+          <button onClick={handleDeleteMilestone} style={f({ fontWeight: 600, fontSize: "11px", color: "#fff", background: "#e04040", border: "none", borderRadius: "4px", padding: "4px 12px", cursor: "pointer" })}>Delete</button>
+          <button onClick={() => setConfirmDelete(false)} style={f({ fontWeight: 500, fontSize: "11px", color: t.textMuted, background: "transparent", border: `1px solid ${t.border}`, borderRadius: "4px", padding: "4px 12px", cursor: "pointer" })}>Cancel</button>
+        </div>
+      )}
 
       {expanded && (
         <div style={{ padding: "0" }}>
           {task.description && (
-            <div style={{ padding: "12px 16px 0 60px" }}>
-              <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, lineHeight: 1.5 })}>{task.description}</p>
+            <div style={{ padding: "10px 16px 0 48px" }}>
+              <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, lineHeight: 1.5 })}>{task.description}</p>
             </div>
           )}
 
           {items && items.length > 0 ? (
-            <div style={{ padding: "12px 16px 16px 60px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+            <div style={{ padding: "10px 16px 12px 48px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
                 <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" })}>
-                  Sub-tasks
+                  Tasks
                 </p>
                 <span style={f({ fontWeight: 500, fontSize: "9px", color: t.textMuted })}>
                   {completedItems}/{totalItems}
                 </span>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
                 {items.map((item: any) => (
                   <div
                     key={item.id}
-                    onClick={(e) => { e.stopPropagation(); handleToggleItem(item.id, item.completed); }}
                     style={{
-                      display: "flex", alignItems: "center", gap: "10px",
-                      padding: "8px 12px", borderRadius: "6px", cursor: "pointer",
+                      display: "flex", alignItems: "center", gap: "8px",
+                      padding: "6px 10px", borderRadius: "5px",
                       background: item.completed ? "rgba(255,255,255,0.01)" : "rgba(255,255,255,0.02)",
                       border: `1px solid ${t.borderSubtle}`,
                     }}
                   >
-                    <div style={{
-                      width: "16px", height: "16px", borderRadius: "3px", flexShrink: 0,
-                      border: item.completed ? "none" : `1.5px solid ${t.textMuted}`,
-                      background: item.completed ? t.accent : "transparent",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      transition: "background 0.15s",
-                    }}>
-                      {item.completed && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.accentText} strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+                    <div
+                      onClick={(e) => { e.stopPropagation(); handleToggleItem(item.id, item.completed); }}
+                      style={{
+                        width: "15px", height: "15px", borderRadius: "3px", flexShrink: 0,
+                        border: item.completed ? "none" : `1.5px solid ${t.textMuted}`,
+                        background: item.completed ? t.accent : "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        transition: "background 0.15s", cursor: "pointer",
+                      }}>
+                      {item.completed && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke={t.accentText} strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
                     </div>
                     <span style={f({
-                      fontWeight: 400, fontSize: "12px",
+                      fontWeight: 400, fontSize: "11px", flex: 1,
                       color: item.completed ? t.textMuted : t.textSecondary,
                       textDecoration: item.completed ? "line-through" : "none",
                     })}>{item.title}</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDeleteTask(item.id); }}
+                      style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", opacity: 0.25, display: "flex" }}
+                      title="Delete task"
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
           ) : items && items.length === 0 ? (
-            <div style={{ padding: "12px 16px 16px 60px" }}>
-              <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>No sub-tasks for this milestone.</p>
+            <div style={{ padding: "10px 16px 6px 48px" }}>
+              <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>No tasks yet.</p>
             </div>
           ) : (
-            <div style={{ padding: "12px 16px 16px 60px" }}>
-              <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>Loading...</p>
+            <div style={{ padding: "10px 16px 6px 48px" }}>
+              <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>Loading...</p>
             </div>
+          )}
+
+          <div style={{ padding: "0 16px 12px 48px" }}>
+            {showAddTask ? (
+              <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                <input
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
+                  placeholder="Task name..."
+                  autoFocus
+                  style={{
+                    flex: 1, padding: "6px 10px", borderRadius: "5px",
+                    background: t.hoverBg, border: `1px solid ${t.border}`, color: t.text,
+                    outline: "none", ...f({ fontWeight: 400, fontSize: "11px" }),
+                  }}
+                />
+                <button onClick={handleAddTask} style={f({ fontWeight: 600, fontSize: "10px", color: t.accentText, background: t.accent, border: "none", borderRadius: "4px", padding: "5px 10px", cursor: "pointer" })}>Add</button>
+                <button onClick={() => { setShowAddTask(false); setNewTaskTitle(""); }} style={f({ fontWeight: 500, fontSize: "10px", color: t.textMuted, background: "transparent", border: "none", cursor: "pointer" })}>Cancel</button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAddTask(true)}
+                style={f({
+                  fontWeight: 500, fontSize: "10px", color: t.textMuted,
+                  background: "transparent", border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: "4px", padding: "4px 0",
+                })}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                Add Task
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PhaseSection({ phase, tasks, projectId, onRefresh, readOnly = false }: {
+  phase: { id: string; name: string; sortOrder: number };
+  tasks: Task[];
+  projectId: string;
+  onRefresh: () => void;
+  readOnly?: boolean;
+}) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const [expanded, setExpanded] = useState(true);
+  const [showAddMilestone, setShowAddMilestone] = useState(false);
+  const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const doneTasks = tasks.filter((t) => t.status === "done").length;
+  const phasePct = tasks.length > 0 ? Math.round((doneTasks / tasks.length) * 100) : 0;
+
+  const handleAddMilestone = async () => {
+    if (!newMilestoneTitle.trim()) return;
+    await api.createTask(projectId, { title: newMilestoneTitle.trim(), phaseId: phase.id, status: "todo", sortOrder: tasks.length + 1 });
+    setNewMilestoneTitle("");
+    setShowAddMilestone(false);
+    onRefresh();
+  };
+
+  const handleDeletePhase = async () => {
+    await api.deletePhase(phase.id);
+    onRefresh();
+  };
+
+  return (
+    <div style={{ marginBottom: "16px" }}>
+      <div
+        onClick={() => setExpanded(!expanded)}
+        style={{
+          display: "flex", alignItems: "center", gap: "10px",
+          padding: "10px 0", cursor: "pointer",
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.text} strokeWidth="2"
+          style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.15s", flexShrink: 0 }}>
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+        <h3 style={f({ fontWeight: 700, fontSize: "13px", color: t.text, textTransform: "uppercase", letterSpacing: "0.06em", margin: 0 })}>
+          {phase.name}
+        </h3>
+        <span style={f({ fontWeight: 500, fontSize: "10px", color: t.textMuted })}>
+          {doneTasks}/{tasks.length}
+        </span>
+        <div style={{ flex: 1, maxWidth: "80px", height: "3px", background: t.borderSubtle, borderRadius: "2px", overflow: "hidden" }}>
+          <div style={{ width: `${phasePct}%`, height: "100%", background: phasePct === 100 ? t.accent : "rgba(255,200,60,0.7)", borderRadius: "2px", transition: "width 0.3s" }} />
+        </div>
+        <span style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted })}>{phasePct}%</span>
+        {!readOnly && (
+          <div style={{ marginLeft: "auto", display: "flex", gap: "6px", alignItems: "center" }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowAddMilestone(true); }}
+              style={f({
+                fontWeight: 500, fontSize: "9px", color: t.textMuted,
+                background: "transparent", border: `1px solid ${t.borderSubtle}`,
+                borderRadius: "4px", padding: "3px 8px", cursor: "pointer",
+                display: "flex", alignItems: "center", gap: "3px",
+              })}
+            >
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+              Milestone
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", opacity: 0.3, display: "flex" }}
+              title="Delete phase"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {confirmDelete && (
+        <div style={{ padding: "10px 16px", marginBottom: "8px", background: "rgba(255,80,80,0.05)", border: `1px solid ${t.border}`, borderRadius: "6px", display: "flex", alignItems: "center", gap: "12px" }}>
+          <p style={f({ fontWeight: 500, fontSize: "12px", color: t.text })}>Delete "{phase.name}" and unassign its milestones?</p>
+          <button onClick={handleDeletePhase} style={f({ fontWeight: 600, fontSize: "11px", color: "#fff", background: "#e04040", border: "none", borderRadius: "4px", padding: "4px 12px", cursor: "pointer" })}>Delete</button>
+          <button onClick={() => setConfirmDelete(false)} style={f({ fontWeight: 500, fontSize: "11px", color: t.textMuted, background: "transparent", border: `1px solid ${t.border}`, borderRadius: "4px", padding: "4px 12px", cursor: "pointer" })}>Cancel</button>
+        </div>
+      )}
+
+      {showAddMilestone && (
+        <div style={{ padding: "0 0 8px 24px" }}>
+          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+            <input
+              value={newMilestoneTitle}
+              onChange={(e) => setNewMilestoneTitle(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddMilestone()}
+              placeholder="Milestone name..."
+              autoFocus
+              style={{
+                flex: 1, padding: "8px 12px", borderRadius: "6px",
+                background: t.hoverBg, border: `1px solid ${t.border}`, color: t.text,
+                outline: "none", ...f({ fontWeight: 400, fontSize: "12px" }),
+              }}
+            />
+            <button onClick={handleAddMilestone} style={f({ fontWeight: 600, fontSize: "11px", color: t.accentText, background: t.accent, border: "none", borderRadius: "5px", padding: "7px 14px", cursor: "pointer" })}>Add</button>
+            <button onClick={() => { setShowAddMilestone(false); setNewMilestoneTitle(""); }} style={f({ fontWeight: 500, fontSize: "11px", color: t.textMuted, background: "transparent", border: "none", cursor: "pointer" })}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {expanded && (
+        <div style={{ paddingLeft: "24px", display: "flex", flexDirection: "column", gap: "4px" }}>
+          {tasks.length > 0 ? tasks.map((task: Task) => (
+            <MilestoneRow key={task.id} task={task} projectId={projectId} onRefresh={onRefresh} />
+          )) : (
+            <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, padding: "8px 0" })}>No milestones in this phase.</p>
           )}
         </div>
       )}
@@ -544,23 +749,47 @@ function MilestonesTab({ tasks, doneTasks, inProgressTasks, projectId }: {
 }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const createTask = useCreateTask();
+  const [showAddPhase, setShowAddPhase] = useState(false);
+  const [newPhaseName, setNewPhaseName] = useState("");
+  const [phases, setPhases] = useState<{ id: string; name: string; sortOrder: number }[]>([]);
   const queryClient = useQueryClient();
 
-  const handleAddMilestone = () => {
-    if (!newTitle.trim()) return;
-    createTask.mutate(
-      { projectId, data: { title: newTitle.trim(), description: newDescription.trim() || undefined, status: "todo", progress: 0, sortOrder: tasks.length + 1 } },
-      { onSuccess: () => { setShowAddModal(false); setNewTitle(""); setNewDescription(""); queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/tasks`] }); } },
-    );
+  const loadPhases = useCallback(() => {
+    api.getProjectPhases(projectId).then((p) => {
+      setPhases(p.sort((a, b) => a.sortOrder - b.sortOrder));
+    }).catch(() => {});
+  }, [projectId]);
+
+  useEffect(() => { loadPhases(); }, [loadPhases]);
+
+  const handleRefresh = () => {
+    loadPhases();
+    queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/tasks`] });
   };
+
+  const handleAddPhase = async () => {
+    if (!newPhaseName.trim()) return;
+    await api.createPhase(projectId, { name: newPhaseName.trim(), sortOrder: phases.length });
+    setNewPhaseName("");
+    setShowAddPhase(false);
+    loadPhases();
+  };
+
+  const tasksByPhase = new Map<string, Task[]>();
+  const unassigned: Task[] = [];
+  for (const task of tasks) {
+    const pid = (task as any).phaseId;
+    if (pid) {
+      if (!tasksByPhase.has(pid)) tasksByPhase.set(pid, []);
+      tasksByPhase.get(pid)!.push(task);
+    } else {
+      unassigned.push(task);
+    }
+  }
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
         <div>
           <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Milestones</h2>
           <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>
@@ -568,7 +797,7 @@ function MilestonesTab({ tasks, doneTasks, inProgressTasks, projectId }: {
           </p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => setShowAddPhase(true)}
           style={f({
             fontWeight: 600, fontSize: "11px", color: t.accentText,
             background: t.accent, border: "none", borderRadius: "6px",
@@ -580,67 +809,26 @@ function MilestonesTab({ tasks, doneTasks, inProgressTasks, projectId }: {
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Add Milestone
+          Add Phase
         </button>
       </div>
 
-      {showAddModal && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }} onClick={() => setShowAddModal(false)}>
-          <div onClick={(e) => e.stopPropagation()} style={{
-            background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px",
-            padding: "28px", width: "480px",
-          }}>
-            <h3 style={f({ fontWeight: 700, fontSize: "16px", color: t.text, marginBottom: "16px" })}>
-              Add Milestone
-            </h3>
-            <div style={{ marginBottom: "12px" }}>
-              <label style={f({ fontWeight: 600, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "6px" })}>Title</label>
-              <input
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="e.g. Treatment, Storyboard, Rough Cut, Color Grade..."
-                style={{
-                  width: "100%", padding: "10px 12px", borderRadius: "6px",
-                  background: t.hoverBg, border: `1px solid ${t.border}`, color: t.text,
-                  outline: "none", boxSizing: "border-box",
-                  ...f({ fontWeight: 400, fontSize: "13px" }),
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: "16px" }}>
-              <label style={f({ fontWeight: 600, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "6px" })}>Description (optional)</label>
-              <textarea
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                placeholder="What needs to happen for this milestone..."
-                rows={3}
-                style={{
-                  width: "100%", padding: "10px 12px", borderRadius: "6px",
-                  background: t.hoverBg, border: `1px solid ${t.border}`, color: t.text,
-                  outline: "none", resize: "vertical", boxSizing: "border-box",
-                  ...f({ fontWeight: 400, fontSize: "13px" }),
-                }}
-              />
-            </div>
-            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-              <button onClick={() => setShowAddModal(false)} style={f({
-                fontWeight: 500, fontSize: "12px", color: t.textMuted,
-                background: "transparent", border: `1px solid ${t.border}`,
-                borderRadius: "6px", padding: "8px 16px", cursor: "pointer",
-              })}>Cancel</button>
-              <button onClick={handleAddMilestone} disabled={!newTitle.trim() || createTask.isPending} style={f({
-                fontWeight: 600, fontSize: "12px", color: t.accentText,
-                background: t.accent, border: "none", borderRadius: "6px",
-                padding: "8px 16px", cursor: "pointer",
-                opacity: newTitle.trim() && !createTask.isPending ? 1 : 0.4,
-              })}>
-                {createTask.isPending ? "Adding..." : "Add Milestone"}
-              </button>
-            </div>
-          </div>
+      {showAddPhase && (
+        <div style={{ marginBottom: "12px", display: "flex", gap: "6px", alignItems: "center" }}>
+          <input
+            value={newPhaseName}
+            onChange={(e) => setNewPhaseName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddPhase()}
+            placeholder="Phase name (e.g. Pre-Production, Production...)"
+            autoFocus
+            style={{
+              flex: 1, padding: "10px 12px", borderRadius: "6px",
+              background: t.hoverBg, border: `1px solid ${t.border}`, color: t.text,
+              outline: "none", ...f({ fontWeight: 400, fontSize: "13px" }),
+            }}
+          />
+          <button onClick={handleAddPhase} style={f({ fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent, border: "none", borderRadius: "6px", padding: "9px 18px", cursor: "pointer" })}>Add</button>
+          <button onClick={() => { setShowAddPhase(false); setNewPhaseName(""); }} style={f({ fontWeight: 500, fontSize: "12px", color: t.textMuted, background: "transparent", border: "none", cursor: "pointer" })}>Cancel</button>
         </div>
       )}
 
@@ -648,22 +836,25 @@ function MilestonesTab({ tasks, doneTasks, inProgressTasks, projectId }: {
         <div style={{ height: "100%", width: `${tasks.length > 0 ? (doneTasks / tasks.length) * 100 : 0}%`, background: t.accent, borderRadius: "3px", transition: "width 0.3s" }} />
       </div>
 
-      <div style={{
-        display: "grid", gridTemplateColumns: "32px 1fr 120px 100px 100px",
-        gap: "12px", padding: "8px 16px", marginBottom: "4px",
-      }}>
-        <div />
-        <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" })}>Milestone</p>
-        <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" })}>Status</p>
-        <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" })}>Due</p>
-        <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "right" })}>Progress</p>
-      </div>
+      {phases.map((phase) => (
+        <PhaseSection
+          key={phase.id}
+          phase={phase}
+          tasks={(tasksByPhase.get(phase.id) || []).sort((a, b) => a.sortOrder - b.sortOrder)}
+          projectId={projectId}
+          onRefresh={handleRefresh}
+        />
+      ))}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        {tasks.map((task: Task) => (
-          <MilestoneRow key={task.id} task={task} />
-        ))}
-      </div>
+      {unassigned.length > 0 && (
+        <PhaseSection
+          phase={{ id: "__unassigned__", name: "Unassigned", sortOrder: 999 }}
+          tasks={unassigned.sort((a, b) => a.sortOrder - b.sortOrder)}
+          projectId={projectId}
+          onRefresh={handleRefresh}
+          readOnly
+        />
+      )}
     </div>
   );
 }

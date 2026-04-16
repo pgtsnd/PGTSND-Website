@@ -19,6 +19,16 @@ export interface Project {
   inProgressTasks: number;
 }
 
+export interface Phase {
+  id: string;
+  projectId: string;
+  name: string;
+  description: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface PendingReview {
   id: string;
   projectId: string;
@@ -319,4 +329,40 @@ export const api = {
     apiFetch<Deliverable>(`/deliverables/${deliverableId}/submit-for-review`, {
       method: "POST",
     }),
+
+  getProjectPhases: (projectId: string) =>
+    apiFetch<Phase[]>(`/projects/${projectId}/phases`),
+
+  createPhase: (projectId: string, data: { name: string; description?: string; sortOrder?: number }) =>
+    apiFetch<Phase>(`/projects/${projectId}/phases`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updatePhase: (id: string, data: { name?: string; description?: string; sortOrder?: number }) =>
+    apiFetch<Phase>(`/phases/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  deletePhase: (id: string) =>
+    apiFetch<{ message: string }>(`/phases/${id}`, { method: "DELETE" }),
+
+  createTask: (projectId: string, data: { title: string; description?: string; phaseId?: string; status?: string; sortOrder?: number }) =>
+    apiFetch<any>(`/projects/${projectId}/tasks`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  deleteTask: (id: string) =>
+    apiFetch<{ message: string }>(`/tasks/${id}`, { method: "DELETE" }),
+
+  createTaskItem: (taskId: string, data: { title: string; sortOrder?: number }) =>
+    apiFetch<any>(`/tasks/${taskId}/items`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  deleteTaskItem: (id: string) =>
+    apiFetch<{ message: string }>(`/task-items/${id}`, { method: "DELETE" }),
 };
