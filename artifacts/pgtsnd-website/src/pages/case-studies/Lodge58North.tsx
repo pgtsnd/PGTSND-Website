@@ -10,9 +10,8 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({
 
 const services = ["Video Production", "Photography"];
 
-const heroImage = "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-2.jpeg";
-
 const galleryImages = [
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-2.jpeg",
   "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-3.jpeg",
   "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-1.jpeg",
   "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-4.jpeg",
@@ -47,19 +46,7 @@ export default function Lodge58North() {
           </div>
         </section>
 
-        {/* Panoramic Hero Image */}
-        <section style={{ padding: "0 40px 40px", position: "relative" }}>
-          <ScrollBadge position="bottom-right" bottomOffset={-58} />
-          <div style={{ overflow: "hidden", aspectRatio: "21 / 9" }}>
-            <img
-              src={heroImage}
-              alt="Lodge @ 58 North - Aerial View"
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
-          </div>
-        </section>
-
-        {/* Video Placeholder - Aerial Shot */}
+        {/* Video Thumbnail */}
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
           <div style={{ position: "relative", overflow: "hidden", aspectRatio: "16 / 9" }}>
             <img
