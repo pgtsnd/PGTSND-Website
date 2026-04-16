@@ -224,7 +224,7 @@ export default function Home() {
             <div
               style={{
                 position: "absolute",
-                top: "-114px",
+                top: "-139px",
                 right: "16px",
                 zIndex: 99,
               }}
