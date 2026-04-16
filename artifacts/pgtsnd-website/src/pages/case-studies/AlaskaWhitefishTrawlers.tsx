@@ -47,18 +47,6 @@ export default function AlaskaWhitefishTrawlers() {
             </div>
             <div style={{ position: "absolute", bottom: "-60px", right: "60px", width: "280px", zIndex: 2 }}>
               <div style={{ position: "relative" }}>
-                <div style={{
-                  background: "#1a1a1a",
-                  borderRadius: "6px 6px 0 0",
-                  padding: "6px 10px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "5px",
-                }}>
-                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#ff5f57" }} />
-                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#febc2e" }} />
-                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#28c840" }} />
-                </div>
                 <div style={{ overflow: "hidden", borderRadius: "0 0 3px 3px" }}>
                   <img
                     src={"/images/case-studies/awt/alaska-whitefish-web-design-sample-2.png"}
