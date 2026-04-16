@@ -3,6 +3,7 @@ import {
   deliverablesTable,
   projectsTable,
   projectMembersTable,
+  projectNotificationMutesTable,
   usersTable,
   videoCommentsTable,
   videoCommentRepliesTable,
@@ -15,6 +16,24 @@ import {
   renderNewCommentEmail,
   renderPublicCommentEmail,
 } from "./email-templates";
+
+async function filterOutProjectMutes(
+  projectId: string,
+  userIds: string[],
+): Promise<string[]> {
+  if (userIds.length === 0) return userIds;
+  const mutes = await db
+    .select({ userId: projectNotificationMutesTable.userId })
+    .from(projectNotificationMutesTable)
+    .where(
+      and(
+        eq(projectNotificationMutesTable.projectId, projectId),
+        inArray(projectNotificationMutesTable.userId, userIds),
+      ),
+    );
+  const muted = new Set(mutes.map((m) => m.userId));
+  return userIds.filter((id) => !muted.has(id));
+}
 
 interface MinimalUser {
   id: string;
@@ -100,7 +119,11 @@ export async function notifyDeliverableSubmittedForReview(
       return;
     }
 
-    const recipients = await loadUsersByIds([...recipientIds]);
+    const filteredIds = await filterOutProjectMutes(project.id, [
+      ...recipientIds,
+    ]);
+    if (filteredIds.length === 0) return;
+    const recipients = await loadUsersByIds(filteredIds);
     const link = clientReviewLink(deliverable.id);
 
     await Promise.all(
@@ -203,7 +226,11 @@ export async function notifyNewVideoComment(opts: {
 
     if (recipientIds.size === 0) return;
 
-    const recipients = await loadUsersByIds([...recipientIds]);
+    const filteredIds = await filterOutProjectMutes(project.id, [
+      ...recipientIds,
+    ]);
+    if (filteredIds.length === 0) return;
+    const recipients = await loadUsersByIds(filteredIds);
     const link = teamReviewLink(project.id, deliverable.id);
     const tsLabel =
       opts.timestampSeconds !== undefined && !opts.isReply
@@ -292,7 +319,11 @@ export async function notifyPublicReviewComment(opts: {
 
     if (recipientIds.size === 0) return;
 
-    const recipients = await loadUsersByIds([...recipientIds]);
+    const filteredIds = await filterOutProjectMutes(project.id, [
+      ...recipientIds,
+    ]);
+    if (filteredIds.length === 0) return;
+    const recipients = await loadUsersByIds(filteredIds);
     const link = teamReviewLink(project.id, deliverable.id);
     const tsLabel =
       opts.timestampSeconds !== undefined && !opts.isReply
@@ -374,7 +405,11 @@ export async function notifyDeliverableApproved(opts: {
       return;
     }
 
-    const recipients = await loadUsersByIds([...recipientIds]);
+    const filteredIds = await filterOutProjectMutes(project.id, [
+      ...recipientIds,
+    ]);
+    if (filteredIds.length === 0) return;
+    const recipients = await loadUsersByIds(filteredIds);
     const link = teamReviewLink(project.id, deliverable.id);
     const trimmedComment = opts.comment?.trim();
 

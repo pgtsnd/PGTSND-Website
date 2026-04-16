@@ -37,6 +37,7 @@ The database utilizes text UUIDs for primary keys. Key entities include:
 - `invoices`: Handles billing with Stripe integration fields and various statuses.
 - `integration_settings`: Stores encrypted configurations for external services (Stripe, Google Drive, Slack, DocuSign).
 - `video_comments` and `video_comment_replies`: Supports timestamped, threaded comments on video deliverables.
+- `project_notification_mutes`: Per-user, per-project email mute flag (composite PK on user_id + project_id) honored by all notification helpers in `services/notifications.ts`.
 
 ## API Architecture
 - All API routes are mounted under `/api` using Express.

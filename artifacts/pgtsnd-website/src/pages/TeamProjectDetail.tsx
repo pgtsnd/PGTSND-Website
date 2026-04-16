@@ -8,6 +8,7 @@ import { ProjectDetailSkeleton, ErrorState } from "../components/TeamLoadingStat
 import { useToast } from "../components/Toast";
 import VideoPlayer from "../components/VideoPlayer";
 import VideoReviewPanel from "../components/VideoReviewPanel";
+import ProjectMuteToggle from "../components/ProjectMuteToggle";
 import type { VideoComment } from "../components/VideoReviewPanel";
 import { api, type VideoCommentWithReplies, type ReviewLinkData, type DeliverableVersion } from "../lib/api";
 import { csrfHeaders } from "../lib/csrf";
@@ -230,9 +231,12 @@ export default function TeamProjectDetail() {
             ))}
           </div>
         </div>
-        <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "24px" })}>
-          {formatPhase(project.phase)} · Due {formatDateLong(project.dueDate)}
-        </p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", marginBottom: "24px", flexWrap: "wrap" }}>
+          <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, margin: 0 })}>
+            {formatPhase(project.phase)} · Due {formatDateLong(project.dueDate)}
+          </p>
+          <ProjectMuteToggle projectId={projectId} />
+        </div>
 
         <div style={{ display: "flex", gap: "0", borderBottom: `1px solid ${t.border}`, marginBottom: "28px" }}>
           {tabs.map((tab) => (

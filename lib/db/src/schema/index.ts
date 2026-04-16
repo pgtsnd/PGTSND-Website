@@ -16,3 +16,4 @@ export * from "./invoices";
 export * from "./integration-settings";
 export * from "./video-comments";
 export * from "./review-links";
+export * from "./project-notification-mutes";

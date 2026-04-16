@@ -13,6 +13,7 @@ import contractsRouter from "./contracts";
 import clientRouter from "./client";
 import integrationsRouter from "./integrations";
 import videoReviewRouter from "./video-review";
+import projectMutesRouter from "./project-mutes";
 import publicReviewRouter from "./public-review";
 import storageRouter from "./storage";
 import { authMiddleware } from "../middleware/auth";
@@ -46,5 +47,6 @@ router.use(contractsRouter);
 router.use(clientRouter);
 router.use(integrationsRouter);
 router.use(videoReviewRouter);
+router.use(projectMutesRouter);
 
 export default router;

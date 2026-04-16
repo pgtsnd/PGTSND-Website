@@ -3,6 +3,7 @@ import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 import { api, type Project, type TeamMember } from "../lib/api";
 import { ClientProjectsSkeleton, ErrorState } from "../components/TeamLoadingStates";
+import ProjectMuteToggle from "../components/ProjectMuteToggle";
 
 export default function ClientProjects() {
   const { t } = useTheme();
@@ -127,6 +128,7 @@ export default function ClientProjects() {
                   <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary }}>
                     {overallProgress}% complete
                   </span>
+                  <ProjectMuteToggle projectId={selectedProject.id} />
                 </div>
               </div>
 
