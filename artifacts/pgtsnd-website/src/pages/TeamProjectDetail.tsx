@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
@@ -17,6 +18,8 @@ import {
 import {
   useListTaskItems,
   useUpdateTaskItem,
+  useCreateTask,
+  useUpdateProject,
 } from "@workspace/api-client-react";
 
 type Tab = "overview" | "milestones" | "deliverables" | "assets" | "review";
@@ -27,6 +30,9 @@ export default function TeamProjectDetail() {
   const projectId = params?.id || "";
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const { isLoading: authLoading } = useTeamAuth();
+  const [showHeaderImageModal, setShowHeaderImageModal] = useState(false);
+  const [headerImageUrl, setHeaderImageUrl] = useState("");
+  const updateProject = useUpdateProject();
 
   const { project, members, tasks, deliverables, contracts, isLoading } =
     useProjectWithDetails(projectId);
@@ -71,9 +77,120 @@ export default function TeamProjectDetail() {
     { key: "review", label: "Review", badge: pendingDeliverables > 0 ? `${pendingDeliverables}` : undefined },
   ];
 
+  const queryClient = useQueryClient();
+
+  const handleSaveHeaderImage = () => {
+    if (!headerImageUrl.trim()) return;
+    updateProject.mutate(
+      { id: projectId, data: { thumbnail: headerImageUrl.trim() } },
+      { onSuccess: () => { setShowHeaderImageModal(false); setHeaderImageUrl(""); queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}`] }); } },
+    );
+  };
+
   return (
     <TeamLayout>
-      <div style={{ padding: "32px 48px", maxWidth: "1200px" }}>
+      <div style={{ maxWidth: "1200px" }}>
+        {project.thumbnail ? (
+          <div style={{
+            position: "relative", width: "100%", height: "180px",
+            backgroundImage: `url(${project.thumbnail})`,
+            backgroundSize: "cover", backgroundPosition: "center",
+            borderBottom: `1px solid ${t.border}`,
+          }}>
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(transparent 40%, rgba(0,0,0,0.7) 100%)",
+            }} />
+            <button
+              onClick={() => { setHeaderImageUrl(project.thumbnail || ""); setShowHeaderImageModal(true); }}
+              style={{
+                position: "absolute", top: "12px", right: "12px", background: "rgba(0,0,0,0.5)",
+                border: "1px solid rgba(255,255,255,0.2)", borderRadius: "6px", padding: "6px 10px",
+                cursor: "pointer", display: "flex", alignItems: "center", gap: "6px",
+                ...f({ fontWeight: 500, fontSize: "10px", color: "white" }),
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              Change
+            </button>
+          </div>
+        ) : (
+          <div style={{ padding: "32px 48px 0" }}>
+            <button
+              onClick={() => setShowHeaderImageModal(true)}
+              style={{
+                width: "100%", height: "100px", borderRadius: "10px",
+                border: `2px dashed ${t.border}`, background: "transparent",
+                cursor: "pointer", display: "flex", alignItems: "center",
+                justifyContent: "center", gap: "8px", marginBottom: "20px",
+                ...f({ fontWeight: 500, fontSize: "12px", color: t.textMuted }),
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              Add header image
+            </button>
+          </div>
+        )}
+
+        {showHeaderImageModal && (
+          <div style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }} onClick={() => setShowHeaderImageModal(false)}>
+            <div onClick={(e) => e.stopPropagation()} style={{
+              background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px",
+              padding: "28px", width: "440px",
+            }}>
+              <h3 style={f({ fontWeight: 700, fontSize: "16px", color: t.text, marginBottom: "16px" })}>
+                Project Header Image
+              </h3>
+              <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, marginBottom: "12px" })}>
+                Paste an image URL for the project header.
+              </p>
+              <input
+                value={headerImageUrl}
+                onChange={(e) => setHeaderImageUrl(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                style={{
+                  width: "100%", padding: "10px 12px", borderRadius: "6px",
+                  background: t.hoverBg, border: `1px solid ${t.border}`, color: t.text,
+                  outline: "none", marginBottom: "16px", boxSizing: "border-box",
+                  ...f({ fontWeight: 400, fontSize: "13px" }),
+                }}
+              />
+              {headerImageUrl && (
+                <div style={{
+                  width: "100%", height: "120px", borderRadius: "8px", overflow: "hidden",
+                  marginBottom: "16px", border: `1px solid ${t.border}`,
+                  backgroundImage: `url(${headerImageUrl})`,
+                  backgroundSize: "cover", backgroundPosition: "center",
+                }} />
+              )}
+              <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                <button onClick={() => setShowHeaderImageModal(false)} style={f({
+                  fontWeight: 500, fontSize: "12px", color: t.textMuted,
+                  background: "transparent", border: `1px solid ${t.border}`,
+                  borderRadius: "6px", padding: "8px 16px", cursor: "pointer",
+                })}>Cancel</button>
+                <button onClick={handleSaveHeaderImage} disabled={!headerImageUrl.trim() || updateProject.isPending} style={f({
+                  fontWeight: 600, fontSize: "12px", color: t.accentText,
+                  background: t.accent, border: "none", borderRadius: "6px",
+                  padding: "8px 16px", cursor: "pointer",
+                  opacity: headerImageUrl.trim() && !updateProject.isPending ? 1 : 0.4,
+                })}>{updateProject.isPending ? "Saving..." : "Save"}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div style={{ padding: "32px 48px" }}>
         <Link href="/team/projects" style={f({
           fontWeight: 500, fontSize: "12px", color: t.textMuted, textDecoration: "none",
           display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "20px",
@@ -130,6 +247,7 @@ export default function TeamProjectDetail() {
             tasks={tasks}
             doneTasks={doneTasks}
             contracts={contracts}
+            projectId={projectId}
           />
         )}
 
@@ -138,6 +256,7 @@ export default function TeamProjectDetail() {
             tasks={tasks}
             doneTasks={doneTasks}
             inProgressTasks={inProgressTasks}
+            projectId={projectId}
           />
         )}
 
@@ -152,16 +271,23 @@ export default function TeamProjectDetail() {
         {activeTab === "review" && (
           <TeamReviewTab deliverables={deliverables} projectId={projectId} />
         )}
+        </div>
       </div>
     </TeamLayout>
   );
 }
 
-function OverviewTab({ project, tasks, doneTasks, contracts }: {
-  project: any; tasks: Task[]; doneTasks: number; contracts: any[];
+function OverviewTab({ project, tasks, doneTasks, contracts, projectId }: {
+  project: any; tasks: Task[]; doneTasks: number; contracts: any[]; projectId: string;
 }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+
+  const creativeLinks = [
+    { label: "Treatment", desc: "Creative narrative brief", icon: "doc", path: `/client-hub/projects/${projectId}/treatment` },
+    { label: "Storyboard", desc: "Visual scene planning", icon: "grid", path: `/client-hub/projects/${projectId}/storyboard` },
+    { label: "Shot List", desc: "Production shot breakdown", icon: "list", path: `/client-hub/projects/${projectId}/shotlist` },
+  ];
 
   return (
     <div>
@@ -179,6 +305,33 @@ function OverviewTab({ project, tasks, doneTasks, contracts }: {
             <p style={f({ fontWeight: 800, fontSize: "24px", color: t.text, marginBottom: "4px" })}>{stat.value}</p>
             <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" })}>{stat.label}</p>
           </div>
+        ))}
+      </div>
+
+      <h3 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "12px" })}>
+        Creative Documents
+      </h3>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", marginBottom: "32px" }}>
+        {creativeLinks.map((link) => (
+          <Link key={link.label} href={link.path} style={{ textDecoration: "none" }}>
+            <div style={{
+              background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px",
+              padding: "18px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: "14px",
+            }}>
+              <div style={{
+                width: "36px", height: "36px", borderRadius: "8px", background: t.hoverBg,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {link.icon === "doc" && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" /><polyline points="13 2 13 9 20 9" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>}
+                {link.icon === "grid" && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>}
+                {link.icon === "list" && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>}
+              </div>
+              <div>
+                <p style={f({ fontWeight: 600, fontSize: "13px", color: t.text })}>{link.label}</p>
+                <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>{link.desc}</p>
+              </div>
+            </div>
+          </Link>
         ))}
       </div>
 
@@ -386,11 +539,24 @@ function MilestoneRow({ task }: { task: Task }) {
   );
 }
 
-function MilestonesTab({ tasks, doneTasks, inProgressTasks }: {
-  tasks: Task[]; doneTasks: number; inProgressTasks: number;
+function MilestonesTab({ tasks, doneTasks, inProgressTasks, projectId }: {
+  tasks: Task[]; doneTasks: number; inProgressTasks: number; projectId: string;
 }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const createTask = useCreateTask();
+  const queryClient = useQueryClient();
+
+  const handleAddMilestone = () => {
+    if (!newTitle.trim()) return;
+    createTask.mutate(
+      { projectId, data: { title: newTitle.trim(), description: newDescription.trim() || undefined, status: "todo", progress: 0, sortOrder: tasks.length + 1 } },
+      { onSuccess: () => { setShowAddModal(false); setNewTitle(""); setNewDescription(""); queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/tasks`] }); } },
+    );
+  };
 
   return (
     <div>
@@ -401,7 +567,82 @@ function MilestonesTab({ tasks, doneTasks, inProgressTasks }: {
             {doneTasks} of {tasks.length} complete · {inProgressTasks} in progress
           </p>
         </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          style={f({
+            fontWeight: 600, fontSize: "11px", color: t.accentText,
+            background: t.accent, border: "none", borderRadius: "6px",
+            padding: "8px 16px", cursor: "pointer",
+            display: "flex", alignItems: "center", gap: "6px",
+          })}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Add Milestone
+        </button>
       </div>
+
+      {showAddModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }} onClick={() => setShowAddModal(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px",
+            padding: "28px", width: "480px",
+          }}>
+            <h3 style={f({ fontWeight: 700, fontSize: "16px", color: t.text, marginBottom: "16px" })}>
+              Add Milestone
+            </h3>
+            <div style={{ marginBottom: "12px" }}>
+              <label style={f({ fontWeight: 600, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "6px" })}>Title</label>
+              <input
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="e.g. Treatment, Storyboard, Rough Cut, Color Grade..."
+                style={{
+                  width: "100%", padding: "10px 12px", borderRadius: "6px",
+                  background: t.hoverBg, border: `1px solid ${t.border}`, color: t.text,
+                  outline: "none", boxSizing: "border-box",
+                  ...f({ fontWeight: 400, fontSize: "13px" }),
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: "16px" }}>
+              <label style={f({ fontWeight: 600, fontSize: "10px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "6px" })}>Description (optional)</label>
+              <textarea
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder="What needs to happen for this milestone..."
+                rows={3}
+                style={{
+                  width: "100%", padding: "10px 12px", borderRadius: "6px",
+                  background: t.hoverBg, border: `1px solid ${t.border}`, color: t.text,
+                  outline: "none", resize: "vertical", boxSizing: "border-box",
+                  ...f({ fontWeight: 400, fontSize: "13px" }),
+                }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+              <button onClick={() => setShowAddModal(false)} style={f({
+                fontWeight: 500, fontSize: "12px", color: t.textMuted,
+                background: "transparent", border: `1px solid ${t.border}`,
+                borderRadius: "6px", padding: "8px 16px", cursor: "pointer",
+              })}>Cancel</button>
+              <button onClick={handleAddMilestone} disabled={!newTitle.trim() || createTask.isPending} style={f({
+                fontWeight: 600, fontSize: "12px", color: t.accentText,
+                background: t.accent, border: "none", borderRadius: "6px",
+                padding: "8px 16px", cursor: "pointer",
+                opacity: newTitle.trim() && !createTask.isPending ? 1 : 0.4,
+              })}>
+                {createTask.isPending ? "Adding..." : "Add Milestone"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ height: "6px", background: t.border, borderRadius: "3px", overflow: "hidden", marginBottom: "20px" }}>
         <div style={{ height: "100%", width: `${tasks.length > 0 ? (doneTasks / tasks.length) * 100 : 0}%`, background: t.accent, borderRadius: "3px", transition: "width 0.3s" }} />
