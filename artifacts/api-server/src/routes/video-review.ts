@@ -16,6 +16,7 @@ import {
   requireProjectAccessViaEntity,
   resolveProjectFromDeliverable,
 } from "../middleware/project-access";
+import { notifyNewVideoComment } from "../services/notifications";
 
 const router = Router();
 
@@ -65,6 +66,15 @@ router.post(
       })
       .returning();
 
+    void notifyNewVideoComment({
+      deliverableId: req.params.deliverableId,
+      actorUserId: req.user!.id,
+      actorName: req.user!.name ?? "A team member",
+      content: comment.content,
+      timestampSeconds: comment.timestampSeconds,
+      isReply: false,
+    });
+
     res.status(201).json({ ...comment, replies: [] });
   },
 );
@@ -99,6 +109,14 @@ router.post(
         content: content.trim(),
       })
       .returning();
+
+    void notifyNewVideoComment({
+      deliverableId: comment.deliverableId,
+      actorUserId: req.user!.id,
+      actorName: req.user!.name ?? "A team member",
+      content: reply.content,
+      isReply: true,
+    });
 
     res.status(201).json(reply);
   },

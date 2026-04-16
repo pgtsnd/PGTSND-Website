@@ -194,22 +194,46 @@ export default function ClientAccount() {
         {activeTab === "notifications" && (
           <div style={{ maxWidth: "560px" }}>
             {[
-              { label: "New draft uploaded", description: "Get notified when your production team uploads a new draft for review", checked: true },
-              { label: "Comments & replies", description: "Get notified when someone replies to your comments", checked: true },
-              { label: "Invoice & payment updates", description: "Receive notifications about new invoices and payment confirmations", checked: true },
-              { label: "Project milestones", description: "Get updates when your project moves to a new phase", checked: false },
-              { label: "Marketing & offerings", description: "Hear about new services and seasonal offerings from PGTSND", checked: false },
-            ].map((pref) => (
-              <div key={pref.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 0", borderBottom: `1px solid ${t.border}` }}>
-                <div>
-                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" }}>{pref.label}</p>
-                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary }}>{pref.description}</p>
+              {
+                key: "emailNotifyReviews" as const,
+                label: "New draft uploaded",
+                description: "Get an email when your production team pushes a new cut for review",
+              },
+              {
+                key: "emailNotifyComments" as const,
+                label: "Comments & replies",
+                description: "Get an email when someone comments or replies on a review",
+              },
+            ].map((pref) => {
+              const checked = profile?.[pref.key] ?? true;
+              const onToggle = async () => {
+                const next = !checked;
+                setProfile((p) => (p ? { ...p, [pref.key]: next } : p));
+                try {
+                  const updated = await api.updateNotificationPreferences({ [pref.key]: next });
+                  setProfile((p) => (p ? { ...p, ...updated } : p));
+                } catch {
+                  setProfile((p) => (p ? { ...p, [pref.key]: checked } : p));
+                }
+              };
+              return (
+                <div key={pref.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 0", borderBottom: `1px solid ${t.border}` }}>
+                  <div>
+                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" }}>{pref.label}</p>
+                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary }}>{pref.description}</p>
+                  </div>
+                  <div
+                    role="switch"
+                    aria-checked={checked}
+                    aria-label={pref.label}
+                    onClick={onToggle}
+                    style={{ width: "44px", height: "24px", borderRadius: "12px", background: checked ? t.accent : t.border, position: "relative", cursor: "pointer", flexShrink: 0, marginLeft: "24px" }}
+                  >
+                    <div style={{ width: "18px", height: "18px", borderRadius: "50%", background: checked ? t.accentText : t.textMuted, position: "absolute", top: "3px", left: checked ? "23px" : "3px", transition: "left 0.15s ease" }} />
+                  </div>
                 </div>
-                <div style={{ width: "44px", height: "24px", borderRadius: "12px", background: pref.checked ? t.accent : t.border, position: "relative", cursor: "pointer", flexShrink: 0, marginLeft: "24px" }}>
-                  <div style={{ width: "18px", height: "18px", borderRadius: "50%", background: pref.checked ? t.accentText : t.textMuted, position: "absolute", top: "3px", left: pref.checked ? "23px" : "3px", transition: "left 0.15s ease" }} />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

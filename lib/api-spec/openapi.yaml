@@ -183,6 +183,29 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /users/me/notifications:
+    patch:
+      operationId: updateMyNotificationPreferences
+      tags: [users]
+      summary: Update the current user's email notification preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNotificationPreferences"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /users/{id}:
     get:
       operationId: getUser
@@ -1199,6 +1222,10 @@ components:
         notes:
           type: string
           nullable: true
+        emailNotifyReviews:
+          type: boolean
+        emailNotifyComments:
+          type: boolean
         createdAt:
           type: string
           format: date-time
@@ -1210,6 +1237,8 @@ components:
         - email
         - name
         - role
+        - emailNotifyReviews
+        - emailNotifyComments
         - createdAt
         - updatedAt
 
@@ -1274,6 +1303,14 @@ components:
       required:
         - email
         - name
+
+    UpdateNotificationPreferences:
+      type: object
+      properties:
+        emailNotifyReviews:
+          type: boolean
+        emailNotifyComments:
+          type: boolean
 
     UpdateUser:
       type: object

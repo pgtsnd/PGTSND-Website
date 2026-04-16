@@ -44,6 +44,7 @@ import type {
   UnauthorizedResponse,
   UpdateContract,
   UpdateDeliverable,
+  UpdateNotificationPreferences,
   UpdateOrganization,
   UpdateProject,
   UpdateReview,
@@ -636,6 +637,97 @@ export function useGetCurrentUser<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Update the current user's email notification preferences
+ */
+export const getUpdateMyNotificationPreferencesUrl = () => {
+  return `/api/users/me/notifications`;
+};
+
+export const updateMyNotificationPreferences = async (
+  updateNotificationPreferences: UpdateNotificationPreferences,
+  options?: RequestInit,
+): Promise<User> => {
+  return customFetch<User>(getUpdateMyNotificationPreferencesUrl(), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateNotificationPreferences),
+  });
+};
+
+export const getUpdateMyNotificationPreferencesMutationOptions = <
+  TError = ErrorType<ValidationErrorResponse | UnauthorizedResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMyNotificationPreferences>>,
+    TError,
+    { data: BodyType<UpdateNotificationPreferences> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateMyNotificationPreferences>>,
+  TError,
+  { data: BodyType<UpdateNotificationPreferences> },
+  TContext
+> => {
+  const mutationKey = ["updateMyNotificationPreferences"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateMyNotificationPreferences>>,
+    { data: BodyType<UpdateNotificationPreferences> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateMyNotificationPreferences(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateMyNotificationPreferencesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateMyNotificationPreferences>>
+>;
+export type UpdateMyNotificationPreferencesMutationBody =
+  BodyType<UpdateNotificationPreferences>;
+export type UpdateMyNotificationPreferencesMutationError = ErrorType<
+  ValidationErrorResponse | UnauthorizedResponse
+>;
+
+/**
+ * @summary Update the current user's email notification preferences
+ */
+export const useUpdateMyNotificationPreferences = <
+  TError = ErrorType<ValidationErrorResponse | UnauthorizedResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMyNotificationPreferences>>,
+    TError,
+    { data: BodyType<UpdateNotificationPreferences> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateMyNotificationPreferences>>,
+  TError,
+  { data: BodyType<UpdateNotificationPreferences> },
+  TContext
+> => {
+  return useMutation(
+    getUpdateMyNotificationPreferencesMutationOptions(options),
+  );
+};
 
 /**
  * Requires owner or partner role.

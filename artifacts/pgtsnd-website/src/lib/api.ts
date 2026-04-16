@@ -179,6 +179,13 @@ export interface UserProfile {
   title: string | null;
   initials: string | null;
   organizationName: string | null;
+  emailNotifyReviews?: boolean;
+  emailNotifyComments?: boolean;
+}
+
+export interface NotificationPreferences {
+  emailNotifyReviews?: boolean;
+  emailNotifyComments?: boolean;
 }
 
 export interface VideoCommentReplyData {
@@ -253,6 +260,12 @@ export const api = {
 
   updateClientProfile: (data: Record<string, string>) =>
     apiFetch<UserProfile>("/client/profile", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  updateNotificationPreferences: (data: NotificationPreferences) =>
+    apiFetch<UserProfile>("/users/me/notifications", {
       method: "PATCH",
       body: JSON.stringify(data),
     }),

@@ -8,6 +8,7 @@ import {
   videoCommentRepliesTable,
 } from "@workspace/db";
 import { eq, asc } from "drizzle-orm";
+import { notifyPublicReviewComment } from "../services/notifications";
 
 const router = Router();
 
@@ -110,6 +111,14 @@ router.post(
       })
       .returning();
 
+    void notifyPublicReviewComment({
+      deliverableId: link.deliverableId,
+      authorName: comment.authorName,
+      content: comment.content,
+      timestampSeconds: comment.timestampSeconds,
+      isReply: false,
+    });
+
     res.status(201).json({ ...comment, replies: [] });
   },
 );
@@ -160,6 +169,13 @@ router.post(
         content: content.trim(),
       })
       .returning();
+
+    void notifyPublicReviewComment({
+      deliverableId: link.deliverableId,
+      authorName: reply.authorName,
+      content: reply.content,
+      isReply: true,
+    });
 
     res.status(201).json(reply);
   },

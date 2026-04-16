@@ -14,6 +14,7 @@ import {
   resolveProjectFromDeliverable,
 } from "../middleware/project-access";
 import { validateAndSend, validateAndSendArray } from "../middleware/validate-response";
+import { notifyDeliverableSubmittedForReview } from "../services/notifications";
 
 const router = Router();
 
@@ -132,6 +133,8 @@ router.post(
       .set({ status: "in_review", submittedAt: new Date() })
       .where(eq(deliverablesTable.id, req.params.id))
       .returning();
+
+    void notifyDeliverableSubmittedForReview(req.params.id);
 
     validateAndSend(res, selectDeliverableSchema, updated);
   },

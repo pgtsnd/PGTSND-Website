@@ -87,6 +87,8 @@ export const ListUsersResponseItem = zod.object({
   availability: zod.string().nullish(),
   paymentMethod: zod.string().nullish(),
   notes: zod.string().nullish(),
+  emailNotifyReviews: zod.boolean(),
+  emailNotifyComments: zod.boolean(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -158,6 +160,51 @@ export const GetCurrentUserResponse = zod.object({
   availability: zod.string().nullish(),
   paymentMethod: zod.string().nullish(),
   notes: zod.string().nullish(),
+  emailNotifyReviews: zod.boolean(),
+  emailNotifyComments: zod.boolean(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update the current user's email notification preferences
+ */
+export const UpdateMyNotificationPreferencesBody = zod.object({
+  emailNotifyReviews: zod.boolean().optional(),
+  emailNotifyComments: zod.boolean().optional(),
+});
+
+export const UpdateMyNotificationPreferencesResponse = zod.object({
+  id: zod.string(),
+  email: zod.string(),
+  name: zod.string(),
+  role: zod.enum(["owner", "partner", "crew", "client"]),
+  avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  title: zod.string().nullish(),
+  initials: zod.string().nullish(),
+  dayRate: zod.number().nullish(),
+  halfDayRate: zod.number().nullish(),
+  hourlyRate: zod.number().nullish(),
+  rateNotes: zod.string().nullish(),
+  w9OnFile: zod.boolean().nullish(),
+  taxClassification: zod.string().nullish(),
+  ein: zod.string().nullish(),
+  address: zod.string().nullish(),
+  city: zod.string().nullish(),
+  state: zod.string().nullish(),
+  zip: zod.string().nullish(),
+  emergencyContactName: zod.string().nullish(),
+  emergencyContactPhone: zod.string().nullish(),
+  emergencyContactRelation: zod.string().nullish(),
+  equipment: zod.string().nullish(),
+  specialties: zod.string().nullish(),
+  portfolio: zod.string().nullish(),
+  availability: zod.string().nullish(),
+  paymentMethod: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  emailNotifyReviews: zod.boolean(),
+  emailNotifyComments: zod.boolean(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -199,6 +246,8 @@ export const GetUserResponse = zod.object({
   availability: zod.string().nullish(),
   paymentMethod: zod.string().nullish(),
   notes: zod.string().nullish(),
+  emailNotifyReviews: zod.boolean(),
+  emailNotifyComments: zod.boolean(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -267,6 +316,8 @@ export const UpdateUserResponse = zod.object({
   availability: zod.string().nullish(),
   paymentMethod: zod.string().nullish(),
   notes: zod.string().nullish(),
+  emailNotifyReviews: zod.boolean(),
+  emailNotifyComments: zod.boolean(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });

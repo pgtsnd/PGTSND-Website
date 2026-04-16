@@ -77,6 +77,8 @@ export interface User {
   availability?: string | null;
   paymentMethod?: string | null;
   notes?: string | null;
+  emailNotifyReviews: boolean;
+  emailNotifyComments: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -119,6 +121,11 @@ export interface CreateUser {
   availability?: string;
   paymentMethod?: string;
   notes?: string;
+}
+
+export interface UpdateNotificationPreferences {
+  emailNotifyReviews?: boolean;
+  emailNotifyComments?: boolean;
 }
 
 export interface UpdateUser {

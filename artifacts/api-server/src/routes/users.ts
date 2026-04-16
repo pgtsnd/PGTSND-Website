@@ -6,9 +6,58 @@ import { validateAndSend, validateAndSendArray } from "../middleware/validate-re
 
 const router = Router();
 
+const NOTIFICATION_PREF_KEYS = ["emailNotifyReviews", "emailNotifyComments"] as const;
+type NotificationPrefKey = (typeof NOTIFICATION_PREF_KEYS)[number];
+
+function parseNotificationPreferences(
+  body: unknown,
+): { ok: true; data: Partial<Record<NotificationPrefKey, boolean>> } | { ok: false; error: string } {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return { ok: false, error: "Body must be an object" };
+  }
+  const data: Partial<Record<NotificationPrefKey, boolean>> = {};
+  for (const key of Object.keys(body as Record<string, unknown>)) {
+    if (!(NOTIFICATION_PREF_KEYS as readonly string[]).includes(key)) {
+      return { ok: false, error: `Unknown field: ${key}` };
+    }
+    const value = (body as Record<string, unknown>)[key];
+    if (typeof value !== "boolean") {
+      return { ok: false, error: `${key} must be a boolean` };
+    }
+    data[key as NotificationPrefKey] = value;
+  }
+  return { ok: true, data };
+}
+
 router.get("/users", requireRole("owner", "partner"), async (_req, res) => {
   const users = await db.select().from(usersTable);
   validateAndSendArray(res, selectUserSchema, users);
+});
+
+router.patch("/users/me/notifications", async (req, res) => {
+  const parsed = parseNotificationPreferences(req.body);
+  if (!parsed.ok) {
+    res.status(400).json({ error: parsed.error });
+    return;
+  }
+
+  if (Object.keys(parsed.data).length === 0) {
+    res.status(400).json({ error: "No valid fields to update" });
+    return;
+  }
+
+  const [user] = await db
+    .update(usersTable)
+    .set(parsed.data)
+    .where(eq(usersTable.id, req.user!.id))
+    .returning();
+
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  validateAndSend(res, selectUserSchema, user);
 });
 
 router.get("/users/me", async (req, res) => {

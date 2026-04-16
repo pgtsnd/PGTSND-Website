@@ -6,6 +6,7 @@ import { SettingsSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import { useToast } from "../components/Toast";
 import { useUpdateProfile } from "../hooks/useTeamData";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUpdateMyNotificationPreferences } from "@workspace/api-client-react";
 import {
   useIntegrations,
   useUpdateIntegration,
@@ -24,6 +25,7 @@ export default function TeamSettings() {
   const [title, setTitle] = useState("");
   const [saved, setSaved] = useState(false);
   const updateProfile = useUpdateProfile();
+  const updateNotificationPrefs = useUpdateMyNotificationPreferences();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
@@ -139,27 +141,72 @@ export default function TeamSettings() {
             {activeSection === "notifications" && (
               <div>
                 <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Notifications</h2>
-                <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "24px" })}>Control what you get notified about.</p>
+                <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "24px" })}>Control which emails you receive.</p>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {[
-                    { label: "Client messages", desc: "When a client sends you a message", default: true },
-                    { label: "Review submissions", desc: "When a client submits feedback on a cut", default: true },
-                    { label: "Contract signatures", desc: "When a client signs a contract", default: true },
-                    { label: "Team activity", desc: "When team members upload files or complete tasks", default: false },
-                    { label: "Schedule changes", desc: "When project dates or milestones change", default: true },
-                  ].map((notif) => (
-                    <div key={notif.label} style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
-                      padding: "16px 20px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "8px",
-                    }}>
-                      <div>
-                        <p style={f({ fontWeight: 500, fontSize: "13px", color: t.text, marginBottom: "2px" })}>{notif.label}</p>
-                        <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>{notif.desc}</p>
+                    {
+                      key: "emailNotifyReviews" as const,
+                      label: "Review submissions",
+                      desc: "When a client leaves feedback through a shared review link",
+                    },
+                    {
+                      key: "emailNotifyComments" as const,
+                      label: "Comments & replies",
+                      desc: "When someone comments or replies on a video review",
+                    },
+                  ].map((notif) => {
+                    const checked = currentUser?.[notif.key] ?? true;
+                    const onToggle = () => {
+                      const next = !checked;
+                      updateNotificationPrefs.mutate(
+                        { data: { [notif.key]: next } },
+                        {
+                          onSuccess: () => {
+                            queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
+                            toast("Notification preferences updated", "success");
+                          },
+                          onError: () => {
+                            toast("Failed to update preferences", "error");
+                          },
+                        },
+                      );
+                    };
+                    return (
+                      <div key={notif.key} style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        padding: "16px 20px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "8px",
+                      }}>
+                        <div>
+                          <p style={f({ fontWeight: 500, fontSize: "13px", color: t.text, marginBottom: "2px" })}>{notif.label}</p>
+                          <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>{notif.desc}</p>
+                        </div>
+                        <div
+                          role="switch"
+                          aria-checked={checked}
+                          aria-label={notif.label}
+                          onClick={onToggle}
+                          style={{
+                            width: "40px",
+                            height: "22px",
+                            borderRadius: "11px",
+                            background: checked ? t.accent : t.border,
+                            position: "relative",
+                            cursor: updateNotificationPrefs.isPending ? "wait" : "pointer",
+                            opacity: updateNotificationPrefs.isPending ? 0.6 : 1,
+                            flexShrink: 0,
+                          }}
+                        >
+                          <div style={{
+                            width: "16px", height: "16px", borderRadius: "50%",
+                            background: checked ? t.accentText : t.textMuted,
+                            position: "absolute", top: "3px", left: checked ? "21px" : "3px",
+                            transition: "left 0.15s ease",
+                          }} />
+                        </div>
                       </div>
-                      <ToggleSwitch defaultOn={notif.default} t={t} label={notif.label} />
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

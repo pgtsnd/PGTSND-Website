@@ -36,6 +36,8 @@ export interface User {
   availability?: string | null;
   paymentMethod?: string | null;
   notes?: string | null;
+  emailNotifyReviews: boolean;
+  emailNotifyComments: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
