@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useRoute } from "wouter";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
+import { api } from "../lib/api";
 
 interface Shot {
   id: string;
@@ -68,16 +69,37 @@ const typeColors: Record<string, { label: string }> = {
   "slo-mo": { label: "SLO-MO" },
 };
 
-const slugMap: Record<string, string> = { "1": "spring-campaign-film", "2": "product-launch-teaser" };
+function resolveSlug(id: string): string {
+  const staticMap: Record<string, string> = { "1": "spring-campaign-film", "2": "product-launch-teaser" };
+  if (staticMap[id]) return staticMap[id];
+  return "spring-campaign-film";
+}
 
 export default function ProjectShotList() {
   const { t } = useTheme();
   const [, params] = useRoute("/client-hub/projects/:id/shotlist");
-  const slug = slugMap[params?.id || "1"] || "spring-campaign-film";
-  const data = shotLists[slug];
+  const projectId = params?.id || "1";
+  const [slug, setSlug] = useState(resolveSlug(projectId));
   const [filterScene, setFilterScene] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
 
+  useEffect(() => {
+    if (projectId.includes("-") && projectId.length > 10) {
+      api.getProjects().then((projects) => {
+        const project = projects.find((p: any) => p.id === projectId);
+        if (project) {
+          const name = project.name.toLowerCase();
+          if (name.includes("spring") || name.includes("net your problem")) {
+            setSlug("spring-campaign-film");
+          } else if (name.includes("teaser") || name.includes("launch")) {
+            setSlug("product-launch-teaser");
+          }
+        }
+      }).catch(() => {});
+    }
+  }, [projectId]);
+
+  const data = shotLists[slug];
   if (!data) return null;
 
   const scenes = Array.from(new Set(data.shots.map((s) => s.scene)));
@@ -176,10 +198,10 @@ export default function ProjectShotList() {
         ))}
 
         <div style={{ marginTop: "40px", paddingTop: "24px", borderTop: `1px solid ${t.border}`, display: "flex", gap: "12px" }}>
-          <Link href={`/client-hub/projects/${params?.id || "1"}/storyboard`} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary, textDecoration: "none", padding: "8px 16px", border: `1px solid ${t.border}`, borderRadius: "6px" }}>
+          <Link href={`/client-hub/projects/${projectId}/storyboard`} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary, textDecoration: "none", padding: "8px 16px", border: `1px solid ${t.border}`, borderRadius: "6px" }}>
             ← Storyboard
           </Link>
-          <Link href={`/client-hub/projects/${params?.id || "1"}/notes`} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary, textDecoration: "none", padding: "8px 16px", border: `1px solid ${t.border}`, borderRadius: "6px" }}>
+          <Link href={`/client-hub/projects/${projectId}/notes`} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary, textDecoration: "none", padding: "8px 16px", border: `1px solid ${t.border}`, borderRadius: "6px" }}>
             Client Notes →
           </Link>
         </div>

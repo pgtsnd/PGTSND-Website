@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { Link, useRoute } from "wouter";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
+import { api } from "../lib/api";
 
 interface StoryboardFrame {
   scene: string;
@@ -36,12 +38,34 @@ const storyboards: Record<string, { project: string; frames: StoryboardFrame[] }
   },
 };
 
-const slugMap: Record<string, string> = { "1": "spring-campaign-film", "2": "product-launch-teaser" };
+function resolveSlug(id: string): string {
+  const staticMap: Record<string, string> = { "1": "spring-campaign-film", "2": "product-launch-teaser" };
+  if (staticMap[id]) return staticMap[id];
+  return "spring-campaign-film";
+}
 
 export default function ProjectStoryboard() {
   const { t } = useTheme();
   const [, params] = useRoute("/client-hub/projects/:id/storyboard");
-  const slug = slugMap[params?.id || "1"] || "spring-campaign-film";
+  const projectId = params?.id || "1";
+  const [slug, setSlug] = useState(resolveSlug(projectId));
+
+  useEffect(() => {
+    if (projectId.includes("-") && projectId.length > 10) {
+      api.getProjects().then((projects) => {
+        const project = projects.find((p: any) => p.id === projectId);
+        if (project) {
+          const name = project.name.toLowerCase();
+          if (name.includes("spring") || name.includes("net your problem")) {
+            setSlug("spring-campaign-film");
+          } else if (name.includes("teaser") || name.includes("launch")) {
+            setSlug("product-launch-teaser");
+          }
+        }
+      }).catch(() => {});
+    }
+  }, [projectId]);
+
   const data = storyboards[slug];
   if (!data) return null;
 
@@ -80,10 +104,10 @@ export default function ProjectStoryboard() {
         </div>
 
         <div style={{ marginTop: "40px", paddingTop: "24px", borderTop: `1px solid ${t.border}`, display: "flex", gap: "12px" }}>
-          <Link href={`/client-hub/projects/${params?.id || "1"}/treatment`} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary, textDecoration: "none", padding: "8px 16px", border: `1px solid ${t.border}`, borderRadius: "6px" }}>
+          <Link href={`/client-hub/projects/${projectId}/treatment`} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary, textDecoration: "none", padding: "8px 16px", border: `1px solid ${t.border}`, borderRadius: "6px" }}>
             ← Treatment
           </Link>
-          <Link href={`/client-hub/projects/${params?.id || "1"}/shotlist`} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary, textDecoration: "none", padding: "8px 16px", border: `1px solid ${t.border}`, borderRadius: "6px" }}>
+          <Link href={`/client-hub/projects/${projectId}/shotlist`} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary, textDecoration: "none", padding: "8px 16px", border: `1px solid ${t.border}`, borderRadius: "6px" }}>
             Shot List →
           </Link>
         </div>

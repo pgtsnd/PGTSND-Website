@@ -12,21 +12,36 @@ import {
   projectMembersTable,
   reviewRemindersTable,
 } from "@workspace/db";
-import { eq, and, inArray, desc } from "drizzle-orm";
+import { eq, and, inArray, desc, type SQL } from "drizzle-orm";
 import { requireRole } from "../middleware/auth";
 
 const router = Router();
 
+function projectAccessFilter(projectId: string, userId: string, role: string): SQL | undefined {
+  if (role === "owner" || role === "partner") {
+    return eq(projectsTable.id, projectId);
+  }
+  return and(eq(projectsTable.id, projectId), eq(projectsTable.clientId, userId));
+}
+
+function userProjectsFilter(userId: string, role: string): SQL | undefined {
+  if (role === "owner" || role === "partner") {
+    return undefined;
+  }
+  return eq(projectsTable.clientId, userId);
+}
+
 router.get(
   "/client/dashboard",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
+    const userRole = req.user!.role;
+    const filter = userProjectsFilter(userId, userRole);
 
-    const projects = await db
-      .select()
-      .from(projectsTable)
-      .where(eq(projectsTable.clientId, userId));
+    const projects = filter
+      ? await db.select().from(projectsTable).where(filter)
+      : await db.select().from(projectsTable);
 
     if (projects.length === 0) {
       res.json({
@@ -124,7 +139,7 @@ router.get(
 
 router.get(
   "/client/projects/:projectId/tasks",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
     const projectId = req.params.projectId;
@@ -132,12 +147,7 @@ router.get(
     const [project] = await db
       .select()
       .from(projectsTable)
-      .where(
-        and(
-          eq(projectsTable.id, projectId),
-          eq(projectsTable.clientId, userId),
-        ),
-      )
+      .where(projectAccessFilter(projectId, userId, req.user!.role))
       .limit(1);
 
     if (!project) {
@@ -166,7 +176,7 @@ router.get(
 
 router.get(
   "/client/projects/:projectId/team",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
     const projectId = req.params.projectId;
@@ -174,12 +184,7 @@ router.get(
     const [project] = await db
       .select()
       .from(projectsTable)
-      .where(
-        and(
-          eq(projectsTable.id, projectId),
-          eq(projectsTable.clientId, userId),
-        ),
-      )
+      .where(projectAccessFilter(projectId, userId, req.user!.role))
       .limit(1);
 
     if (!project) {
@@ -205,14 +210,14 @@ router.get(
 
 router.get(
   "/client/messages",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
 
     const projects = await db
       .select()
       .from(projectsTable)
-      .where(eq(projectsTable.clientId, userId));
+      .where(userProjectsFilter(userId, req.user!.role));
 
     if (projects.length === 0) {
       res.json([]);
@@ -293,7 +298,7 @@ router.get(
 
 router.post(
   "/client/messages",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
     const { projectId, content } = req.body;
@@ -306,12 +311,7 @@ router.post(
     const [project] = await db
       .select()
       .from(projectsTable)
-      .where(
-        and(
-          eq(projectsTable.id, projectId),
-          eq(projectsTable.clientId, userId),
-        ),
-      )
+      .where(projectAccessFilter(projectId, userId, req.user!.role))
       .limit(1);
 
     if (!project) {
@@ -334,7 +334,7 @@ router.post(
 
 router.post(
   "/client/deliverables/:id/approve",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
     const deliverableId = req.params.id;
@@ -354,12 +354,7 @@ router.post(
     const [project] = await db
       .select()
       .from(projectsTable)
-      .where(
-        and(
-          eq(projectsTable.id, deliverable.projectId),
-          eq(projectsTable.clientId, userId),
-        ),
-      )
+      .where(projectAccessFilter(deliverable.projectId, userId, req.user!.role))
       .limit(1);
 
     if (!project) {
@@ -388,7 +383,7 @@ router.post(
 
 router.post(
   "/client/deliverables/:id/request-revision",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
     const deliverableId = req.params.id;
@@ -413,12 +408,7 @@ router.post(
     const [project] = await db
       .select()
       .from(projectsTable)
-      .where(
-        and(
-          eq(projectsTable.id, deliverable.projectId),
-          eq(projectsTable.clientId, userId),
-        ),
-      )
+      .where(projectAccessFilter(deliverable.projectId, userId, req.user!.role))
       .limit(1);
 
     if (!project) {
@@ -447,14 +437,14 @@ router.post(
 
 router.get(
   "/client/contracts",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
 
     const projects = await db
       .select()
       .from(projectsTable)
-      .where(eq(projectsTable.clientId, userId));
+      .where(userProjectsFilter(userId, req.user!.role));
 
     if (projects.length === 0) {
       res.json([]);
@@ -483,14 +473,14 @@ router.get(
 
 router.get(
   "/client/deliverables",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
 
     const projects = await db
       .select()
       .from(projectsTable)
-      .where(eq(projectsTable.clientId, userId));
+      .where(userProjectsFilter(userId, req.user!.role));
 
     if (projects.length === 0) {
       res.json([]);
@@ -519,7 +509,7 @@ router.get(
 
 router.patch(
   "/client/profile",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
     const { name, phone, title } = req.body;
@@ -551,7 +541,7 @@ router.patch(
 
 router.get(
   "/client/profile",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
 
@@ -569,7 +559,7 @@ router.get(
     const projects = await db
       .select()
       .from(projectsTable)
-      .where(eq(projectsTable.clientId, userId));
+      .where(userProjectsFilter(userId, req.user!.role));
 
     let organizationName = null;
     if (projects.length > 0 && projects[0].organizationId) {
@@ -591,14 +581,14 @@ router.get(
 
 router.get(
   "/client/invoices",
-  requireRole("client"),
+  requireRole("client", "owner", "partner"),
   async (req, res) => {
     const userId = req.user!.id;
 
     const projects = await db
       .select()
       .from(projectsTable)
-      .where(eq(projectsTable.clientId, userId));
+      .where(userProjectsFilter(userId, req.user!.role));
 
     if (projects.length === 0) {
       res.json([]);
