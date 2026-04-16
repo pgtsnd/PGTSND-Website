@@ -146,7 +146,7 @@ export default function NWSablefish() {
         <BrandMockupsSlideIn />
 
         {/* Fish Tail + Color Palette + Testimonial */}
-        <section style={{ padding: "60px 40px 180px", position: "relative" }}>
+        <section style={{ padding: "135px 40px 180px", position: "relative" }}>
           <div style={{ position: "relative", overflow: "visible" }}>
             <div style={{ width: "100%", height: "clamp(260px, 28vw, 380px)", overflow: "hidden" }}>
               <img
