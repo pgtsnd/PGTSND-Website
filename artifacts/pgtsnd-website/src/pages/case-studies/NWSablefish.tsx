@@ -38,6 +38,43 @@ const brandColors = [
   { color: "#c5a44e", border: "none" },
 ];
 
+function FishTailScrollBar() {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      const progress = 1 - (rect.top + rect.height) / (viewH + rect.height);
+      const clamped = Math.max(0, Math.min(1, progress));
+      setOffset(clamped * 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <div ref={ref} style={{ width: "100%", height: "clamp(260px, 28vw, 380px)", overflow: "hidden" }}>
+      <img
+        src={"/images/case-studies/nw-sablefish/pgtsnd-fish-tail-nw-sablefish.jpg"}
+        alt="Sablefish on Ice"
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: `${30 + offset * 2}% 60%`,
+          transform: `scale(1.25) translateX(${4 - offset * 0.4}%)`,
+          display: "block",
+          willChange: "object-position, transform",
+        }}
+      />
+    </div>
+  );
+}
+
 function BrandMockupsSlideIn() {
   const ref = useRef<HTMLDivElement | null>(null);
   const [progress, setProgress] = useState(0);
@@ -148,13 +185,7 @@ export default function NWSablefish() {
         {/* Fish Tail + Color Palette + Testimonial */}
         <section style={{ padding: "135px 40px 180px", position: "relative" }}>
           <div style={{ position: "relative", overflow: "visible" }}>
-            <div style={{ width: "100%", height: "clamp(260px, 28vw, 380px)", overflow: "hidden" }}>
-              <img
-                src={"/images/case-studies/nw-sablefish/pgtsnd-fish-tail-nw-sablefish.jpg"}
-                alt="Sablefish on Ice"
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 60%", display: "block" }}
-              />
-            </div>
+            <FishTailScrollBar />
             <div style={{ position: "absolute", top: "-30px", left: "60px", display: "flex", gap: "0", zIndex: 3 }}>
               {brandColors.map((c, i) => (
                 <div
