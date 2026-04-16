@@ -341,7 +341,7 @@ export default function NWSablefish() {
         </section>
 
         {/* ScrollBadge */}
-        <section style={{ padding: "40px 40px 80px", display: "flex", justifyContent: "flex-start", alignItems: "flex-start" }}>
+        <section style={{ padding: "40px 40px 5px", display: "flex", justifyContent: "flex-start", alignItems: "flex-start" }}>
           <ScrollBadge position="bottom-left" bottomOffset={-58} />
         </section>
 
