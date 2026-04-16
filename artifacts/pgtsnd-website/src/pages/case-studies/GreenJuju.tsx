@@ -247,6 +247,7 @@ export default function GreenJuju() {
                 height: "auto",
                 zIndex: 3,
                 pointerEvents: "none",
+                transform: "translateY(-1000px)",
               }}
             />
             <div style={{ position: "absolute", bottom: "20px", right: "20px", zIndex: 2 }}>
