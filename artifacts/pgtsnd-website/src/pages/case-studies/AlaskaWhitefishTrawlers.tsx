@@ -17,7 +17,7 @@ export default function AlaskaWhitefishTrawlers() {
       <div style={{ background: "#000000", minHeight: "100vh" }}>
         {/* Hero */}
         <section style={{ padding: "160px 40px 180px", textAlign: "center" }}>
-          <h1 style={f({ fontWeight: 900, fontSize: "clamp(42px, 7vw, 90px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
+          <h1 style={f({ fontWeight: 900, fontSize: "clamp(36px, 5.5vw, 72px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
             Alaska Whitefish Trawlers Association X PGTSND
           </h1>
           <div style={{ display: "flex", justifyContent: "center", gap: "40px" }}>
