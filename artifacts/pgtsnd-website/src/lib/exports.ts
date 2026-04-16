@@ -1,5 +1,41 @@
 import { jsPDF } from "jspdf";
 import type { Invoice } from "./api";
+import logoUrl from "@assets/logo.webp";
+
+const STUDIO_INFO: {
+  name: string;
+  addressLines: string[];
+  email: string;
+  website: string;
+  instagram: string;
+  taxId?: string;
+  registrationId?: string;
+} = {
+  name: "PGTSND Productions",
+  addressLines: ["Seattle, Washington"],
+  email: "hello@pgtsndproductions.com",
+  website: "pgtsndproductions.com",
+  instagram: "@pgtsndproductions",
+};
+
+async function loadLogoPng(): Promise<{ dataUrl: string; width: number; height: number } | null> {
+  try {
+    const res = await fetch(logoUrl);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const bitmap = await createImageBitmap(blob);
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(bitmap, 0, 0);
+    bitmap.close?.();
+    return { dataUrl: canvas.toDataURL("image/png"), width: canvas.width, height: canvas.height };
+  } catch {
+    return null;
+  }
+}
 
 function csvEscape(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return "";
@@ -100,20 +136,50 @@ export function exportInvoicesToCsv(invoices: Invoice[], filename = "invoices.cs
   downloadBlob(blob, filename);
 }
 
-export function generateInvoicePdf(invoice: Invoice, filename?: string): void {
+export async function generateInvoicePdf(invoice: Invoice, filename?: string): Promise<void> {
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 56;
   let y = margin;
 
+  const logo = await loadLogoPng();
+  const logoTargetHeight = 44;
+  if (logo) {
+    const ratio = logo.width / logo.height;
+    const logoWidth = logoTargetHeight * ratio;
+    doc.addImage(logo.dataUrl, "PNG", margin, y, logoWidth, logoTargetHeight);
+  }
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
-  doc.text("INVOICE", margin, y);
+  doc.setTextColor(20);
+  doc.text("INVOICE", pageWidth - margin, y + 18, { align: "right" });
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.text("PGTSND Productions", pageWidth - margin, y - 4, { align: "right" });
-  y += 36;
+  doc.setFontSize(9);
+  doc.setTextColor(110);
+  let infoY = y + 30;
+  doc.text(STUDIO_INFO.name, pageWidth - margin, infoY, { align: "right" });
+  infoY += 11;
+  for (const line of STUDIO_INFO.addressLines) {
+    doc.text(line, pageWidth - margin, infoY, { align: "right" });
+    infoY += 11;
+  }
+  doc.text(STUDIO_INFO.email, pageWidth - margin, infoY, { align: "right" });
+  infoY += 11;
+  doc.text(STUDIO_INFO.website, pageWidth - margin, infoY, { align: "right" });
+  if (STUDIO_INFO.taxId) {
+    infoY += 11;
+    doc.text(`Tax ID: ${STUDIO_INFO.taxId}`, pageWidth - margin, infoY, { align: "right" });
+  }
+  if (STUDIO_INFO.registrationId) {
+    infoY += 11;
+    doc.text(`Reg #: ${STUDIO_INFO.registrationId}`, pageWidth - margin, infoY, { align: "right" });
+  }
+
+  y = Math.max(y + logoTargetHeight, infoY) + 18;
+  doc.setTextColor(20);
 
   doc.setDrawColor(220);
   doc.line(margin, y, pageWidth - margin, y);
@@ -171,8 +237,27 @@ export function generateInvoicePdf(invoice: Invoice, filename?: string): void {
     y += 32;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
+    doc.setTextColor(20);
     doc.text(`Payment method: ${invoice.paymentMethod}`, margin, y);
   }
+
+  const footerY = pageHeight - margin + 8;
+  doc.setDrawColor(230);
+  doc.line(margin, footerY - 18, pageWidth - margin, footerY - 18);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(130);
+  const footerParts = [STUDIO_INFO.name, ...STUDIO_INFO.addressLines, STUDIO_INFO.email];
+  if (STUDIO_INFO.taxId) footerParts.push(`Tax ID ${STUDIO_INFO.taxId}`);
+  if (STUDIO_INFO.registrationId) footerParts.push(`Reg # ${STUDIO_INFO.registrationId}`);
+  doc.text(footerParts.join(" • "), margin, footerY - 4);
+  doc.text(
+    `Questions about this invoice? Contact ${STUDIO_INFO.email}`,
+    pageWidth - margin,
+    footerY + 8,
+    { align: "right" },
+  );
+  doc.text(STUDIO_INFO.website, margin, footerY + 8);
 
   doc.save(filename ?? `invoice-${number}.pdf`);
 }

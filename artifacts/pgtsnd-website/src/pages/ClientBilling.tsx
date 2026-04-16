@@ -279,7 +279,7 @@ export default function ClientBilling() {
                           {inv.stripePdfUrl ? (
                             <a href={inv.stripePdfUrl} target="_blank" rel="noreferrer" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px", display: "flex", alignItems: "center" }}>PDF</a>
                           ) : (
-                            <button onClick={() => generateInvoicePdf(inv)} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px", display: "flex", alignItems: "center", padding: 0 }}>PDF</button>
+                            <button onClick={() => { void generateInvoicePdf(inv); }} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px", display: "flex", alignItems: "center", padding: 0 }}>PDF</button>
                           )}
                         </div>
                       </div>
@@ -314,7 +314,7 @@ export default function ClientBilling() {
                           {payment.stripePdfUrl ? (
                             <a href={payment.stripePdfUrl} target="_blank" rel="noreferrer" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted, textDecoration: "underline", textUnderlineOffset: "3px" }}>PDF</a>
                           ) : (
-                            <button onClick={() => generateInvoicePdf(payment)} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px", padding: 0 }}>PDF</button>
+                            <button onClick={() => { void generateInvoicePdf(payment); }} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px", padding: 0 }}>PDF</button>
                           )}
                           <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: "rgba(96,208,96,0.7)" }}>-${displayAmount.toLocaleString()}</p>
                         </div>
