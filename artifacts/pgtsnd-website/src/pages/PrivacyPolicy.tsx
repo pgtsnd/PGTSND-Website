@@ -95,6 +95,22 @@ export default function PrivacyPolicy() {
           </p>
 
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(24px, 3vw, 36px)", textTransform: "uppercase", letterSpacing: "-0.01em", lineHeight: 1.1, color: "#ffffff", marginBottom: "24px" })}>
+            SMS Communication &amp; Consent
+          </h2>
+          <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
+            By providing your phone number and opting in to receive text messages, you consent to receive SMS communications from PGTSND Productions related to your service requests, appointments, and inquiries, including follow-up messages if your call is missed.
+          </p>
+          <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
+            Message frequency varies. Message and data rates may apply.
+          </p>
+          <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
+            You can reply STOP at any time to opt out of further messaging. Reply HELP for assistance.
+          </p>
+          <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "48px" })}>
+            Your mobile information will not be shared, sold, or disclosed to third parties for marketing or promotional purposes. We only use your information to provide and support our services.
+          </p>
+
+          <h2 style={f({ fontWeight: 900, fontSize: "clamp(24px, 3vw, 36px)", textTransform: "uppercase", letterSpacing: "-0.01em", lineHeight: 1.1, color: "#ffffff", marginBottom: "24px" })}>
             Your Information &amp; Rights
           </h2>
           <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
