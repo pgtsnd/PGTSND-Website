@@ -65,7 +65,7 @@ function FishTailScrollBar() {
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          objectPosition: `${30 + offset * 2}% 60%`,
+          objectPosition: `${30 + offset * 2}% 35%`,
           transform: `scale(1.25) translateX(${4 - offset * 0.4}%)`,
           display: "block",
           willChange: "object-position, transform",
