@@ -47,11 +47,13 @@ export default function VallationOuterwear() {
 
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
           <div style={{ position: "relative", overflow: "visible" }}>
-            <img
-              src={heroImage}
-              alt="Vallation Outerwear - On the Water"
-              style={{ width: "100%", height: "auto", display: "block" }}
-            />
+            <div style={{ width: "100%", height: "clamp(340px, 40vw, 520px)", overflow: "hidden" }}>
+              <img
+                src={heroImage}
+                alt="Vallation Outerwear - On the Water"
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block" }}
+              />
+            </div>
             <div style={{ position: "absolute", bottom: "-60px", left: "60px", maxWidth: "420px", zIndex: 2 }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
                 <img
@@ -61,7 +63,7 @@ export default function VallationOuterwear() {
                 />
               </div>
               <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px", background: "rgba(0,0,0,0.85)" }}>
-                <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
+                <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
                   &ldquo;When we decided we needed more photos of our gear in its element in commercial fishing we reached out to Bri at PGTSND Productions. Their prior work and experience within commercial fishing made our choice easy.&rdquo;
                 </p>
                 <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
@@ -146,7 +148,7 @@ export default function VallationOuterwear() {
               />
             </div>
             <div style={{ border: "2px solid #ffffff", padding: "64px 40px 42px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "24px" })}>
+              <p style={f({ fontWeight: 400, fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "24px" })}>
                 &ldquo;When we decided we needed more photos of our gear in its element in commercial fishing we reached out to Bri at PGTSND Productions. Their prior work and experience within commercial fishing made our choice easy. Bri and her team's photos for us not only captured what we needed as a company, but went above and beyond to find photos that we as a brand could utilize for many years to come.&rdquo;
               </p>
               <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
