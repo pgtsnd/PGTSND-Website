@@ -253,7 +253,7 @@ export default function NWSablefish() {
         <BrandMockupsSlideIn />
 
         {/* Fish Tail + Color Palette + Testimonial */}
-        <section style={{ padding: "135px 40px 180px", position: "relative" }}>
+        <section style={{ padding: "135px 40px 140px", position: "relative" }}>
           <div style={{ position: "relative", overflow: "visible" }}>
             <FishTailScrollBar />
             <div style={{ position: "absolute", top: "-30px", left: "60px", display: "flex", gap: "0", zIndex: 3 }}>
@@ -300,7 +300,7 @@ export default function NWSablefish() {
         </section>
 
         {/* Identity Guide + The Big Picture */}
-        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1.4fr 1.6fr", gap: "80px", alignItems: "stretch" }}>
+        <section style={{ padding: "80px 80px 120px", display: "grid", gridTemplateColumns: "1.4fr 1.6fr", gap: "80px", alignItems: "stretch" }}>
           <div style={{ position: "relative" }}>
             <div
               style={{
