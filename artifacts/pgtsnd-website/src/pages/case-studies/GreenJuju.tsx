@@ -600,7 +600,7 @@ function ProductTubsSlideIn() {
           willChange: "transform, filter",
         }}
       />
-      <div style={{ position: "absolute", bottom: "20px", right: "20px" }}>
+      <div style={{ position: "absolute", bottom: "-45px", right: "20px" }}>
         <ScrollBadge position="bottom-right" inline />
       </div>
     </div>
