@@ -399,32 +399,44 @@ export default function NWSablefish() {
 
         {/* Website Mockup + The Solve */}
         <section style={{ padding: "160px 40px 230px 80px", display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: "60px", alignItems: "start" }}>
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", height: "640px" }}>
             <div
-              style={{ position: "relative", cursor: "pointer" }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                border: "2px solid #ffffff",
+                borderRadius: "4px",
+                overflowY: "auto",
+                overflowX: "hidden",
+                background: "#ffffff",
+                boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
+                scrollbarGutter: "stable",
+                cursor: "pointer",
+              }}
               onMouseEnter={() => setWebHovered(true)}
               onMouseLeave={() => setWebHovered(false)}
             >
               <img
                 src={"/images/case-studies/nw-sablefish/nw-sablefish-website-design-pgtsnd.jpeg"}
                 alt="NW Sablefish Website"
-                style={{ width: "100%", height: "auto", display: "block", borderRadius: "4px", border: "2px solid #ffffff", boxShadow: "0 8px 40px rgba(0,0,0,0.5)" }}
-              />
-              <img
-                src={"/images/case-studies/nw-sablefish/NWsablefish-arrow-gold.png"}
-                alt=""
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  right: "-10px",
-                  width: "40px",
-                  height: "auto",
-                  opacity: webHovered ? 1 : 0.85,
-                  transition: "opacity 0.3s",
-                  pointerEvents: "none",
-                }}
+                style={{ width: "100%", height: "auto", display: "block" }}
               />
             </div>
+            <img
+              src={"/images/case-studies/nw-sablefish/NWsablefish-arrow-gold.png"}
+              alt=""
+              style={{
+                position: "absolute",
+                bottom: "-20px",
+                right: "-20px",
+                width: "40px",
+                height: "auto",
+                opacity: webHovered ? 1 : 0.85,
+                transition: "opacity 0.3s",
+                pointerEvents: "none",
+                zIndex: 2,
+              }}
+            />
           </div>
           <div>
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff", marginBottom: "32px" })}>
