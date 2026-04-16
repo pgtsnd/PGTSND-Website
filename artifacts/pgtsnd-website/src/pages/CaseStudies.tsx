@@ -226,7 +226,7 @@ export default function CaseStudies() {
             lineHeight: 1.1,
             color: "#ffffff",
             marginBottom: "40px",
-            maxWidth: "900px",
+            maxWidth: "1200px",
           })}
         >
           Your work deserves to be seen with the same care you put into it. We&rsquo;re ready to capture it right.
