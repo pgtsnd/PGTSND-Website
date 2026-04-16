@@ -47,56 +47,56 @@ const teamMembers = [
   {
     name: "Kandice Brending",
     role: "Production Manager",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f4e89524-142e-42d7-ad4f-626e8435b1b0/kandice-pgtsnd.png",
+    image: "/images/about/kandice-pgtsnd.png",
     bio: "Kandice keeps PGTSND projects on track and sounding sharp. As Production Manager, she works directly with clients to guide productions from first brief to final cut, coordinating shoots, managing logistics, and shaping stories through sound design and video editing. She's passionate about surfacing voices and experiences that might otherwise go unheard, believing every person and place has a story worth telling. When she's off set, you'll find her making music or hiking mountain trails with her dog.",
   },
   {
     name: "Kyle Smith",
     role: "Lead Graphic Design",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/95f4eb51-cb67-4aed-8491-d716a389dba4/kyle.png",
+    image: "/images/about/kyle.png",
     bio: "Kyle is responsible for dreaming and designing all logos, websites, and brand visuals for PGTSND's clients. His work gives life to new brands building their visual presence, and helps time-tested businesses stay current in a fast-moving world. By giving established brands a fresh, modern edge, Kyle ensures they don't just stand with the crowd, they stand out. When he's not designing, he's chasing new places with a goal to visit all 50 states by his 40th birthday (44 down, 6 to go!).",
   },
   {
     name: "Trish Whetstone",
     role: "Copy, Content & Creative Writer",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/ef4edef9-dfec-42a7-a9f4-67f7b3b849ce/trish.png",
+    image: "/images/about/trish.png",
     bio: "Trish gives PGTSND's visuals their voice. A specialist in creative communications, she crafts words for websites, blogs, and brand guides that reinforce the stories captured in the field and make sure our clients are heard as well as seen. She loves to bring personality to a plot, digging into the histories, motivations, and passions that drive the brands we work with. Off the page, she leads hands-on educational experiences that make seafood less intimidating and way more fun for fish-curious folk.",
   },
   {
     name: "Lauren Dey",
     role: "Operations Manager",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/a21ab76a-ba94-4b3a-bb3c-b451d84a6420/lauren.png",
+    image: "/images/about/lauren.png",
     bio: "Lauren keeps PGTSND running smoothly behind the scenes. As Operations Manager, she builds the systems and structure that help creative teams do their best. She turns creative chaos into organized flow\u2014building processes, managing day-to-day operations, and helping the team stay aligned from kickoff to final delivery. Her background in recruitment operations shaped her belief that the heart of good work is good people. She's known for fostering collaborative environments, solving problems with calm clarity, and scaling systems that help teams grow without losing their spark.\n\nWhen she's not in organizational mode, Lauren spends as much time outdoors as possible\u2014hiking mountain trails, snowboarding in the winter, paddle boarding in the summer, traveling to new places, and taking her dog on long walks around Portland.",
   },
   {
     name: "Allie Preusch",
     role: "Accounting",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/6e4325b7-254e-445d-b2a1-a5773578d70a/allie-pgtsnd.png",
+    image: "/images/about/allie-pgtsnd.png",
     bio: "Allie wrangles the numbers at PGTSND\u2014budgets, reports, and all the behind-the-scenes details that keep productions on track and stress-free. She ensures productions run smoothly by handling the details so the creative team can focus on storytelling. When she's not crunching numbers, she's passionate about helping small farmers reach consumers, writing, and exploring the Northern Colorado mountains with her family.",
   },
   {
     name: "Cody Curtain",
     role: "Director of Photography, Editor",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d116fb8d-cdc0-4116-aa92-51fa5021bd05/cody-pgtsnd.png",
+    image: "/images/about/cody-pgtsnd.png",
     bio: "Cody brings an all-hands approach to every shoot. At PGTSND, he moves fluidly between camera, lighting, grip/electric, and editing, blending technical skill with artistry to capture stories that help us know one another better. He sees each project as a chance to learn from the people and communities we work with, while shaping visuals that connect with the heart of those who view them. Off set, Cody's busy welding, making music, chasing two very fast dogs, and laughing with his partner, Shannon (often while she destroys him at tennis).",
   },
 ];
 
 const caseStudyImages = [
   {
-    src: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/93006ba2-8cb2-4602-994e-d06460bddefb/nw-sablefish-pgtsnd-photography-7.jpeg",
+    src: "/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-7.jpeg",
     alt: "A chef holding a plate of cooked sablefish",
     title: "NW Sablefish",
     subtitle: "Full Production Suite +",
   },
   {
-    src: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/e8f0c233-3e66-4424-af76-721f2754573d/gloves-close-bri-dwyer-pgtsnd-alaska-berring.jpeg",
+    src: "/images/case-studies/absc/gloves-close-bri-dwyer-pgtsnd-alaska-berring.jpeg",
     alt: "A worker handling thick rope near a container",
     title: "Alaska Bering Sea Crabbers",
     subtitle: "Full Production Suite",
   },
   {
-    src: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d9460e68-5cd2-4c0f-94e1-1882061a71e3/green-juju-dog-kitchen-pgtsnd.jpeg",
+    src: "/images/case-studies/green-juju/green-juju-dog-kitchen-pgtsnd.jpeg",
     alt: "Person handing a dog a bowl of food in a kitchen",
     title: "Green JUJU",
     subtitle: "Full Production Suite +",
@@ -108,22 +108,22 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({ fontFamily: "'Mont
 const heroWords = [
   {
     text: "Resilient",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b7737613-01e6-491f-bb56-a3e38eb70d5f/boats-inlet-pgtsnd-bri-dwyer.jpeg",
+    image: "/images/boats-inlet-pgtsnd-bri-dwyer.jpeg",
     position: { top: "16%", left: "3%", width: "24%", height: "58%" },
   },
   {
     text: "Roots,",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/072a41a3-9259-4ffb-a573-6bab24757639/crabs-pelican-pgtsnd-bri-dwyer.jpeg",
+    image: "/images/crabs-pelican-pgtsnd-bri-dwyer.jpeg",
     position: { top: "5%", left: "27%", width: "30%", height: "76%" },
   },
   {
     text: "Steady",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/a4bb4098-6f6b-412f-9f99-da7396dbab92/foggy-fishing-coast-pgtsnd.jpeg",
+    image: "/images/site/foggy-fishing-coast-pgtsnd.jpeg",
     position: { top: "16%", left: "3%", width: "24%", height: "58%" },
   },
   {
     text: "Stories",
-    image: "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d00d09c7-98fc-4637-aad9-98173f451b5f/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg",
+    image: "/images/fisherman-hands-close-pgtsnd-bri-dwyer.jpeg",
     position: { top: "16%", left: "62%", width: "32%", height: "60%" },
   },
 ];
@@ -290,7 +290,7 @@ export default function About() {
       {/* 3. Aerial boat photo with rope coil illustration */}
       <section ref={boatRef} style={{ position: "relative", marginBottom: "120px", overflow: "hidden" }}>
         <img
-          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f2eeee17-7f28-4cb4-b4f1-e153742b789e/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
+          src="/images/about/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
           alt="Aerial view of a fishing boat sailing through dark water with white foam"
           style={{
             width: "110%",
@@ -312,7 +312,7 @@ export default function About() {
           }}
         />
         <img
-          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/afed82ab-8cce-4351-8779-a17d290ad607/av-cord-pgtsnd.webp"
+          src="/images/site/av-cord-pgtsnd.webp"
           alt="Coiled production cable illustration"
           style={{
             position: "absolute", top: "40px", right: "80px",
@@ -337,7 +337,7 @@ export default function About() {
       >
         <div style={{ position: "relative" }}>
           <img
-            src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/e34e7052-3ba2-4f80-902c-725c6f157b33/bri-dwyer-on-site-headshot-pgtsnd.jpg"
+            src="/images/about/bri-dwyer-on-site-headshot-pgtsnd.jpg"
             alt="Bri Dwyer standing on a dock with boats in the background"
             style={{ width: "100%", display: "block", filter: `brightness(${briBrightness})`, transition: "filter 0.15s linear" }}
           />
@@ -352,7 +352,7 @@ export default function About() {
             }}
           >
             <img
-              src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/2de5fc52-919a-43e2-98e1-c4490cca1679/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"
+              src="/images/case-studies/absc/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"
               alt="Jamie Goen"
               style={{
                 width: "64px",
@@ -431,7 +431,7 @@ export default function About() {
       {/* 5. Our Work in Action */}
       <section style={{ padding: "160px 80px 80px" }}>
         <img
-          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/59c50bdc-fea6-4d1d-b867-67a1be5cd36e/pgtsnd-spotlight.webp"
+          src="/images/site/pgtsnd-spotlight.webp"
           alt="Production equipment illustration"
           style={{ width: "180px", height: "auto", marginBottom: "32px", opacity: 1, filter: "brightness(1.2)" }}
         />

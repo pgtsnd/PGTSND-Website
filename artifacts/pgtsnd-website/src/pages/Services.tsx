@@ -241,12 +241,12 @@ export default function Services() {
 
       {/* 2. Seagulls image with Nicole Baker testimonial */}
       <TestimonialImage
-        imageSrc="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/14af0879-4786-4259-9b66-d4c405db4091/pacific-gulls-bri-dwyer-pgtsnd.jpeg"
+        imageSrc="/images/about/pacific-gulls-bri-dwyer-pgtsnd.jpeg"
         imageAlt="Pacific gulls flying over ocean water"
         quote="The films we have created with PGTSND have been remarkably useful for us at conferences and in helping to recruit new partners. We've also taken clips from the long form video to use in social media and they are some of our most successful posts."
         author="Nicole Baker"
         authorTitle="Net Your Problem"
-        avatarSrc="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/3ac5c6c9-cb24-463f-b0e5-f7e38da1179b/nicole-baker-pgtsnd.jpg"
+        avatarSrc="/images/nicole-baker-pgtsnd.jpg"
         scrollSlide
       />
 
@@ -276,12 +276,12 @@ export default function Services() {
 
       {/* 5. Forest image with Cory Jackson testimonial */}
       <TestimonialImage
-        imageSrc="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/b2e67e24-7d8b-451b-b98a-58f51bc297e4/forest-rays-bri-dwyer-pgtsnd.jpeg"
+        imageSrc="/images/about/forest-rays-bri-dwyer-pgtsnd.jpeg"
         imageAlt="Sunlight streaming through tall forest trees"
         quote="From the start, PGTSND worked with us on our goals for what we wanted to accomplish, and within the parameters we set. The finished product was an incredible collection of images from the Puget Sound commercial Dungeness fishery."
         author="Cory Jackson"
         authorTitle="Vallation Outerwear"
-        avatarSrc="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f16cb15a-0aaa-4577-9fa4-8cf9e110b702/vallation-outerwear-logo.png"
+        avatarSrc="/images/case-studies/vallation-outerwear/vallation-outerwear-logo.png"
       />
 
       {/* 6. How We Work */}
@@ -347,7 +347,7 @@ export default function Services() {
         }}
       >
         <img
-          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/f2eeee17-7f28-4cb4-b4f1-e153742b789e/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
+          src="/images/about/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
           alt=""
           style={{
             position: "absolute",
@@ -360,7 +360,7 @@ export default function Services() {
         />
         <div style={{ position: "relative", zIndex: 1 }}>
           <img
-            src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/a561f668-0ce3-4365-b3c5-61543b8647dd/pgtsnd-camera.webp"
+            src="/images/site/pgtsnd-camera.webp"
             alt="Camera illustration"
             style={{ width: "140px", height: "auto", margin: "0 auto 40px", display: "block", opacity: 0.9 }}
           />

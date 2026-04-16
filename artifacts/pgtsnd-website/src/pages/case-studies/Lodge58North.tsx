@@ -8,21 +8,19 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({
   ...s,
 });
 
-const SQ = "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5";
-
 const services = ["Video Production", "Photography"];
 
 const galleryImages = [
-  `${SQ}/3a3c9078-fa7d-475e-aef7-f4ab48b19728/lodge-58-north-pgtsnd-photography-1.jpeg`,
-  `${SQ}/2147988f-12fa-485c-bec4-86f9cd386716/lodge-58-north-pgtsnd-photography-2.jpeg`,
-  `${SQ}/4f079e9e-8cf9-4713-92ff-f455d9347e1e/lodge-58-north-pgtsnd-photography-3.jpeg`,
-  `${SQ}/3d5fdfab-b978-4048-8fb0-9f2a31dfa710/lodge-58-north-pgtsnd-photography-4.jpeg`,
-  `${SQ}/660a1adc-c597-43c0-a724-7489d83d92ae/lodge-58-north-pgtsnd-photography-5.jpeg`,
-  `${SQ}/cdddc0a3-c806-47b1-9ab5-1f1caaf43ac3/lodge-58-north-pgtsnd-photography-6.jpeg`,
-  `${SQ}/2d377987-3d8e-4f26-8f3a-679bc8f7faac/lodge-58-north-pgtsnd-photography-7.jpeg`,
-  `${SQ}/3c4d192c-904c-492b-b231-b956a4b8a3f9/lodge-58-north-pgtsnd-photography-8.jpeg`,
-  `${SQ}/6905dff7-a7ab-4f20-bcf6-6dad7fbc93aa/lodge-58-north-pgtsnd-photography-9.jpeg`,
-  `${SQ}/648d4721-fd76-43e0-b731-bfb434e494e4/lodge-58-north-pgtsnd-photography-10.jpeg`,
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-1.jpeg",
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-2.jpeg",
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-3.jpeg",
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-4.jpeg",
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-5.jpeg",
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-6.jpeg",
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-7.jpeg",
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-8.jpeg",
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-9.jpeg",
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-10.jpeg",
 ];
 
 const socialLinks = [

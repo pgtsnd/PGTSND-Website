@@ -47,3 +47,7 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Reference material from Squarespace migration (safe to delete when site is complete)
+_reference/
+attached_assets/

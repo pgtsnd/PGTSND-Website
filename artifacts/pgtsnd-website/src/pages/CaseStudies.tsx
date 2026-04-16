@@ -26,7 +26,7 @@ const caseStudies = [
     client: "Green Juju",
     category: "Full Production Suite +",
     image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/d9460e68-5cd2-4c0f-94e1-1882061a71e3/green-juju-dog-kitchen-pgtsnd.jpeg",
+      "/images/case-studies/green-juju/green-juju-dog-kitchen-pgtsnd.jpeg",
   },
   {
     slug: "net-your-problem",
@@ -45,7 +45,7 @@ const caseStudies = [
     client: "Lodge @ 58 North",
     category: "Video Production | Photography",
     image:
-      "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/93006ba2-8cb2-4602-994e-d06460bddefb/nw-sablefish-pgtsnd-photography-7.jpeg",
+      "/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-7.jpeg",
   },
   {
     slug: "nw-sablefish",
@@ -213,7 +213,7 @@ export default function CaseStudies() {
         }}
       >
         <img
-          src="https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5/a561f668-0ce3-4365-b3c5-61543b8647dd/pgtsnd-camera.webp"
+          src="/images/site/pgtsnd-camera.webp"
           alt="Camera illustration"
           style={{ width: "160px", height: "auto", marginBottom: "48px", opacity: 0.9 }}
         />

@@ -9,7 +9,7 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({
   ...s,
 });
 
-const SQ = "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5";
+
 
 const services = [
   ["Strategy", "Email Marketing"],
@@ -19,19 +19,19 @@ const services = [
 ];
 
 const socialGraphics = [
-  `${SQ}/3b0e14e6-2e49-4407-b0af-6602331dd3df/dog-facts-green-juju-pgtsnd-carousel+%281%29.gif`,
-  `${SQ}/2c3a7405-2ce9-4fdb-a9ef-4349754fdb4b/seasons-green-juju-pgtsnd-carousel.gif`,
+  "/images/case-studies/green-juju/dog-facts-green-juju-pgtsnd-carousel-1.gif",
+  "/images/case-studies/green-juju/seasons-green-juju-pgtsnd-carousel.gif",
 ];
 
 const galleryImages = [
-  `${SQ}/b4e9b111-3e74-4b5b-83dd-98f1d02798b3/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg`,
-  `${SQ}/d9460e68-5cd2-4c0f-94e1-1882061a71e3/green-juju-dog-kitchen-pgtsnd.jpeg`,
-  `${SQ}/ef39cdb3-fa41-40b6-b61e-557e31005634/green-juju-ingredientspgtsnd-photography.jpeg`,
-  `${SQ}/8ed428da-be7c-4f6d-95f9-b97b8b7a5319/pets-green-juju-pgtsnd-bri-dwyer.jpeg`,
-  `${SQ}/55a02970-3204-4c14-8e2d-5edb693fcf5a/green-juju-supplements-close-pgtsnd.jpeg`,
-  `${SQ}/757c20ef-3b28-4482-890e-e3e36d5d4ae2/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg`,
-  `${SQ}/9d281eb5-fa46-4f12-8304-67eacb64298b/puppies-green-juju-pgtsnd.jpeg`,
-  `${SQ}/e2b61cb6-31db-4a52-973a-add624db00c5/green-juju-vitality-blend-pgtsnd.jpeg`,
+  "/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg",
+  "/images/case-studies/green-juju/green-juju-dog-kitchen-pgtsnd.jpeg",
+  "/images/case-studies/green-juju/green-juju-ingredientspgtsnd-photography.jpeg",
+  "/images/case-studies/green-juju/pets-green-juju-pgtsnd-bri-dwyer.jpeg",
+  "/images/case-studies/green-juju/green-juju-supplements-close-pgtsnd.jpeg",
+  "/images/case-studies/green-juju/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg",
+  "/images/case-studies/green-juju/puppies-green-juju-pgtsnd.jpeg",
+  "/images/case-studies/green-juju/green-juju-vitality-blend-pgtsnd.jpeg",
 ];
 
 const socialLinks = [
@@ -108,13 +108,13 @@ export default function GreenJuju() {
               </div>
             </div>
             <div style={{ position: "relative", display: "flex", justifyContent: "center", alignItems: "flex-end", gap: "16px", minHeight: "400px" }}>
-              <PhoneMockup src={`${SQ}/3b0e14e6-2e49-4407-b0af-6602331dd3df/dog-facts-green-juju-pgtsnd-carousel+%281%29.gif`} style={{ transform: "translateY(-20px)" }} />
+              <PhoneMockup src={"/images/case-studies/green-juju/dog-facts-green-juju-pgtsnd-carousel-1.gif"} style={{ transform: "translateY(-20px)" }} />
               <img
-                src={`${SQ}/0cce3b7c-0a1d-4f37-ae43-858324f2c627/dog-with-treats-green-juju-pgtsnd.png`}
+                src={"/images/case-studies/green-juju/dog-with-treats-green-juju-pgtsnd.png"}
                 alt="Dog with treats"
                 style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-70%)", width: "180px", height: "auto", zIndex: 2 }}
               />
-              <PhoneMockup src={`${SQ}/2c3a7405-2ce9-4fdb-a9ef-4349754fdb4b/seasons-green-juju-pgtsnd-carousel.gif`} style={{ transform: "translateY(-40px)" }} />
+              <PhoneMockup src={"/images/case-studies/green-juju/seasons-green-juju-pgtsnd-carousel.gif"} style={{ transform: "translateY(-40px)" }} />
             </div>
           </div>
         </section>
@@ -123,13 +123,13 @@ export default function GreenJuju() {
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
           <ScrollBadge position="bottom-left" bottomOffset={-58} />
           <div style={{ background: "rgba(96,120,100,0.4)", borderRadius: "8px", padding: "60px 40px", display: "flex", justifyContent: "center", gap: "24px", alignItems: "center", overflow: "hidden", position: "relative" }}>
-            <PhoneMockup src={`${SQ}/757c20ef-3b28-4482-890e-e3e36d5d4ae2/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg`} style={{ width: "220px" }} />
-            <PhoneMockup src={`${SQ}/55a02970-3204-4c14-8e2d-5edb693fcf5a/green-juju-supplements-close-pgtsnd.jpeg`} style={{ width: "220px", transform: "translateY(-30px)" }} />
-            <PhoneMockup src={`${SQ}/9d281eb5-fa46-4f12-8304-67eacb64298b/puppies-green-juju-pgtsnd.jpeg`} style={{ width: "220px" }} />
+            <PhoneMockup src={"/images/case-studies/green-juju/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg"} style={{ width: "220px" }} />
+            <PhoneMockup src={"/images/case-studies/green-juju/green-juju-supplements-close-pgtsnd.jpeg"} style={{ width: "220px", transform: "translateY(-30px)" }} />
+            <PhoneMockup src={"/images/case-studies/green-juju/puppies-green-juju-pgtsnd.jpeg"} style={{ width: "220px" }} />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: "40px" }}>
             <img
-              src={`${SQ}/5f5f68b2-2bb6-40ab-9dfe-82f7f5757d9d/green-juju-snack-cutout-pgtsnd.png`}
+              src={"/images/case-studies/green-juju/green-juju-snack-cutout-pgtsnd.png"}
               alt="Green Juju product"
               style={{ width: "140px", height: "auto" }}
             />
@@ -172,7 +172,7 @@ export default function GreenJuju() {
         <section style={{ padding: "0 80px 0", position: "relative" }}>
           <div style={{ width: "100%", overflow: "hidden", position: "relative" }}>
             <img
-              src={`${SQ}/b4e9b111-3e74-4b5b-83dd-98f1d02798b3/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg`}
+              src={"/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg"}
               alt="Green Juju Products"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
@@ -183,7 +183,7 @@ export default function GreenJuju() {
           <div style={{ maxWidth: "400px", position: "relative", marginTop: "-60px", marginLeft: "60px", zIndex: 2 }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
               <img
-                src={`${SQ}/7bc26c26-455f-40a9-a671-e74403d35309/kelly-green-juju.webp`}
+                src={"/images/case-studies/green-juju/kelly-green-juju.webp"}
                 alt="Kelley Mirian"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
@@ -208,12 +208,12 @@ export default function GreenJuju() {
               onMouseLeave={() => setWebHovered(false)}
             >
               <img
-                src={`${SQ}/2f6d54e5-6b48-405f-8654-7fc599917526/green-juju-web-design-pgtsnd-screen-capture.jpeg`}
+                src={"/images/case-studies/green-juju/green-juju-web-design-pgtsnd-screen-capture.jpeg"}
                 alt="Green Juju Website"
                 style={{ width: "100%", height: "auto", display: "block", borderRadius: "4px" }}
               />
               <img
-                src={`${SQ}/1fbedf6e-bf89-4125-85a8-042b311f7004/juju-cursor-case-study.png`}
+                src={"/images/case-studies/green-juju/juju-cursor-case-study.png"}
                 alt=""
                 style={{
                   position: "absolute",
@@ -278,7 +278,7 @@ export default function GreenJuju() {
           <div>
             <div style={{ borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
               <img
-                src={`${SQ}/31cc33f0-3355-4f8b-a80a-d9c71b4abf94/green-juju-blog-post-pgtsnd-productions.jpg`}
+                src={"/images/case-studies/green-juju/green-juju-blog-post-pgtsnd-productions.jpg"}
                 alt="Green Juju Blog Post"
                 style={{ width: "100%", height: "auto", display: "block" }}
               />
@@ -308,7 +308,7 @@ export default function GreenJuju() {
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
           <div style={{ width: "100%", overflow: "hidden" }}>
             <img
-              src={`${SQ}/e2b61cb6-31db-4a52-973a-add624db00c5/green-juju-vitality-blend-pgtsnd.jpeg`}
+              src={"/images/case-studies/green-juju/green-juju-vitality-blend-pgtsnd.jpeg"}
               alt="Green Juju Vitality Blend"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
@@ -366,11 +366,11 @@ export default function GreenJuju() {
         <section style={{ padding: "40px 80px 40px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
             <VideoPlaceholder
-              thumbnail={`${SQ}/757c20ef-3b28-4482-890e-e3e36d5d4ae2/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg`}
+              thumbnail={"/images/case-studies/green-juju/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg"}
               duration="02:57"
             />
             <VideoPlaceholder
-              thumbnail={`${SQ}/ef39cdb3-fa41-40b6-b61e-557e31005634/green-juju-ingredientspgtsnd-photography.jpeg`}
+              thumbnail={"/images/case-studies/green-juju/green-juju-ingredientspgtsnd-photography.jpeg"}
               duration="03:29"
             />
           </div>
@@ -407,7 +407,7 @@ export default function GreenJuju() {
           <div style={{ maxWidth: "440px" }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
               <img
-                src={`${SQ}/7bc26c26-455f-40a9-a671-e74403d35309/kelly-green-juju.webp`}
+                src={"/images/case-studies/green-juju/kelly-green-juju.webp"}
                 alt="Kelley Mirian"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
@@ -432,7 +432,7 @@ export default function GreenJuju() {
         {/* Product Lineup Full Width */}
         <section style={{ padding: "0 40px 0" }}>
           <img
-            src={`${SQ}/ef39cdb3-fa41-40b6-b61e-557e31005634/green-juju-ingredientspgtsnd-photography.jpeg`}
+            src={"/images/case-studies/green-juju/green-juju-ingredientspgtsnd-photography.jpeg"}
             alt="Green Juju Product Lineup"
             style={{ width: "100%", height: "auto", display: "block" }}
           />

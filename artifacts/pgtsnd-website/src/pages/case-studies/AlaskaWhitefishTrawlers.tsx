@@ -8,8 +8,6 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({
   ...s,
 });
 
-const SQ = "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5";
-
 const services = ["Web Design", "Logo Redesign"];
 
 export default function AlaskaWhitefishTrawlers() {
@@ -33,7 +31,7 @@ export default function AlaskaWhitefishTrawlers() {
         <section style={{ padding: "0 40px 40px" }}>
           <div style={{ overflow: "hidden", borderRadius: "4px" }}>
             <img
-              src={`${SQ}/2bbe095a-dc39-4e46-961e-4bc9ec528a53/alaska-white-fish-web-design-sample-pgtsnd.webp`}
+              src={"/images/case-studies/awt/alaska-white-fish-web-design-sample-pgtsnd.webp"}
               alt="Alaska Whitefish Trawlers Website Design"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
@@ -49,7 +47,7 @@ export default function AlaskaWhitefishTrawlers() {
                   Wild, Sustainable &amp; Affordable
                 </h2>
                 <img
-                  src={`${SQ}/00b4122c-2cfc-494f-99ac-296a3c99939e/Screen+Shot+2021-08-02+at+5.46.16+PM.png`}
+                  src={"/images/site/screen-shot-2021-08-02.png"}
                   alt="Pollock Fish"
                   style={{ width: "280px", height: "auto", margin: "0 auto 32px", display: "block" }}
                 />
@@ -65,7 +63,7 @@ export default function AlaskaWhitefishTrawlers() {
               <ScrollBadge position="bottom-left" bottomOffset={-58} />
               <div style={{ borderRadius: "4px", overflow: "hidden", border: "2px solid rgba(255,255,255,0.15)" }}>
                 <img
-                  src={`${SQ}/b3bfa3ba-0ef5-4631-8669-97b40a66f648/alaska-whitefish-web-design-sample-2.png`}
+                  src={"/images/case-studies/awt/alaska-whitefish-web-design-sample-2.png"}
                   alt="Alaska Whitefish Trawlers Website on Laptop"
                   style={{ width: "100%", height: "auto", display: "block" }}
                 />
@@ -78,7 +76,7 @@ export default function AlaskaWhitefishTrawlers() {
         <section style={{ padding: "120px 80px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
           <div style={{ background: "#ffffff", borderRadius: "4px", padding: "60px 40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <img
-              src={`${SQ}/c09ac88a-9660-4632-bd8d-30ba6660ab13/aktrawlers-FINAL.png`}
+              src={"/images/case-studies/awt/aktrawlers-FINAL.png"}
               alt="Alaska Whitefish Trawlers Logo"
               style={{ width: "280px", height: "auto" }}
             />
@@ -108,7 +106,7 @@ export default function AlaskaWhitefishTrawlers() {
           </div>
           <div style={{ background: "#ffffff", borderRadius: "4px", padding: "60px 40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <img
-              src={`${SQ}/c09ac88a-9660-4632-bd8d-30ba6660ab13/aktrawlers-FINAL.png`}
+              src={"/images/case-studies/awt/aktrawlers-FINAL.png"}
               alt="Alaska Whitefish Trawlers Logo"
               style={{ width: "280px", height: "auto" }}
             />

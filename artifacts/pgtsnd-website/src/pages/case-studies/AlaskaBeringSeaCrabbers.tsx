@@ -9,8 +9,6 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({
   ...s,
 });
 
-const SQ = "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5";
-
 const services = [
   ["Strategy", "Social Media Management"],
   ["Website", "Social Media Content Creation"],
@@ -19,20 +17,20 @@ const services = [
 ];
 
 const galleryImages = [
-  `${SQ}/0eab44ed-59d7-415a-9980-b6471600ece4/pgtsnd-ABSC-photography-5.jpeg`,
-  `${SQ}/666bb24c-f59a-4d77-b298-239c8988dfec/pgtsnd-ABSC-photography-1.jpeg`,
-  `${SQ}/a9d2a33a-a7ff-4efb-b7bc-ff22878011b6/pgtsnd-ABSC-photography-7.jpeg`,
-  `${SQ}/b9c6c138-9126-4b01-bb8f-d39e0aace022/pgtsnd-ABSC-photography-2.jpeg`,
-  `${SQ}/63f4fb69-e0a8-46a4-8e30-116d54e726a5/pgtsnd-ABSC-photography-8.jpeg`,
-  `${SQ}/9fe60271-f30f-4c62-9c88-10ffada85e29/pgtsnd-ABSC-photography-4.jpeg`,
-  `${SQ}/24a14adf-4ce4-405d-bacd-3b665e65f15b/pgtsnd-ABSC-photography-6.jpeg`,
-  `${SQ}/724e6ae3-7d62-4005-af54-03ea67b036ab/pgtsnd-ABSC-photography-3.jpg`,
+  "/images/case-studies/absc/pgtsnd-ABSC-photography-5.jpeg",
+  "/images/case-studies/absc/pgtsnd-ABSC-photography-1.jpeg",
+  "/images/case-studies/absc/pgtsnd-ABSC-photography-7.jpeg",
+  "/images/case-studies/absc/pgtsnd-ABSC-photography-2.jpeg",
+  "/images/case-studies/absc/pgtsnd-ABSC-photography-8.jpeg",
+  "/images/case-studies/absc/pgtsnd-ABSC-photography-4.jpeg",
+  "/images/case-studies/absc/pgtsnd-ABSC-photography-6.jpeg",
+  "/images/case-studies/absc/pgtsnd-ABSC-photography-3.jpg",
 ];
 
 const socialGraphics = [
-  `${SQ}/673262a2-2a99-4598-81fc-c5955c07fda0/absc-social-graphics-gif-pgtsnd-1.gif`,
-  `${SQ}/74433360-4737-4930-aac0-12a84e9cc817/absc-social-graphics-gif-pgtsnd-2.gif`,
-  `${SQ}/c866849c-fe09-4511-95cc-45784d245396/absc-social-graphics-gif-pgtsnd-3.gif`,
+  "/images/case-studies/absc/absc-social-graphics-gif-pgtsnd-1.gif",
+  "/images/case-studies/absc/absc-social-graphics-gif-pgtsnd-2.gif",
+  "/images/case-studies/absc/absc-social-graphics-gif-pgtsnd-3.gif",
 ];
 
 const socialLinks = [
@@ -72,12 +70,12 @@ function WebsiteMockup() {
       onMouseLeave={() => setHovered(false)}
     >
       <img
-        src={`${SQ}/b0cd88e5-0467-40a5-b45f-552f47366f23/ABSC-PGTSND-Web-Design-Sample.webp`}
+        src={"/images/case-studies/absc/ABSC-PGTSND-Web-Design-Sample.webp"}
         alt="ABSC Website Design"
         style={{ width: "100%", height: "auto", display: "block" }}
       />
       <img
-        src={`${SQ}/c27ed75a-dd6e-417f-b7ae-11c44866f49f/-web-preview-cursor-pgtsnd.png`}
+        src={"/images/site/-web-preview-cursor-pgtsnd.png"}
         alt=""
         style={{
           position: "absolute",
@@ -122,7 +120,7 @@ export default function AlaskaBeringSeaCrabbers() {
           <ScrollBadge position="bottom-left" bottomOffset={-58} />
           <div style={{ width: "100%", height: "50vh", overflow: "hidden" }}>
             <img
-              src={`${SQ}/0eab44ed-59d7-415a-9980-b6471600ece4/pgtsnd-ABSC-photography-5.jpeg`}
+              src={"/images/case-studies/absc/pgtsnd-ABSC-photography-5.jpeg"}
               alt="Alaska Bering Sea"
               style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block" }}
             />
@@ -133,7 +131,7 @@ export default function AlaskaBeringSeaCrabbers() {
         <section style={{ padding: "40px 80px 0", position: "relative" }}>
           <div style={{ width: "100%", height: "65vh", overflow: "hidden" }}>
             <img
-              src={`${SQ}/c5281c8f-b90b-47e2-91dd-19022c0c5d1d/ABSC-200.jpg`}
+              src={"/images/case-studies/absc/ABSC-200.jpg"}
               alt="Alaska Bering Sea Crabbers"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
@@ -141,7 +139,7 @@ export default function AlaskaBeringSeaCrabbers() {
           <div style={{ maxWidth: "440px", position: "relative", marginTop: "-100px", marginLeft: "40px", zIndex: 2 }}>
             <div style={{ width: "64px", height: "64px", borderRadius: "50%", overflow: "hidden", marginBottom: "-32px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
               <img
-                src={`${SQ}/2de5fc52-919a-43e2-98e1-c4490cca1679/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg`}
+                src={"/images/case-studies/absc/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"}
                 alt="Jamie Goen"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
@@ -176,11 +174,11 @@ export default function AlaskaBeringSeaCrabbers() {
         <section style={{ padding: "0 80px 80px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", position: "relative" }}>
             <VideoPlaceholder
-              thumbnail={`${SQ}/a9d2a33a-a7ff-4efb-b7bc-ff22878011b6/pgtsnd-ABSC-photography-7.jpeg`}
+              thumbnail={"/images/case-studies/absc/pgtsnd-ABSC-photography-7.jpeg"}
               duration="05:04"
             />
             <VideoPlaceholder
-              thumbnail={`${SQ}/b9c6c138-9126-4b01-bb8f-d39e0aace022/pgtsnd-ABSC-photography-2.jpeg`}
+              thumbnail={"/images/case-studies/absc/pgtsnd-ABSC-photography-2.jpeg"}
               duration="05:02"
             />
             <div style={{ position: "absolute", top: "16px", right: "16px", zIndex: 2 }}>
@@ -269,7 +267,7 @@ export default function AlaskaBeringSeaCrabbers() {
           <div style={{ maxWidth: "440px" }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
               <img
-                src={`${SQ}/2de5fc52-919a-43e2-98e1-c4490cca1679/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg`}
+                src={"/images/case-studies/absc/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"}
                 alt="Jamie Goen"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />

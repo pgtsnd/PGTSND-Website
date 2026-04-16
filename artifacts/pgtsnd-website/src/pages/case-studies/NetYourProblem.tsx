@@ -8,20 +8,18 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({
   ...s,
 });
 
-const SQ = "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5";
-
 const services = ["Video Production", "Photography"];
 
-const heroImage = `${SQ}/08b66ad6-17cc-43cb-8a86-a19c5f3551e4/net-your-problem-pgt-snd-photography-1.jpeg`;
+const heroImage = "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-1.jpeg";
 
 const galleryImages = [
-  `${SQ}/f1410478-0f76-4db0-9aba-7ceb4363c9a8/net-your-progblem-pgtsnd-photography-2.jpeg`,
-  `${SQ}/acec269d-a5b2-4b82-9332-b6e982cd9cae/net-your-problem-pgt-snd-photography-4.jpeg`,
-  `${SQ}/be5237a8-936d-4538-915d-b8db05077921/net-your-problem-pgt-snd-photography-5.jpeg`,
-  `${SQ}/5cf309ca-c19a-4859-a7f1-bfc4abcf45bb/net-your-problem-pgtsnd-photography-6.jpeg`,
-  `${SQ}/41d1c9b8-7c7a-43d3-b21d-e53aaf6c0e57/net-your-problem-pgtsnd-photography-7.jpeg`,
-  `${SQ}/17f226d3-a08b-46c2-8ef3-bfa25b1a99c4/net-your-problem-pgtsnd-photography-8.jpeg`,
-  `${SQ}/b5496abf-5414-40c0-9185-8d45b3f07a40/net-your-problem-pgtsnd-photgraphy-9.jpeg`,
+  "/images/case-studies/net-your-problem/net-your-progblem-pgtsnd-photography-2.jpeg",
+  "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-4.jpeg",
+  "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-5.jpeg",
+  "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-6.jpeg",
+  "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-7.jpeg",
+  "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-8.jpeg",
+  "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photgraphy-9.jpeg",
   heroImage,
 ];
 
@@ -80,7 +78,7 @@ export default function NetYourProblem() {
             <div style={{ position: "absolute", bottom: "40px", left: "60px", maxWidth: "420px" }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
                 <img
-                  src={`${SQ}/3ac5c6c9-cb24-463f-b0e5-f7e38da1179b/nicole-baker-pgtsnd.jpg`}
+                  src={"/images/nicole-baker-pgtsnd.jpg"}
                   alt="Nicole Baker"
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
@@ -115,7 +113,7 @@ export default function NetYourProblem() {
               </p>
             </div>
             <VideoPlaceholder
-              thumbnail={`${SQ}/17f226d3-a08b-46c2-8ef3-bfa25b1a99c4/net-your-problem-pgtsnd-photography-8.jpeg`}
+              thumbnail={"/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-8.jpeg"}
               duration="05:04"
             />
           </div>
@@ -186,7 +184,7 @@ export default function NetYourProblem() {
           <div style={{ maxWidth: "440px" }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
               <img
-                src={`${SQ}/3ac5c6c9-cb24-463f-b0e5-f7e38da1179b/nicole-baker-pgtsnd.jpg`}
+                src={"/images/nicole-baker-pgtsnd.jpg"}
                 alt="Nicole Baker"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />

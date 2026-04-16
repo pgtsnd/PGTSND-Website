@@ -9,7 +9,7 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({
   ...s,
 });
 
-const SQ = "https://images.squarespace-cdn.com/content/v1/6437205938fdc67907c14df5";
+
 
 const services = [
   ["Strategy", "Graphic Design"],
@@ -19,12 +19,12 @@ const services = [
 ];
 
 const galleryImages = [
-  `${SQ}/2b467b4e-c589-4307-9467-83d43335b25e/nw-sablefish-pgtsnd-photography-2.JPG`,
-  `${SQ}/30ed6117-3506-43a2-95c2-ea5e9488664f/nw-sablefish-pgtsnd-photography-4.jpg`,
-  `${SQ}/93006ba2-8cb2-4602-994e-d06460bddefb/nw-sablefish-pgtsnd-photography-7.jpeg`,
-  `${SQ}/9418b4da-9a64-4271-b863-1fcb42572e1c/nw-sablefish-pgtsnd-photography-9.JPG`,
-  `${SQ}/c647e711-0513-486e-9838-da5fab65a4bf/nw-sablefish-pgtsnd-photography-3.jpg`,
-  `${SQ}/46196bcd-86d8-4ae1-a37a-2c48c3d37a14/nw-sablefish-pgtsnd-photography-8.jpg`,
+  "/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-2.JPG",
+  "/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-4.jpg",
+  "/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-7.jpeg",
+  "/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-9.JPG",
+  "/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-3.jpg",
+  "/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-8.jpg",
 ];
 
 const socialLinks = [
@@ -95,7 +95,7 @@ export default function NWSablefish() {
           {/* Topo background at bottom of hero */}
           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "200px", overflow: "hidden", pointerEvents: "none" }}>
             <img
-              src={`${SQ}/4008209d-9f29-48a0-94f1-0b7cd95b6c1c/sablefish-topo-blue2+%281%29.png`}
+              src={"/images/case-studies/nw-sablefish/sablefish-topo-blue2-1.png"}
               alt=""
               style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", opacity: 0.4 }}
             />
@@ -106,7 +106,7 @@ export default function NWSablefish() {
         <section style={{ padding: "0 40px 40px" }}>
           <div style={{ position: "relative", overflow: "hidden" }}>
             <img
-              src={`${SQ}/b24b005a-f922-48e9-adae-3fcbf9c75d17/pgtsnd-nw-sablefish-brand-identity-mockups.png`}
+              src={"/images/case-studies/nw-sablefish/pgtsnd-nw-sablefish-brand-identity-mockups.png"}
               alt="NW Sablefish Brand Identity Mockups"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
@@ -117,7 +117,7 @@ export default function NWSablefish() {
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
           <div style={{ position: "relative", overflow: "hidden" }}>
             <img
-              src={`${SQ}/84f78130-4f80-4f34-bef0-2a50f376afd7/pgtsnd-fish-tail-nw-sablefish.jpg`}
+              src={"/images/case-studies/nw-sablefish/pgtsnd-fish-tail-nw-sablefish.jpg"}
               alt="Sablefish on Ice"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
@@ -141,7 +141,7 @@ export default function NWSablefish() {
             {/* Gold Fish Icon */}
             <div style={{ position: "absolute", top: "30px", right: "60px" }}>
               <img
-                src={`${SQ}/a37a20d0-69f0-4978-9558-53bc5ead5e7f/NWsablefish-fish-gold.png`}
+                src={"/images/case-studies/nw-sablefish/NWsablefish-fish-gold.png"}
                 alt="NW Sablefish Logo"
                 style={{ width: "80px", height: "auto" }}
               />
@@ -150,7 +150,7 @@ export default function NWSablefish() {
             <div style={{ position: "absolute", bottom: "40px", right: "60px", maxWidth: "420px" }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
                 <img
-                  src={`${SQ}/4d53ebb7-4229-4ee2-bdc4-72340741072f/katie-harris-headshot-pgtsnd-testimonial.jpg`}
+                  src={"/images/about/katie-harris-headshot-pgtsnd-testimonial.jpg"}
                   alt="Katie Harris"
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
@@ -172,13 +172,13 @@ export default function NWSablefish() {
           <div style={{ position: "relative" }}>
             <div style={{ background: "#ffffff", borderRadius: "4px", overflow: "hidden", boxShadow: "0 8px 40px rgba(0,0,0,0.5)" }}>
               <img
-                src={`${SQ}/cb796e45-9ea0-4aca-82a3-1b2731646233/nw-sablefish-identity-guide-pgtsndpdf.png`}
+                src={"/images/case-studies/nw-sablefish/nw-sablefish-identity-guide-pgtsndpdf.png"}
                 alt="NW Sablefish Identity Guide"
                 style={{ width: "100%", height: "auto", display: "block" }}
               />
             </div>
             <img
-              src={`${SQ}/f512947b-c151-4c55-b1b5-e7cd77b5ed6e/NWsablefish-arrow-gold.png`}
+              src={"/images/case-studies/nw-sablefish/NWsablefish-arrow-gold.png"}
               alt=""
               style={{ position: "absolute", bottom: "-20px", right: "-10px", width: "50px", height: "auto", transform: "rotate(15deg)" }}
             />
@@ -211,21 +211,21 @@ export default function NWSablefish() {
           }}>
             <div style={{ position: "absolute", inset: 0, opacity: 0.3 }}>
               <img
-                src={`${SQ}/4008209d-9f29-48a0-94f1-0b7cd95b6c1c/sablefish-topo-blue2+%281%29.png`}
+                src={"/images/case-studies/nw-sablefish/sablefish-topo-blue2-1.png"}
                 alt=""
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
             <PhoneMockup
-              src={`${SQ}/2b467b4e-c589-4307-9467-83d43335b25e/nw-sablefish-pgtsnd-photography-2.JPG`}
+              src={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-2.JPG"}
               style={{ transform: "translateY(10px)", zIndex: 1 }}
             />
             <PhoneMockup
-              src={`${SQ}/c647e711-0513-486e-9838-da5fab65a4bf/nw-sablefish-pgtsnd-photography-3.jpg`}
+              src={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-3.jpg"}
               style={{ transform: "translateY(-10px)", zIndex: 2 }}
             />
             <PhoneMockup
-              src={`${SQ}/46196bcd-86d8-4ae1-a37a-2c48c3d37a14/nw-sablefish-pgtsnd-photography-8.jpg`}
+              src={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-8.jpg"}
               style={{ transform: "translateY(10px)", zIndex: 1 }}
             />
           </div>
@@ -262,12 +262,12 @@ export default function NWSablefish() {
               onMouseLeave={() => setWebHovered(false)}
             >
               <img
-                src={`${SQ}/bd8c08da-74fd-4f9f-847f-3b3661605642/nw-sablefish-website-design-pgtsnd.jpeg`}
+                src={"/images/case-studies/nw-sablefish/nw-sablefish-website-design-pgtsnd.jpeg"}
                 alt="NW Sablefish Website"
                 style={{ width: "100%", height: "auto", display: "block", borderRadius: "4px", border: "2px solid rgba(255,255,255,0.15)" }}
               />
               <img
-                src={`${SQ}/f512947b-c151-4c55-b1b5-e7cd77b5ed6e/NWsablefish-arrow-gold.png`}
+                src={"/images/case-studies/nw-sablefish/NWsablefish-arrow-gold.png"}
                 alt=""
                 style={{
                   position: "absolute",
@@ -301,7 +301,7 @@ export default function NWSablefish() {
         {/* Fish Sticker + ScrollBadge */}
         <section style={{ padding: "0 80px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <img
-            src={`${SQ}/a37a20d0-69f0-4978-9558-53bc5ead5e7f/NWsablefish-fish-gold.png`}
+            src={"/images/case-studies/nw-sablefish/NWsablefish-fish-gold.png"}
             alt="NW Sablefish"
             style={{ width: "60px", height: "auto" }}
           />
@@ -354,7 +354,7 @@ export default function NWSablefish() {
           <div style={{ maxWidth: "440px" }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
               <img
-                src={`${SQ}/4d53ebb7-4229-4ee2-bdc4-72340741072f/katie-harris-headshot-pgtsnd-testimonial.jpg`}
+                src={"/images/about/katie-harris-headshot-pgtsnd-testimonial.jpg"}
                 alt="Katie Harris"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
