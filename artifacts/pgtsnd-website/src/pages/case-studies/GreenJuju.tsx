@@ -194,7 +194,7 @@ export default function GreenJuju() {
 
         {/* Social Media Showcase */}
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
-          <ScrollBadge position="bottom-left" bottomOffset={867} />
+          <ScrollBadge position="bottom-left" bottomOffset={842} />
           <div
             style={{
               position: "relative",
