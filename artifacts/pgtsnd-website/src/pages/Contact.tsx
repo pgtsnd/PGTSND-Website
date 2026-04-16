@@ -60,10 +60,11 @@ export default function Contact() {
     fontFamily: "'Montserrat', sans-serif",
     fontWeight: 400,
     fontSize: "15px",
-    color: "#000000",
-    background: "#ffffff",
+    color: "#ffffff",
+    background: "transparent",
     border: "none",
-    padding: "14px 16px",
+    borderBottom: "1px solid rgba(255,255,255,0.3)",
+    padding: "14px 0",
     width: "100%",
     outline: "none",
     boxSizing: "border-box",
@@ -157,62 +158,8 @@ export default function Contact() {
           </div>
         </section>
 
-        {/* Service Selector Tabs */}
-        <section style={{ padding: "120px 80px 0" }}>
-          <h2 style={f({ fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: "24px" })}>
-            What are you looking for?
-          </h2>
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "60px" }}>
-            {serviceOptions.map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => setSelectedService(selectedService === opt.id ? null : opt.id)}
-                style={{
-                  padding: "12px 28px",
-                  borderRadius: "999px",
-                  border: selectedService === opt.id ? "2px solid #ffffff" : "2px solid rgba(255,255,255,0.25)",
-                  background: selectedService === opt.id ? "#ffffff" : "transparent",
-                  color: selectedService === opt.id ? "#000000" : "rgba(255,255,255,0.8)",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  ...f({ fontWeight: 600, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em" }),
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
-            <a
-              href="https://calendly.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                padding: "12px 28px",
-                borderRadius: "999px",
-                border: "2px solid rgba(255,255,255,0.25)",
-                background: "transparent",
-                color: "rgba(255,255,255,0.8)",
-                cursor: "pointer",
-                textDecoration: "none",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                transition: "all 0.2s ease",
-                ...f({ fontWeight: 600, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em" }),
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              Book a Discovery Call
-            </a>
-          </div>
-        </section>
-
         {/* Form + What to Expect */}
-        <section style={{ padding: "0 80px 200px" }}>
+        <section style={{ padding: "120px 80px 200px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "120px", alignItems: "start" }}>
             {/* Form */}
             <div>
@@ -227,9 +174,9 @@ export default function Contact() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit}>
-                  <div style={{ marginBottom: "28px" }}>
+                  <div style={{ marginBottom: "32px" }}>
                     <label style={labelStyle}>Name</label>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
                       <div>
                         <span style={{ ...labelStyle, fontSize: "11px", marginBottom: "4px" }}>
                           First Name <span style={requiredMark}>(required)</span>
@@ -257,7 +204,7 @@ export default function Contact() {
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: "28px" }}>
+                  <div style={{ marginBottom: "32px" }}>
                     <label style={labelStyle}>
                       Email <span style={requiredMark}>(required)</span>
                     </label>
@@ -270,7 +217,7 @@ export default function Contact() {
                     />
                   </div>
 
-                  <div style={{ marginBottom: "28px" }}>
+                  <div style={{ marginBottom: "32px" }}>
                     <label style={labelStyle}>Phone</label>
                     <input
                       type="tel"
@@ -280,15 +227,26 @@ export default function Contact() {
                     />
                   </div>
 
-                  <div style={{ marginBottom: "28px" }}>
-                    <label style={labelStyle}>Website</label>
-                    <input
-                      type="url"
-                      placeholder="http://"
-                      value={formData.website}
-                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      style={inputStyle}
-                    />
+                  <div style={{ marginBottom: "32px" }}>
+                    <label style={labelStyle}>What are you looking for?</label>
+                    <select
+                      value={selectedService || ""}
+                      onChange={(e) => setSelectedService(e.target.value || null)}
+                      style={{
+                        ...inputStyle,
+                        appearance: "none",
+                        WebkitAppearance: "none",
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 0 center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <option value="" style={{ background: "#000" }}>Select a service</option>
+                      {serviceOptions.map((opt) => (
+                        <option key={opt.id} value={opt.id} style={{ background: "#000" }}>{opt.label}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <div style={{ marginBottom: "40px" }}>
@@ -297,33 +255,61 @@ export default function Contact() {
                     </label>
                     <textarea
                       required
-                      rows={5}
+                      rows={4}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      style={{ ...inputStyle, resize: "vertical", display: "block" }}
+                      style={{ ...inputStyle, resize: "vertical", display: "block", borderBottom: "1px solid rgba(255,255,255,0.3)" }}
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    style={{
-                      padding: "14px 36px",
-                      border: "2px solid #ffffff",
-                      borderRadius: "999px",
-                      background: "transparent",
-                      color: "#ffffff",
-                      cursor: "pointer",
-                      ...f({ fontWeight: 700, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.12em" }),
-                    }}
-                  >
-                    Submit
-                  </button>
+                  <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                    <button
+                      type="submit"
+                      style={{
+                        padding: "14px 36px",
+                        border: "2px solid #ffffff",
+                        borderRadius: "999px",
+                        background: "#ffffff",
+                        color: "#000000",
+                        cursor: "pointer",
+                        ...f({ fontWeight: 700, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.12em" }),
+                      }}
+                    >
+                      Submit
+                    </button>
+                    <a
+                      href="https://calendly.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        padding: "14px 36px",
+                        border: "2px solid rgba(255,255,255,0.3)",
+                        borderRadius: "999px",
+                        background: "transparent",
+                        color: "#ffffff",
+                        cursor: "pointer",
+                        textDecoration: "none",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        ...f({ fontWeight: 600, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em" }),
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                      Book a Call
+                    </a>
+                  </div>
                 </form>
               )}
             </div>
 
             {/* What to Expect */}
-            <div style={{ borderLeft: "2px solid rgba(255,255,255,0.2)", paddingLeft: "60px" }}>
+            <div style={{ borderLeft: "1px solid rgba(255,255,255,0.15)", paddingLeft: "60px" }}>
               <h2 style={f({ fontWeight: 900, fontSize: "clamp(28px, 3.5vw, 42px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "40px" })}>
                 What to Expect
               </h2>
