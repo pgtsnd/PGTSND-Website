@@ -456,7 +456,7 @@ export default function GreenJuju() {
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff" })}>
               Partnership Results
             </h2>
-            <div style={{ marginTop: "40px" }}>
+            <div style={{ marginTop: "290px" }}>
               <ScrollBadge position="bottom-right" inline />
             </div>
           </div>
