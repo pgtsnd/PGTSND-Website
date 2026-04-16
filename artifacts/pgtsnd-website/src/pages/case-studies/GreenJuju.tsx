@@ -238,18 +238,11 @@ export default function GreenJuju() {
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: "40px" }}>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: "12px" }}>
-              <img
-                src={"/images/case-studies/green-juju/green-juju-snack-cutout-pgtsnd.png"}
-                alt="Green Juju product"
-                style={{ width: "140px", height: "auto" }}
-              />
-              <img
-                src={"/images/case-studies/green-juju/dog-with-treats-green-juju-pgtsnd.png"}
-                alt="Dog with Green Juju treats"
-                style={{ width: "180px", height: "auto", marginTop: "-140px", position: "relative", zIndex: 2 }}
-              />
-            </div>
+            <img
+              src={"/images/case-studies/green-juju/dog-with-treats-green-juju-pgtsnd.png"}
+              alt="Dog with Green Juju treats"
+              style={{ width: "180px", height: "auto", marginTop: "-140px", position: "relative", zIndex: 2 }}
+            />
             <a
               href="https://www.instagram.com/greenjuju"
               target="_blank"
@@ -553,6 +546,15 @@ export default function GreenJuju() {
           <img
             src={"/images/case-studies/green-juju/green-juju-ingredientspgtsnd-photography.jpeg"}
             alt="Green Juju Product Lineup"
+            style={{ width: "100%", height: "auto", display: "block" }}
+          />
+        </section>
+
+        {/* Snack Cutout Full Width */}
+        <section style={{ padding: "0" }}>
+          <img
+            src={"/images/case-studies/green-juju/green-juju-snack-cutout-pgtsnd.png"}
+            alt="Green Juju snack"
             style={{ width: "100%", height: "auto", display: "block" }}
           />
         </section>
