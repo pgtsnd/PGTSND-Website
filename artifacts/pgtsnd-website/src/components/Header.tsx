@@ -135,6 +135,22 @@ export default function Header() {
                   setMenuOpen(false);
                   navigate(link.href);
                 }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.06)";
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.letterSpacing = "0.04em";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.opacity = "0.85";
+                  e.currentTarget.style.letterSpacing = "0.01em";
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = "scale(0.96)";
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = "scale(1.06)";
+                }}
                 style={{
                   fontFamily: "'Montserrat', sans-serif",
                   fontWeight: 600,
@@ -142,9 +158,12 @@ export default function Header() {
                   letterSpacing: "0.01em",
                   lineHeight: 1.8,
                   color: "#ffffff",
+                  opacity: 0.85,
                   textDecoration: "none",
                   display: "block",
                   textAlign: "center",
+                  transition: "transform 0.2s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease, letter-spacing 0.2s ease",
+                  cursor: "pointer",
                 }}
               >
                 {link.label}
