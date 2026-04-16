@@ -51,7 +51,7 @@ export default function AlaskaWhitefishTrawlers() {
                   <img
                     src={"/images/case-studies/awt/alaska-whitefish-web-design-sample-2.png"}
                     alt="Alaska Whitefish Trawlers Website on Laptop"
-                    style={{ width: "100%", display: "block", transform: "translateY(88px)" }}
+                    style={{ width: "100%", display: "block", transform: "translateY(-62px)" }}
                   />
                 </div>
               </div>
