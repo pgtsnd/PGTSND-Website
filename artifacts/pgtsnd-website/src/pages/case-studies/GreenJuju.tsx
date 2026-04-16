@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import CTAButton from "../../components/CTAButton";
 import ScrollBadge from "../../components/ScrollBadge";
 import Footer from "../../components/Footer";
@@ -436,6 +436,9 @@ export default function GreenJuju() {
           </div>
         </section>
 
+        {/* Veggie Horizontal Scroll Bar */}
+        <VeggieScrollBar />
+
         {/* Vitality Blend Flat Lay */}
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
           <div style={{ width: "100%", overflow: "hidden" }}>
@@ -584,5 +587,58 @@ export default function GreenJuju() {
         <Footer />
       </div>
     </>
+  );
+}
+
+function VeggieScrollBar() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const el = sectionRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const total = rect.height + vh;
+      const passed = vh - rect.top;
+      const p = Math.max(0, Math.min(1, passed / total));
+      setProgress(p);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  const overflowPct = 60;
+  const translatePct = -overflowPct * progress;
+
+  return (
+    <section
+      ref={sectionRef}
+      style={{ padding: "0 40px 40px", position: "relative" }}
+    >
+      <div style={{ width: "100%", overflow: "hidden", height: "320px" }}>
+        <img
+          src={"/images/case-studies/green-juju/green-juju-vitality-blend-pgtsnd.jpeg"}
+          alt="Green Juju Vitality Blend Ingredients"
+          style={{
+            width: `${100 + overflowPct}%`,
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            transform: `translateX(${translatePct}%)`,
+            willChange: "transform",
+          }}
+        />
+      </div>
+      <div style={{ position: "absolute", bottom: "60px", right: "60px" }}>
+        <ScrollBadge position="bottom-right" inline />
+      </div>
+    </section>
   );
 }
