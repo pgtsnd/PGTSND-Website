@@ -353,7 +353,7 @@ export default function NWSablefish() {
               alt="NW Sablefish"
               style={{ width: "150px", height: "auto", transform: "translateY(80px)", position: "relative", zIndex: 10 }}
             />
-            <div style={{ transform: "translateY(70px)" }}>
+            <div style={{ transform: "translateY(77px)", position: "relative", zIndex: 10 }}>
               <ScrollBadge position="bottom-right" inline />
             </div>
           </div>
