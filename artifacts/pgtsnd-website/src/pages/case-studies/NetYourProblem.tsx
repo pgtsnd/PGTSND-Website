@@ -271,6 +271,35 @@ export default function NetYourProblem() {
           </div>
         </section>
 
+        <section style={{ padding: "0 80px 80px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
+            {[
+              { src: "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-6.jpeg", span: 1 },
+              { src: "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-4.jpeg", span: 1 },
+              { src: "/images/case-studies/net-your-problem/net-your-progblem-pgtsnd-photography-2.jpeg", span: 1 },
+              { src: "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photgraphy-9.jpeg", span: 2 },
+              { src: "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-7.jpeg", span: 1 },
+              { src: "/images/case-studies/net-your-problem/net-your-problem-pgt-snd-photography-5.jpeg", span: 1 },
+              { src: "/images/case-studies/net-your-problem/net-your-problem-pgtsnd-photography-8.jpeg", span: 2 },
+            ].map((photo, i) => (
+              <div
+                key={i}
+                style={{
+                  gridColumn: photo.span === 2 ? "span 2" : "span 1",
+                  height: photo.span === 2 ? "380px" : "320px",
+                  overflow: "hidden",
+                }}
+              >
+                <img
+                  src={photo.src}
+                  alt=""
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
         <GalleryCarousel images={galleryImages} />
 
         <section style={{ padding: "40px 80px 80px" }}>
