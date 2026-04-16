@@ -35,8 +35,16 @@ export interface IntegrationSetting {
   type: string;
   enabled: boolean;
   config: Record<string, string>;
+  encrypted?: boolean;
   createdAt: string | null;
   updatedAt: string | null;
+}
+
+export interface VaultStatus {
+  active: boolean;
+  totalWithKeys: number;
+  encryptedCount: number;
+  unencryptedCount: number;
 }
 
 export interface InvoiceData {
@@ -137,6 +145,29 @@ export function useSendInvoice() {
       apiFetch(`/invoices/${invoiceId}/send`, { method: "POST" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    },
+  });
+}
+
+export function useVaultStatus() {
+  const { user } = useAuth();
+  return useQuery<VaultStatus>({
+    queryKey: ["/api/integrations/vault"],
+    queryFn: () => apiFetch("/integrations/vault"),
+    enabled: !!user,
+    staleTime: 30000,
+  });
+}
+
+export function useEncryptExisting() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      apiFetch("/integrations/vault/encrypt-existing", { method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations/vault"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
     },
   });
 }

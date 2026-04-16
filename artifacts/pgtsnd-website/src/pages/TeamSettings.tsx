@@ -8,6 +8,8 @@ import {
   useIntegrations,
   useUpdateIntegration,
   useDisconnectIntegration,
+  useVaultStatus,
+  useEncryptExisting,
   type IntegrationSetting,
 } from "../hooks/useIntegrations";
 
@@ -207,8 +209,10 @@ const integrationMeta: Record<string, { label: string; desc: string; fields: { k
 
 function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
   const { data: integrations, isLoading } = useIntegrations();
+  const { data: vault } = useVaultStatus();
   const updateMutation = useUpdateIntegration();
   const disconnectMutation = useDisconnectIntegration();
+  const encryptExisting = useEncryptExisting();
   const [expandedType, setExpandedType] = useState<string | null>(null);
   const [formData, setFormData] = useState<Record<string, Record<string, string>>>({});
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
@@ -259,13 +263,57 @@ function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
   return (
     <div>
       <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Integrations</h2>
-      <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "24px" })}>Connect external services to power billing, file storage, messaging, and contracts.</p>
+      <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "16px" })}>Connect external services to power billing, file storage, messaging, and contracts.</p>
+
+      {vault && (
+        <div style={{
+          background: vault.active ? "rgba(96,208,96,0.05)" : "rgba(255,180,60,0.05)",
+          border: `1px solid ${vault.active ? "rgba(96,208,96,0.15)" : "rgba(255,180,60,0.15)"}`,
+          borderRadius: "8px", padding: "14px 18px", marginBottom: "20px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={vault.active ? "rgba(96,208,96,0.8)" : "rgba(255,180,60,0.8)"} strokeWidth="2">
+              {vault.active ? (
+                <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></>
+              ) : (
+                <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 019.9-1"/></>
+              )}
+            </svg>
+            <div>
+              <p style={f({ fontWeight: 600, fontSize: "12px", color: t.text })}>
+                {vault.active ? "Vault Encryption Active" : "Vault Not Configured"}
+              </p>
+              <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+                {vault.active
+                  ? `AES-256-GCM  --  ${vault.encryptedCount} encrypted, ${vault.unencryptedCount} pending`
+                  : "API keys are stored as plain text. Set VAULT_MASTER_KEY to enable encryption."}
+              </p>
+            </div>
+          </div>
+          {vault.active && vault.unencryptedCount > 0 && (
+            <button
+              onClick={() => encryptExisting.mutate()}
+              disabled={encryptExisting.isPending}
+              style={f({
+                fontWeight: 600, fontSize: "11px", color: t.accentText,
+                background: t.accent, border: "none", borderRadius: "5px",
+                padding: "7px 14px", cursor: "pointer", whiteSpace: "nowrap" as const,
+                opacity: encryptExisting.isPending ? 0.7 : 1,
+              })}
+            >
+              {encryptExisting.isPending ? "Encrypting..." : "Encrypt All"}
+            </button>
+          )}
+        </div>
+      )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {types.map((type) => {
           const meta = integrationMeta[type];
           const integration = getIntegration(type);
           const isConnected = integration?.enabled ?? false;
+          const isEncrypted = integration?.encrypted ?? false;
           const isExpanded = expandedType === type;
 
           return (
@@ -292,6 +340,11 @@ function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
                         padding: "2px 8px", borderRadius: "3px", letterSpacing: "0.05em",
                       })}>Connected</span>
                     )}
+                    {isConnected && isEncrypted && (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(96,208,96,0.6)" strokeWidth="2" title="Encrypted at rest">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
+                    )}
                   </div>
                   <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>{meta.desc}</p>
                 </div>
@@ -313,18 +366,26 @@ function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
                             textTransform: "uppercase", letterSpacing: "0.06em",
                             display: "block", marginBottom: "6px",
                           })}>{field.label}</label>
-                          <input
-                            type={field.sensitive ? "password" : "text"}
-                            value={currentValue}
-                            onChange={(e) => handleFieldChange(type, field.key, e.target.value)}
-                            placeholder={savedValue || field.placeholder}
-                            style={f({
-                              fontWeight: 400, fontSize: "13px", color: t.text,
-                              background: t.bgCard, border: `1px solid ${t.border}`,
-                              borderRadius: "6px", padding: "10px 14px", width: "100%",
-                              outline: "none", boxSizing: "border-box" as const,
-                            })}
-                          />
+                          <div style={{ position: "relative" }}>
+                            <input
+                              type={field.sensitive ? "password" : "text"}
+                              value={currentValue}
+                              onChange={(e) => handleFieldChange(type, field.key, e.target.value)}
+                              placeholder={savedValue || field.placeholder}
+                              style={f({
+                                fontWeight: 400, fontSize: "13px", color: t.text,
+                                background: t.bgCard, border: `1px solid ${t.border}`,
+                                borderRadius: "6px", padding: "10px 14px", width: "100%",
+                                outline: "none", boxSizing: "border-box" as const,
+                                paddingRight: field.sensitive && savedValue ? "36px" : "14px",
+                              })}
+                            />
+                            {field.sensitive && savedValue && (
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isEncrypted ? "rgba(96,208,96,0.5)" : "rgba(255,180,60,0.5)"} strokeWidth="2" style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)" }}>
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                              </svg>
+                            )}
+                          </div>
                         </div>
                       );
                     })}

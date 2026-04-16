@@ -1,5 +1,6 @@
 import { db, integrationSettingsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
+import { decryptConfig, isVaultReady } from "./vault";
 
 export interface DriveFile {
   id: string;
@@ -32,8 +33,10 @@ async function getDriveConfig(): Promise<DriveConfig | null> {
     )
     .limit(1);
 
-  if (!settings?.config?.accessToken) return null;
-  return settings.config as unknown as DriveConfig;
+  if (!settings?.config) return null;
+  const config = isVaultReady() ? decryptConfig(settings.config) : settings.config;
+  if (!config.accessToken) return null;
+  return config as unknown as DriveConfig;
 }
 
 export async function isDriveConnected(): Promise<boolean> {

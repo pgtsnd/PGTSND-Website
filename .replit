@@ -41,3 +41,8 @@ externalPort = 5000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+VAULT_MASTER_KEY = "ef65f2d5884c78d2b660b289c1b9dde7d714dfc14c29474421ae629ecf300040"

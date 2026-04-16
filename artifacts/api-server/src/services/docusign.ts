@@ -1,5 +1,6 @@
 import { db, integrationSettingsTable, contractsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
+import { decryptConfig, isVaultReady } from "./vault";
 
 interface DocuSignConfig {
   accessToken: string;
@@ -19,11 +20,13 @@ async function getDocuSignConfig(): Promise<DocuSignConfig | null> {
     )
     .limit(1);
 
-  if (!settings?.config?.accessToken || !settings?.config?.accountId) return null;
+  if (!settings?.config) return null;
+  const config = isVaultReady() ? decryptConfig(settings.config) : settings.config;
+  if (!config.accessToken || !config.accountId) return null;
   return {
-    accessToken: settings.config.accessToken,
-    accountId: settings.config.accountId,
-    basePath: settings.config.basePath || "https://demo.docusign.net/restapi",
+    accessToken: config.accessToken,
+    accountId: config.accountId,
+    basePath: config.basePath || "https://demo.docusign.net/restapi",
   };
 }
 

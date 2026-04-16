@@ -1,5 +1,6 @@
 import { db, integrationSettingsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
+import { decryptConfig, isVaultReady } from "./vault";
 
 export interface SlackMessage {
   ts: string;
@@ -26,8 +27,10 @@ async function getSlackConfig(): Promise<SlackConfig | null> {
     )
     .limit(1);
 
-  if (!settings?.config?.botToken) return null;
-  return settings.config as unknown as SlackConfig;
+  if (!settings?.config) return null;
+  const config = isVaultReady() ? decryptConfig(settings.config) : settings.config;
+  if (!config.botToken) return null;
+  return config as unknown as SlackConfig;
 }
 
 export async function isSlackConnected(): Promise<boolean> {

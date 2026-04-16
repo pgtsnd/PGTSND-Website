@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { db, integrationSettingsTable, invoicesTable, type Invoice } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
+import { decryptConfig, isVaultReady } from "./vault";
 
 let stripeClient: Stripe | null = null;
 
@@ -16,10 +17,13 @@ async function getStripeClient(): Promise<Stripe | null> {
     )
     .limit(1);
 
-  if (!settings?.config?.secretKey) return null;
+  if (!settings?.config) return null;
+
+  const config = isVaultReady() ? decryptConfig(settings.config) : settings.config;
+  if (!config.secretKey) return null;
 
   if (!stripeClient) {
-    stripeClient = new Stripe(settings.config.secretKey, {
+    stripeClient = new Stripe(config.secretKey, {
       apiVersion: "2025-04-30.basil",
     });
   }
@@ -137,15 +141,18 @@ export async function handleStripeWebhook(payload: string, signature: string): P
     .where(eq(integrationSettingsTable.type, "stripe"))
     .limit(1);
 
-  if (!settings?.config?.webhookSecret || !settings?.config?.secretKey) return;
+  if (!settings?.config) return;
 
-  const stripe = new Stripe(settings.config.secretKey, {
+  const config = isVaultReady() ? decryptConfig(settings.config) : settings.config;
+  if (!config.webhookSecret || !config.secretKey) return;
+
+  const stripe = new Stripe(config.secretKey, {
     apiVersion: "2025-04-30.basil",
   });
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(payload, signature, settings.config.webhookSecret);
+    event = stripe.webhooks.constructEvent(payload, signature, config.webhookSecret);
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
     throw new Error("Invalid webhook signature");

@@ -16,6 +16,7 @@ import * as stripeService from "../services/stripe";
 import * as driveService from "../services/google-drive";
 import * as slackService from "../services/slack";
 import * as docuSignService from "../services/docusign";
+import { encryptConfig, maskConfig, decryptConfig, isVaultReady } from "../services/vault";
 
 const router = Router();
 
@@ -24,26 +25,31 @@ router.get(
   requireRole("owner", "partner"),
   async (_req, res) => {
     const settings = await db.select().from(integrationSettingsTable);
+    const vaultActive = isVaultReady();
 
     const types = ["stripe", "google_drive", "slack", "docusign"] as const;
     const result = types.map((type) => {
       const existing = settings.find((s) => s.type === type);
       if (existing) {
-        const safeConfig: Record<string, string> = {};
-        if (existing.config) {
-          for (const [key, value] of Object.entries(existing.config)) {
-            if (typeof value === "string" && value.length > 8) {
-              safeConfig[key] = value.slice(0, 4) + "••••" + value.slice(-4);
-            } else {
-              safeConfig[key] = String(value);
-            }
-          }
-        }
+        const safeConfig = existing.config
+          ? (vaultActive ? maskConfig(existing.config) : (() => {
+              const masked: Record<string, string> = {};
+              for (const [key, value] of Object.entries(existing.config!)) {
+                if (typeof value === "string" && value.length > 8) {
+                  masked[key] = value.slice(0, 4) + "••••" + value.slice(-4);
+                } else {
+                  masked[key] = String(value);
+                }
+              }
+              return masked;
+            })())
+          : {};
         return {
           id: existing.id,
           type: existing.type,
           enabled: existing.enabled,
           config: safeConfig,
+          encrypted: vaultActive,
           createdAt: existing.createdAt,
           updatedAt: existing.updatedAt,
         };
@@ -53,6 +59,7 @@ router.get(
         type,
         enabled: false,
         config: {},
+        encrypted: false,
         createdAt: null,
         updatedAt: null,
       };
@@ -76,6 +83,64 @@ router.get(
   },
 );
 
+router.get(
+  "/integrations/vault",
+  requireRole("owner"),
+  async (_req, res) => {
+    const vaultActive = isVaultReady();
+    const settings = await db.select().from(integrationSettingsTable);
+    const total = settings.filter((s) => s.config && Object.keys(s.config).length > 0).length;
+
+    let encryptedCount = 0;
+    if (vaultActive) {
+      for (const s of settings) {
+        if (!s.config) continue;
+        const values = Object.values(s.config);
+        const isEnc = values.some((v) => typeof v === "string" && v.includes(":") && v.split(":").length === 3);
+        if (isEnc) encryptedCount++;
+      }
+    }
+
+    res.json({
+      active: vaultActive,
+      totalWithKeys: total,
+      encryptedCount,
+      unencryptedCount: total - encryptedCount,
+    });
+  },
+);
+
+router.post(
+  "/integrations/vault/encrypt-existing",
+  requireRole("owner"),
+  async (_req, res) => {
+    if (!isVaultReady()) {
+      res.status(400).json({ error: "Vault master key not configured" });
+      return;
+    }
+
+    const settings = await db.select().from(integrationSettingsTable);
+    let migrated = 0;
+
+    for (const s of settings) {
+      if (!s.config || Object.keys(s.config).length === 0) continue;
+
+      const values = Object.values(s.config);
+      const alreadyEncrypted = values.some((v) => typeof v === "string" && v.includes(":") && v.split(":").length === 3);
+      if (alreadyEncrypted) continue;
+
+      const encrypted = encryptConfig(s.config);
+      await db
+        .update(integrationSettingsTable)
+        .set({ config: encrypted })
+        .where(eq(integrationSettingsTable.id, s.id));
+      migrated++;
+    }
+
+    res.json({ message: `Encrypted ${migrated} integration(s)`, migrated });
+  },
+);
+
 router.put(
   "/integrations/:type",
   requireRole("owner", "partner"),
@@ -96,39 +161,52 @@ router.put(
       .where(eq(integrationSettingsTable.type, type as any))
       .limit(1);
 
+    const vaultActive = isVaultReady();
+
     if (existing) {
-      const mergedConfig = { ...existing.config };
+      const existingPlain = vaultActive && existing.config
+        ? decryptConfig(existing.config)
+        : (existing.config ?? {});
+      const mergedConfig = { ...existingPlain };
       if (config) {
         for (const [key, value] of Object.entries(config)) {
           if (typeof value === "string" && !value.includes("••••")) {
-            mergedConfig[key] = value;
+            (mergedConfig as Record<string, string>)[key] = value as string;
           }
         }
       }
+
+      const finalConfig = vaultActive
+        ? encryptConfig(mergedConfig as Record<string, string>)
+        : mergedConfig;
 
       const [updated] = await db
         .update(integrationSettingsTable)
         .set({
           enabled: enabled ?? existing.enabled,
-          config: mergedConfig,
+          config: finalConfig as Record<string, string>,
         })
         .where(eq(integrationSettingsTable.id, existing.id))
         .returning();
 
       if (type === "stripe") stripeService.resetStripeClient();
 
-      res.json({ message: "Integration updated", type, enabled: updated.enabled });
+      res.json({ message: "Integration updated", type, enabled: updated.enabled, encrypted: vaultActive });
     } else {
+      const finalConfig = vaultActive && config
+        ? encryptConfig(config)
+        : (config ?? {});
+
       const [created] = await db
         .insert(integrationSettingsTable)
         .values({
           type: type as any,
           enabled: enabled ?? false,
-          config: config ?? {},
+          config: finalConfig,
         })
         .returning();
 
-      res.status(201).json({ message: "Integration created", type, enabled: created.enabled });
+      res.status(201).json({ message: "Integration created", type, enabled: created.enabled, encrypted: vaultActive });
     }
   },
 );
@@ -264,6 +342,7 @@ router.post(
 
 router.get(
   "/integrations/drive/files",
+  requireRole("owner", "partner", "crew"),
   async (req, res) => {
     const folderId = req.query.folderId as string;
     if (!folderId) {
@@ -278,6 +357,7 @@ router.get(
 
 router.get(
   "/integrations/drive/files/:fileId",
+  requireRole("owner", "partner", "crew"),
   async (req, res) => {
     const file = await driveService.getFileMetadata(req.params.fileId);
     if (!file) {
@@ -290,6 +370,7 @@ router.get(
 
 router.get(
   "/integrations/drive/files/:fileId/download",
+  requireRole("owner", "partner", "crew"),
   async (req, res) => {
     const url = await driveService.getDownloadUrl(req.params.fileId);
     if (!url) {
@@ -330,6 +411,7 @@ router.get(
 
 router.get(
   "/integrations/slack/channels/:channelId/history",
+  requireRole("owner", "partner"),
   async (req, res) => {
     const limit = parseInt(req.query.limit as string) || 50;
     const messages = await slackService.getChannelHistory(req.params.channelId, limit);
@@ -368,6 +450,7 @@ router.post(
 
 router.get(
   "/integrations/docusign/signing-url/:contractId",
+  requireRole("owner", "partner", "crew"),
   async (req, res) => {
     const returnUrl = (req.query.returnUrl as string) || `${req.protocol}://${req.get("host")}/contracts`;
     const url = await docuSignService.getSigningUrl(req.params.contractId, returnUrl);
