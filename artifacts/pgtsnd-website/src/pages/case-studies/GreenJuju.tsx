@@ -388,7 +388,7 @@ export default function GreenJuju() {
         </section>
 
         {/* Full Production Suite + */}
-        <section style={{ padding: "0 80px 180px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "stretch" }}>
+        <section style={{ padding: "0 80px 180px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "start" }}>
           <div>
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(24px, 3vw, 36px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1, color: "#ffffff", marginBottom: "32px" })}>
               Full Production Suite +
@@ -400,11 +400,10 @@ export default function GreenJuju() {
               Our role expanded to copywriting, blogs, website content, and product descriptions, delivered in a consistent voice that balances education, trust, and warmth.
             </p>
           </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div>
             <div
               style={{
-                flex: 1,
-                minHeight: 0,
+                height: "420px",
                 overflowY: "auto",
                 borderRadius: "4px",
                 border: "1px solid rgba(255,255,255,0.15)",
