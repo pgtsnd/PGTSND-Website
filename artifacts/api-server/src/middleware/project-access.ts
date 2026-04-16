@@ -15,7 +15,7 @@ import {
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 
-async function checkProjectAccess(
+export async function checkProjectAccess(
   userId: string,
   role: string,
   projectId: string,

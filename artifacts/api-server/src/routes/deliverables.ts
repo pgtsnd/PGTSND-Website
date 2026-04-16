@@ -63,9 +63,14 @@ router.post(
       return;
     }
 
+    const values = {
+      ...parsed.data,
+      uploadedBy: parsed.data.fileUrl ? req.user!.id : parsed.data.uploadedBy ?? null,
+    };
+
     const [deliverable] = await db
       .insert(deliverablesTable)
-      .values(parsed.data)
+      .values(values)
       .returning();
     validateAndSend(res, selectDeliverableSchema, deliverable, 201);
   },
@@ -87,9 +92,21 @@ router.patch(
       return;
     }
 
+    let updates: typeof parsed.data & { uploadedBy?: string | null } = parsed.data;
+    if (parsed.data.fileUrl !== undefined) {
+      const [existing] = await db
+        .select({ fileUrl: deliverablesTable.fileUrl })
+        .from(deliverablesTable)
+        .where(eq(deliverablesTable.id, req.params.id))
+        .limit(1);
+      if (existing && parsed.data.fileUrl && parsed.data.fileUrl !== existing.fileUrl) {
+        updates = { ...parsed.data, uploadedBy: req.user!.id };
+      }
+    }
+
     const [deliverable] = await db
       .update(deliverablesTable)
-      .set(parsed.data)
+      .set(updates)
       .where(eq(deliverablesTable.id, req.params.id))
       .returning();
 

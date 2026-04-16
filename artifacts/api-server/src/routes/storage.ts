@@ -5,13 +5,12 @@ import {
   db,
   usersTable,
   deliverablesTable,
-  projectsTable,
-  projectMembersTable,
   reviewLinksTable,
 } from "@workspace/db";
 import { RequestUploadUrlBody, RequestUploadUrlResponse } from "@workspace/api-zod";
 import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
 import { verifyToken } from "../lib/auth";
+import { checkProjectAccess } from "../middleware/project-access";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
@@ -34,32 +33,6 @@ async function loadSessionUser(req: Request): Promise<SessionUser | null> {
     .where(eq(usersTable.id, payload.userId))
     .limit(1);
   return user ?? null;
-}
-
-async function userCanAccessProject(user: SessionUser, projectId: string): Promise<boolean> {
-  if (user.role === "owner" || user.role === "partner") return true;
-  if (user.role === "crew") {
-    const [m] = await db
-      .select()
-      .from(projectMembersTable)
-      .where(
-        and(
-          eq(projectMembersTable.projectId, projectId),
-          eq(projectMembersTable.userId, user.id),
-        ),
-      )
-      .limit(1);
-    return !!m;
-  }
-  if (user.role === "client") {
-    const [p] = await db
-      .select({ clientId: projectsTable.clientId })
-      .from(projectsTable)
-      .where(eq(projectsTable.id, projectId))
-      .limit(1);
-    return !!p && p.clientId === user.id;
-  }
-  return false;
 }
 
 async function teamUploaderGuard(req: Request, res: Response, next: NextFunction) {
@@ -209,7 +182,7 @@ router.get(
           res.status(401).json({ error: "Authentication required" });
           return;
         }
-        allowed = await userCanAccessProject(user, deliverable.projectId);
+        allowed = await checkProjectAccess(user.id, user.role, deliverable.projectId);
         if (!allowed) {
           res.status(403).json({ error: "Access denied" });
           return;

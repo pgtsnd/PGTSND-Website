@@ -11,6 +11,7 @@ import { z } from "zod/v4";
 import { randomUUID } from "crypto";
 import { projectsTable } from "./projects";
 import { tasksTable } from "./tasks";
+import { usersTable } from "./users";
 
 export const deliverableTypeEnum = pgEnum("deliverable_type", [
   "video",
@@ -43,6 +44,7 @@ export const deliverablesTable = pgTable(
     type: deliverableTypeEnum("type").notNull().default("other"),
     status: deliverableStatusEnum("status").notNull().default("draft"),
     fileUrl: text("file_url"),
+    uploadedBy: text("uploaded_by").references(() => usersTable.id),
     version: varchar("version", { length: 50 }).default("v1"),
     submittedAt: timestamp("submitted_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
