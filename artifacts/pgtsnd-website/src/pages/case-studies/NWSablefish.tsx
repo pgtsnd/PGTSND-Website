@@ -121,7 +121,7 @@ export default function NWSablefish() {
       <Header />
       <div style={{ background: "#000000", minHeight: "100vh" }}>
         {/* Hero */}
-        <section style={{ padding: "160px 80px 180px", position: "relative", overflow: "hidden" }}>
+        <section style={{ padding: "160px 80px 105px", position: "relative", overflow: "hidden" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", alignItems: "start" }}>
             <div>
               <h1 style={f({ fontWeight: 900, fontSize: "clamp(48px, 6vw, 76px)", textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 0.95, color: "#ffffff", marginBottom: "48px" })}>
