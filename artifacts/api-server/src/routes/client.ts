@@ -275,17 +275,32 @@ router.get(
             project.slackChannelId,
             50,
           );
-          const slackMsgs = slackHistory.map((m) => ({
-            id: `slack-${m.ts}`,
-            senderId: m.user || "slack",
-            senderName: "Slack",
-            senderInitials: "SL",
-            senderRole: "owner",
-            content: m.text,
-            read: true,
-            createdAt: new Date(parseFloat(m.ts) * 1000),
-            isTeam: true,
-          }));
+          const uniqueUserIds = Array.from(
+            new Set(slackHistory.map((m) => m.user).filter((u): u is string => !!u)),
+          );
+          const userInfos = await Promise.all(
+            uniqueUserIds.map((uid) => slackService.getUserInfo(uid)),
+          );
+          const userInfoMap = new Map<string, { name: string; initials: string }>();
+          uniqueUserIds.forEach((uid, idx) => {
+            const info = userInfos[idx];
+            if (info) userInfoMap.set(uid, { name: info.name, initials: info.initials });
+          });
+
+          const slackMsgs = slackHistory.map((m) => {
+            const info = m.user ? userInfoMap.get(m.user) : undefined;
+            return {
+              id: `slack-${m.ts}`,
+              senderId: m.user || "slack",
+              senderName: info?.name ?? "Slack",
+              senderInitials: info?.initials ?? "SL",
+              senderRole: "owner",
+              content: m.text,
+              read: true,
+              createdAt: new Date(parseFloat(m.ts) * 1000),
+              isTeam: true,
+            };
+          });
           projectMessages = slackMsgs.sort(
             (a, b) =>
               new Date(a.createdAt).getTime() -

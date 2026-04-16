@@ -113,6 +113,59 @@ export async function listChannels(): Promise<{ id: string; name: string }[]> {
   }
 }
 
+export interface SlackUserInfo {
+  id: string;
+  name: string;
+  initials: string;
+}
+
+const userInfoCache = new Map<string, { info: SlackUserInfo; expiresAt: number }>();
+const USER_CACHE_TTL_MS = 60 * 60 * 1000;
+
+function computeInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "SL";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export async function getUserInfo(userId: string): Promise<SlackUserInfo | null> {
+  if (!userId) return null;
+
+  const cached = userInfoCache.get(userId);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.info;
+  }
+
+  try {
+    const data = await slackApi("users.info", { user: userId }) as {
+      user: {
+        id: string;
+        name?: string;
+        real_name?: string;
+        profile?: { real_name?: string; display_name?: string };
+      };
+    };
+    const u = data.user;
+    const displayName =
+      u.profile?.real_name ||
+      u.real_name ||
+      u.profile?.display_name ||
+      u.name ||
+      userId;
+    const info: SlackUserInfo = {
+      id: u.id,
+      name: displayName,
+      initials: computeInitials(displayName),
+    };
+    userInfoCache.set(userId, { info, expiresAt: Date.now() + USER_CACHE_TTL_MS });
+    return info;
+  } catch (err) {
+    console.error("Slack get user info error:", err);
+    return null;
+  }
+}
+
 export async function createChannel(name: string): Promise<{ id: string; name: string } | null> {
   const config = await getSlackConfig();
   if (!config) return null;
