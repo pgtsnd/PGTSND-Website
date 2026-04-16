@@ -676,7 +676,7 @@ function VeggieScrollBar() {
               height: "100%",
               objectFit: "cover",
               objectPosition: `${30 + offset * 2}% center`,
-              transform: "scale(1.25)",
+              transform: `scale(1.25) translateX(${10 - offset}%)`,
               display: "block",
               willChange: "object-position, transform",
             }}
