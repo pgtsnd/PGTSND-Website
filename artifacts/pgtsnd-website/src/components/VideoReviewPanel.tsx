@@ -68,8 +68,13 @@ export default function VideoReviewPanel({
   const [hideResolved, setHideResolved] = useState(false);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [resolveNote, setResolveNote] = useState("");
+  const [showResolvedSummary, setShowResolvedSummary] = useState(false);
 
   const unresolvedCount = comments.filter((c) => !c.resolvedAt).length;
+  const resolvedComments = comments
+    .filter((c) => !!c.resolvedAt)
+    .sort((a, b) => new Date(b.resolvedAt!).getTime() - new Date(a.resolvedAt!).getTime());
+  const resolvedCount = resolvedComments.length;
   const visibleComments = hideResolved
     ? comments.filter((c) => !c.resolvedAt)
     : comments;
@@ -141,6 +146,17 @@ export default function VideoReviewPanel({
           })}>
             {unresolvedCount} unresolved
           </span>
+          {resolvedCount > 0 && (
+            <span style={f({
+              marginLeft: "6px", fontWeight: 600, fontSize: "10px",
+              color: "#0a0",
+              background: "rgba(0,170,0,0.12)",
+              padding: "2px 8px", borderRadius: "10px",
+              textTransform: "none", letterSpacing: 0,
+            })}>
+              {resolvedCount} resolved
+            </span>
+          )}
           <span style={f({
             marginLeft: "6px", fontWeight: 400, fontSize: "10px",
             color: t.textMuted, textTransform: "none", letterSpacing: 0,
@@ -228,6 +244,93 @@ export default function VideoReviewPanel({
       )}
 
       <div style={{ flex: 1, overflowY: "auto" }}>
+        {resolvedCount > 0 && (
+          <div style={{
+            marginBottom: "12px",
+            border: `1px solid ${t.borderSubtle}`,
+            borderRadius: "6px",
+            background: "rgba(0,170,0,0.04)",
+          }}>
+            <button
+              onClick={() => setShowResolvedSummary((v) => !v)}
+              style={f({
+                display: "flex", alignItems: "center", gap: "8px",
+                width: "100%", background: "none", border: "none",
+                padding: "8px 10px", cursor: "pointer", textAlign: "left",
+              })}
+              aria-expanded={showResolvedSummary}
+            >
+              <svg
+                width="10" height="10" viewBox="0 0 12 12" fill="none"
+                style={{
+                  transform: showResolvedSummary ? "rotate(90deg)" : "rotate(0deg)",
+                  transition: "transform 0.15s ease",
+                }}
+              >
+                <path d="M4 2 L8 6 L4 10" stroke={t.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span style={f({
+                fontWeight: 600, fontSize: "11px", color: t.textSecondary,
+              })}>
+                Resolved this round
+              </span>
+              <span style={f({
+                fontWeight: 600, fontSize: "10px", color: "#0a0",
+                background: "rgba(0,170,0,0.12)", padding: "1px 7px",
+                borderRadius: "10px",
+              })}>
+                {resolvedCount}
+              </span>
+            </button>
+            {showResolvedSummary && (
+              <div style={{ padding: "0 10px 8px 10px" }}>
+                {resolvedComments.map((rc) => (
+                  <div
+                    key={rc.id}
+                    onClick={() => onCommentClick(rc)}
+                    style={{
+                      padding: "8px 0",
+                      borderTop: `1px solid ${t.borderSubtle}`,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginBottom: "4px" }}>
+                      <span style={f({
+                        fontWeight: 600, fontSize: "10px", color: "rgba(255,200,60,0.9)",
+                        background: "rgba(255,200,60,0.1)", padding: "2px 6px",
+                        borderRadius: "4px", fontVariantNumeric: "tabular-nums",
+                      })}>
+                        {formatTime(rc.timestampSeconds)}
+                      </span>
+                      <span style={f({ fontWeight: 600, fontSize: "11px", color: t.text })}>
+                        {rc.authorName}
+                      </span>
+                      <span style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>
+                        resolved by {rc.resolvedByName ?? "team"}
+                        {rc.resolvedAt && ` · ${timeAgo(rc.resolvedAt)}`}
+                      </span>
+                    </div>
+                    <p style={f({
+                      fontWeight: 400, fontSize: "11px", color: t.textMuted,
+                      lineHeight: 1.4, margin: "0 0 4px 0",
+                      textDecoration: "line-through",
+                    })}>
+                      {rc.content}
+                    </p>
+                    {rc.resolvedNote && (
+                      <p style={f({
+                        fontWeight: 400, fontSize: "11px", color: t.textSecondary,
+                        lineHeight: 1.4, margin: 0,
+                      })}>
+                        {rc.resolvedNote}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {visibleComments.length === 0 && (
           <div style={{ textAlign: "center", padding: "32px 0" }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5" style={{ marginBottom: "8px" }}>
