@@ -90,9 +90,9 @@ export default function AlaskaWhitefishTrawlers() {
         <section style={{ padding: "200px 80px 120px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "start" }}>
           <div style={{ background: "#ffffff", borderRadius: "4px", padding: "60px 40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <img
-              src={"/images/case-studies/awt/aktrawlers-FINAL.png"}
+              src={"@assets/Screenshot_2026-04-16_at_12.11.22_AM_1776323488245.png"}
               alt="Alaska Whitefish Trawlers Logo - Original"
-              style={{ width: "260px", height: "auto" }}
+              style={{ width: "100%", height: "auto" }}
             />
           </div>
           <div>
