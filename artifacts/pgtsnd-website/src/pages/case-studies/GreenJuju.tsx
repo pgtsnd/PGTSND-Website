@@ -480,20 +480,18 @@ export default function GreenJuju() {
                 />
               </div>
             ))}
-          </div>
-        </section>
-
-        {/* Videos */}
-        <section style={{ padding: "120px 80px 120px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-            <VideoPlaceholder
-              thumbnail={"/images/case-studies/green-juju/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg"}
-              duration="02:57"
-            />
-            <VideoPlaceholder
-              thumbnail={"/images/case-studies/green-juju/green-juju-ingredientspgtsnd-photography.jpeg"}
-              duration="03:29"
-            />
+            <div style={{ overflow: "hidden", aspectRatio: "4 / 3" }}>
+              <VideoPlaceholder
+                thumbnail={"/images/case-studies/green-juju/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg"}
+                duration="02:57"
+              />
+            </div>
+            <div style={{ overflow: "hidden", aspectRatio: "4 / 3" }}>
+              <VideoPlaceholder
+                thumbnail={"/images/case-studies/green-juju/green-juju-ingredientspgtsnd-photography.jpeg"}
+                duration="03:29"
+              />
+            </div>
           </div>
         </section>
 
