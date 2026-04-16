@@ -268,7 +268,7 @@ export default function GreenJuju() {
 
         {/* The Big Picture */}
         <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "start" }}>
-          <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff" })}>
+          <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff", whiteSpace: "nowrap" })}>
             The Big Picture
           </h2>
           <div style={{ maxWidth: "560px", marginLeft: "auto" }}>
