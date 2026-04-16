@@ -28,11 +28,59 @@ export default function ClientMessages() {
   const [reloadKey, setReloadKey] = useState(0);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const seenMessageIdsRef = useRef<Set<string>>(new Set());
+  const baselineLoadedRef = useRef(false);
 
   const refetch = () => {
     setLoading(true);
     setError(null);
     setReloadKey((k) => k + 1);
+  };
+
+  const notifyNewMessages = (data: Conversation[]) => {
+    const seen = seenMessageIdsRef.current;
+    const nextSeen = new Set<string>();
+    const incoming: Array<{ message: Message; convo: Conversation }> = [];
+
+    for (const convo of data) {
+      for (const msg of convo.messages || []) {
+        if (!msg.id) continue;
+        nextSeen.add(msg.id);
+        if (baselineLoadedRef.current && !seen.has(msg.id) && msg.isTeam) {
+          incoming.push({ message: msg, convo });
+        }
+      }
+    }
+    seenMessageIdsRef.current = nextSeen;
+    baselineLoadedRef.current = true;
+
+    if (
+      typeof window === "undefined" ||
+      typeof Notification === "undefined" ||
+      Notification.permission !== "granted"
+    ) {
+      return;
+    }
+    if (document.visibilityState === "visible" && document.hasFocus()) return;
+
+    for (const { message, convo } of incoming) {
+      try {
+        const notification = new Notification(
+          `New message from ${message.senderName || "your team"}`,
+          {
+            body: message.content,
+            tag: `pgtsnd-msg-${convo.projectId}`,
+          },
+        );
+        notification.onclick = () => {
+          window.focus();
+          setActiveConvo(convo);
+          notification.close();
+        };
+      } catch {
+        // Ignore notification errors (some browsers throw on unsupported configs)
+      }
+    }
   };
 
   const loadMessages = (initial = false) => {
@@ -47,6 +95,7 @@ export default function ClientMessages() {
           const updated = data.find((c) => c.projectId === activeConvo.projectId);
           if (updated) setActiveConvo(updated);
         }
+        notifyNewMessages(data);
       })
       .catch((err: unknown) => {
         if (initial) setError(err instanceof Error ? err.message : "Failed to load");
@@ -62,10 +111,17 @@ export default function ClientMessages() {
   }, [reloadKey]);
 
   useEffect(() => {
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {
+        // Ignore — user can enable later via browser settings
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     const interval = setInterval(() => {
-      if (document.visibilityState === "visible") {
-        loadMessages();
-      }
+      loadMessages();
     }, 10000);
     const onVisibility = () => {
       if (document.visibilityState === "visible") loadMessages();
