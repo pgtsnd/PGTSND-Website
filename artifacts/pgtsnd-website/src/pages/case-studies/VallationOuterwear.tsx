@@ -1,3 +1,4 @@
+import { useState, useRef, useCallback } from "react";
 import CTAButton from "../../components/CTAButton";
 import ScrollBadge from "../../components/ScrollBadge";
 import Footer from "../../components/Footer";
@@ -28,6 +29,124 @@ const socialLinks = [
   { label: "Visit Instagram", href: "https://www.instagram.com/vallationouterwear" },
   { label: "Visit Website", href: "https://www.vallationouterwear.com" },
 ];
+
+function GalleryCarousel({ images }: { images: string[] }) {
+  const [current, setCurrent] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+
+  const goTo = useCallback((index: number) => {
+    const clamped = Math.max(0, Math.min(index, images.length - 1));
+    setCurrent(clamped);
+  }, [images.length]);
+
+  const imageWidth = 70;
+  const gap = 1.5;
+
+  return (
+    <section style={{ padding: "0 0 40px", position: "relative", overflow: "hidden" }}>
+      <div
+        ref={trackRef}
+        style={{
+          display: "flex",
+          gap: `${gap}vw`,
+          transition: "transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)",
+          transform: `translateX(calc(${50}vw - ${current * (imageWidth + gap)}vw - ${imageWidth / 2}vw))`,
+          cursor: "grab",
+        }}
+        onMouseDown={(e) => {
+          isDragging.current = true;
+          startX.current = e.clientX;
+          if (trackRef.current) trackRef.current.style.cursor = "grabbing";
+        }}
+        onMouseMove={(e) => {
+          if (!isDragging.current) return;
+          const diff = e.clientX - startX.current;
+          if (Math.abs(diff) > 5) {
+            e.preventDefault();
+          }
+        }}
+        onMouseUp={(e) => {
+          if (!isDragging.current) return;
+          isDragging.current = false;
+          if (trackRef.current) trackRef.current.style.cursor = "grab";
+          const diff = e.clientX - startX.current;
+          if (diff < -60) goTo(current + 1);
+          else if (diff > 60) goTo(current - 1);
+        }}
+        onMouseLeave={() => {
+          isDragging.current = false;
+          if (trackRef.current) trackRef.current.style.cursor = "grab";
+        }}
+      >
+        {images.map((img, i) => (
+          <div
+            key={i}
+            onClick={() => goTo(i)}
+            style={{
+              minWidth: `${imageWidth}vw`,
+              height: "clamp(400px, 50vw, 680px)",
+              overflow: "hidden",
+              opacity: i === current ? 1 : 0.4,
+              transition: "opacity 0.5s ease",
+              cursor: i === current ? "default" : "pointer",
+            }}
+          >
+            <img
+              src={img}
+              alt=""
+              draggable={false}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", userSelect: "none" }}
+            />
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: "4px", justifyContent: "flex-end", padding: "20px 40px 0" }}>
+        <button
+          onClick={() => goTo(current - 1)}
+          disabled={current === 0}
+          style={{
+            width: "40px",
+            height: "40px",
+            background: current === 0 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.9)",
+            border: "none",
+            cursor: current === 0 ? "default" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: current === 0 ? "rgba(0,0,0,0.3)" : "#000000",
+            fontSize: "18px",
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: 700,
+          }}
+        >
+          &#8592;
+        </button>
+        <button
+          onClick={() => goTo(current + 1)}
+          disabled={current === images.length - 1}
+          style={{
+            width: "40px",
+            height: "40px",
+            background: current === images.length - 1 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.9)",
+            border: "none",
+            cursor: current === images.length - 1 ? "default" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: current === images.length - 1 ? "rgba(0,0,0,0.3)" : "#000000",
+            fontSize: "18px",
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: 700,
+          }}
+        >
+          &#8594;
+        </button>
+      </div>
+    </section>
+  );
+}
 
 export default function VallationOuterwear() {
   return (
@@ -98,20 +217,7 @@ export default function VallationOuterwear() {
           </div>
         </section>
 
-        <section style={{ padding: "0 40px 40px", position: "relative" }}>
-          <ScrollBadge position="bottom-left" bottomOffset={-58} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            {galleryImages.map((img, i) => (
-              <div key={i} style={{ overflow: "hidden", aspectRatio: "4 / 3" }}>
-                <img
-                  src={img}
-                  alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                />
-              </div>
-            ))}
-          </div>
-        </section>
+        <GalleryCarousel images={galleryImages} />
 
         <section style={{ padding: "40px 80px 80px" }}>
           <div style={{ display: "grid", gridTemplateColumns: `repeat(${socialLinks.length}, 1fr)`, gap: "16px" }}>
