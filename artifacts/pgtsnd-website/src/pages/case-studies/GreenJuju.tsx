@@ -617,7 +617,7 @@ function SnackCutoutSlideIn() {
       const rect = ref.current.getBoundingClientRect();
       const viewH = window.innerHeight;
       // 0 when section top is at viewport bottom, 1 when section top reaches viewport top
-      const p = 1 - rect.top / viewH;
+      const p = (1 - rect.top / viewH) * 1.6;
       setProgress(Math.max(0, Math.min(1, p)));
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
