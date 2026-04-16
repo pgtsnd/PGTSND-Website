@@ -149,7 +149,7 @@ export default function Lodge58North() {
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
-            <div style={{ border: "2px solid rgba(255,255,255,0.3)", padding: "44px 28px 28px" }}>
+            <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px" }}>
               <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.8)", lineHeight: 1.7, marginBottom: "16px" })}>
                 &ldquo;PGTSND Productions has always been so professional and fun to work with in the last five years. The quality of people are outstanding and the work is always exceptional and timely. We are very proud to partner with Bri at PGT.&rdquo;
               </p>

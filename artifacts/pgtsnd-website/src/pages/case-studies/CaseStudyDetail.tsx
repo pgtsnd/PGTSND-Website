@@ -224,7 +224,7 @@ export default function CaseStudyDetail() {
             )}
             <div
               style={{
-                border: "2px solid rgba(255,255,255,0.5)",
+                border: "2px solid #ffffff",
                 padding: "48px 32px 32px",
                 background: "rgba(0,0,0,0.85)",
               }}
@@ -336,7 +336,7 @@ export default function CaseStudyDetail() {
             )}
             <div
               style={{
-                border: "2px solid rgba(255,255,255,0.3)",
+                border: "2px solid #ffffff",
                 padding: study.testimonial.logo
                   ? "44px 28px 28px"
                   : "28px",

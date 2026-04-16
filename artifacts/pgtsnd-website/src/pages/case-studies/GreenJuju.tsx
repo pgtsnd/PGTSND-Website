@@ -188,7 +188,7 @@ export default function GreenJuju() {
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
-            <div style={{ border: "2px solid rgba(255,255,255,0.5)", padding: "44px 28px 28px", background: "rgba(0,0,0,0.85)" }}>
+            <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px", background: "rgba(0,0,0,0.85)" }}>
               <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, marginBottom: "16px" })}>
                 &ldquo;Bri and her team have completely transformed our digital presence.&rdquo;
               </p>
@@ -412,7 +412,7 @@ export default function GreenJuju() {
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
-            <div style={{ border: "2px solid rgba(255,255,255,0.3)", padding: "44px 28px 28px" }}>
+            <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px" }}>
               <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.8)", lineHeight: 1.7, marginBottom: "16px" })}>
                 &ldquo;PGTSND redesigned our website to be far more functional and user-friendly, and the difference has been remarkable. Their thoughtful approach to social media has also elevated how we connect with our audience. Working with their team has been seamless, and the impact on our business is clear—we've grown in ways we couldn't have without them.&rdquo;
               </p>

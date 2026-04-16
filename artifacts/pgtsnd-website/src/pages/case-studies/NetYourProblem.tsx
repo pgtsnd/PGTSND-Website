@@ -83,7 +83,7 @@ export default function NetYourProblem() {
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               </div>
-              <div style={{ border: "2px solid rgba(255,255,255,0.3)", padding: "44px 28px 28px", background: "rgba(0,0,0,0.85)" }}>
+              <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px", background: "rgba(0,0,0,0.85)" }}>
                 <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, marginBottom: "16px" })}>
                   &ldquo;Bri is the mother in a fishing family. So when we decided to make a film highlighting a friend of ours, their multigenerational fishing family and their decision to recycle nets from their barn, there was no better choice.&rdquo;
                 </p>
@@ -189,7 +189,7 @@ export default function NetYourProblem() {
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
-            <div style={{ border: "2px solid rgba(255,255,255,0.3)", padding: "44px 28px 28px" }}>
+            <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px" }}>
               <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.8)", lineHeight: 1.7, marginBottom: "16px" })}>
                 &ldquo;Bri and her team make the whole process of making a film simple. They come up with interview questions and a shot list, and have let me be as picky as I want during the editing process. The films we've created with her have been remarkably useful for us at conferences and in helping to recruit new partners. We've also taken clips from the long form video to use in social media and they are some of our most successful posts.&rdquo;
               </p>
