@@ -230,9 +230,20 @@ export default function NWSablefish() {
         </section>
 
         {/* Identity Guide + The Big Picture */}
-        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "start" }}>
+        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1.4fr 1.6fr", gap: "80px", alignItems: "stretch" }}>
           <div style={{ position: "relative" }}>
-            <div style={{ background: "#ffffff", borderRadius: "4px", overflow: "hidden", boxShadow: "0 8px 40px rgba(0,0,0,0.5)" }}>
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                border: "2px solid #ffffff",
+                borderRadius: "4px",
+                overflowY: "auto",
+                overflowX: "hidden",
+                background: "#ffffff",
+                boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
+              }}
+            >
               <img
                 src={"/images/case-studies/nw-sablefish/nw-sablefish-identity-guide-pgtsndpdf.png"}
                 alt="NW Sablefish Identity Guide"
@@ -242,7 +253,7 @@ export default function NWSablefish() {
             <img
               src={"/images/case-studies/nw-sablefish/NWsablefish-arrow-gold.png"}
               alt=""
-              style={{ position: "absolute", bottom: "-20px", right: "-10px", width: "50px", height: "auto", transform: "rotate(15deg)" }}
+              style={{ position: "absolute", bottom: "-20px", right: "-10px", width: "50px", height: "auto", transform: "rotate(15deg)", pointerEvents: "none", zIndex: 2 }}
             />
           </div>
           <div style={{ maxWidth: "560px", marginLeft: "auto" }}>
