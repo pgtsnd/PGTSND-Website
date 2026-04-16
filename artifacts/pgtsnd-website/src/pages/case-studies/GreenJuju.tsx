@@ -472,7 +472,7 @@ export default function GreenJuju() {
         <section style={{ padding: "0 40px 40px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
             {galleryImages.map((img, i) => (
-              <div key={i} style={{ overflow: "hidden", aspectRatio: "4 / 3" }}>
+              <div key={i} style={{ overflow: "hidden", aspectRatio: "16 / 9" }}>
                 <img
                   src={img}
                   alt=""
@@ -480,13 +480,13 @@ export default function GreenJuju() {
                 />
               </div>
             ))}
-            <div style={{ overflow: "hidden", aspectRatio: "4 / 3" }}>
+            <div style={{ overflow: "hidden", aspectRatio: "16 / 9" }}>
               <VideoPlaceholder
                 thumbnail={"/images/case-studies/green-juju/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg"}
                 duration="02:57"
               />
             </div>
-            <div style={{ overflow: "hidden", aspectRatio: "4 / 3" }}>
+            <div style={{ overflow: "hidden", aspectRatio: "16 / 9" }}>
               <VideoPlaceholder
                 thumbnail={"/images/case-studies/green-juju/green-juju-ingredientspgtsnd-photography.jpeg"}
                 duration="03:29"
