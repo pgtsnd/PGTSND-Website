@@ -571,27 +571,25 @@ export default function GreenJuju() {
 }
 
 function SnackCutoutSlideIn() {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLElement | null>(null);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            setVisible(true);
-            obs.disconnect();
-            break;
-          }
-        }
-      },
-      { threshold: 0.15 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
+    const handleScroll = () => {
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      // 0 when section top is at viewport bottom, 1 when section top reaches viewport top
+      const p = 1 - rect.top / viewH;
+      setProgress(Math.max(0, Math.min(1, p)));
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const translate = (1 - progress) * 100;
+  const brightness = 0.25 + progress * 0.75;
 
   return (
     <section ref={ref} style={{ padding: "0", overflow: "hidden" }}>
@@ -602,10 +600,8 @@ function SnackCutoutSlideIn() {
           width: "100%",
           height: "auto",
           display: "block",
-          transform: visible ? "translateY(0)" : "translateY(100%)",
-          filter: visible ? "brightness(1)" : "brightness(0.25)",
-          transition:
-            "transform 1.2s cubic-bezier(0.22, 1, 0.36, 1), filter 1.2s ease-out",
+          transform: `translateY(${translate}%)`,
+          filter: `brightness(${brightness})`,
           willChange: "transform, filter",
         }}
       />
