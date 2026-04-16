@@ -1225,9 +1225,29 @@ function DeliverablesTab({ deliverables, onRefresh }: { deliverables: Deliverabl
                     padding: "16px 20px", cursor: "pointer",
                   }}
                 >
-                  <div style={{ color: t.textMuted, flexShrink: 0 }}>
-                    {typeIcons[d.type] ?? typeIcons.other}
-                  </div>
+                  {d.fileUrl && d.type === "video" ? (
+                    <div
+                      data-testid={`deliverable-preview-${d.id}`}
+                      style={{
+                        width: "80px", height: "45px", borderRadius: "4px",
+                        overflow: "hidden", flexShrink: 0, background: "#000",
+                        border: `1px solid ${t.borderSubtle}`,
+                      }}
+                    >
+                      <video
+                        key={d.fileUrl}
+                        src={`${d.fileUrl}#t=0.1`}
+                        preload="metadata"
+                        muted
+                        playsInline
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ color: t.textMuted, flexShrink: 0 }}>
+                      {typeIcons[d.type] ?? typeIcons.other}
+                    </div>
+                  )}
                   <div style={{ flex: 1 }}>
                     <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text })}>{d.title}</p>
                     <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
@@ -1788,6 +1808,7 @@ function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[
 
             {selectedDeliverable.fileUrl ? (
               <VideoPlayer
+                key={selectedDeliverable.fileUrl}
                 src={selectedDeliverable.fileUrl}
                 onTimeClick={(ts) => setActiveTimestamp(ts)}
                 seekTo={seekTo ?? undefined}
