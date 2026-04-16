@@ -202,7 +202,7 @@ export default function GreenJuju() {
               overflow: "hidden",
               aspectRatio: "16 / 9",
               backgroundImage: `url("/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg")`,
-              backgroundSize: "200%",
+              backgroundSize: "140%",
               backgroundPosition: "center",
             }}
           >
