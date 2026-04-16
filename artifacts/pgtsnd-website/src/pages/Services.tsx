@@ -350,25 +350,25 @@ export default function Services() {
       />
 
       {/* 6. How We Work */}
-      <section style={{ padding: "120px 80px 180px" }}>
+      <section style={{ padding: "120px 80px 180px", display: "grid", gridTemplateColumns: "2fr 3fr", gap: "120px", alignItems: "start" }}>
         <h2
           style={f({
             fontWeight: 900,
-            fontSize: "clamp(48px, 8vw, 100px)",
+            fontSize: "clamp(40px, 5.5vw, 68px)",
             textTransform: "uppercase",
-            letterSpacing: "-0.03em",
+            letterSpacing: "-0.02em",
             lineHeight: 0.95,
             color: "#ffffff",
-            marginBottom: "80px",
           })}
         >
           How We Work
         </h2>
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "60px 80px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "56px",
+            paddingLeft: "100px",
           }}
         >
           {[
