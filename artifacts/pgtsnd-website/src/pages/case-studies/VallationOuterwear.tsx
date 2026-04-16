@@ -14,8 +14,8 @@ const services = ["Photography"];
 const heroImage = "/images/case-studies/vallation-outerwear/pgtsnd-vallation-outerwear-photography-19.jpeg";
 
 const galleryImages = [
-  "/images/case-studies/vallation-outerwear/pgtsnd-vallation-outerwear-photography-18.jpeg",
   "/images/case-studies/vallation-outerwear/pgtsnd-vallation-outerwear-photography-3.jpeg",
+  "/images/case-studies/vallation-outerwear/pgtsnd-vallation-outerwear-photography-18.jpeg",
   "/images/case-studies/vallation-outerwear/pgtsnd-vallation-outerwear-photography-12.jpeg",
   "/images/case-studies/vallation-outerwear/pgtsnd-vallation-outerwear-photography-4.jpeg",
   "/images/case-studies/vallation-outerwear/pgtsnd-vallation-outerwear-photography-6.jpeg",
@@ -35,14 +35,20 @@ function GalleryCarousel({ images }: { images: string[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
+  const len = images.length;
 
-  const goTo = useCallback((index: number) => {
-    const clamped = Math.max(0, Math.min(index, images.length - 1));
-    setCurrent(clamped);
-  }, [images.length]);
+  const wrap = (i: number) => ((i % len) + len) % len;
+
+  const goNext = useCallback(() => setCurrent((c) => c + 1), []);
+  const goPrev = useCallback(() => setCurrent((c) => c - 1), []);
 
   const imageWidth = 70;
   const gap = 1.5;
+
+  const visible = [-2, -1, 0, 1, 2].map((offset) => {
+    const idx = wrap(current + offset);
+    return { idx, offset, src: images[idx] };
+  });
 
   return (
     <section style={{ padding: "0 0 40px", position: "relative", overflow: "hidden" }}>
@@ -51,8 +57,9 @@ function GalleryCarousel({ images }: { images: string[] }) {
         style={{
           display: "flex",
           gap: `${gap}vw`,
-          transition: "transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)",
-          transform: `translateX(calc(${50}vw - ${current * (imageWidth + gap)}vw - ${imageWidth / 2}vw))`,
+          justifyContent: "center",
+          alignItems: "center",
+          height: "clamp(400px, 50vw, 680px)",
           cursor: "grab",
         }}
         onMouseDown={(e) => {
@@ -62,39 +69,37 @@ function GalleryCarousel({ images }: { images: string[] }) {
         }}
         onMouseMove={(e) => {
           if (!isDragging.current) return;
-          const diff = e.clientX - startX.current;
-          if (Math.abs(diff) > 5) {
-            e.preventDefault();
-          }
+          if (Math.abs(e.clientX - startX.current) > 5) e.preventDefault();
         }}
         onMouseUp={(e) => {
           if (!isDragging.current) return;
           isDragging.current = false;
           if (trackRef.current) trackRef.current.style.cursor = "grab";
           const diff = e.clientX - startX.current;
-          if (diff < -60) goTo(current + 1);
-          else if (diff > 60) goTo(current - 1);
+          if (diff < -60) goNext();
+          else if (diff > 60) goPrev();
         }}
         onMouseLeave={() => {
           isDragging.current = false;
           if (trackRef.current) trackRef.current.style.cursor = "grab";
         }}
       >
-        {images.map((img, i) => (
+        {visible.map(({ idx, offset, src }) => (
           <div
-            key={i}
-            onClick={() => goTo(i)}
+            key={`${current}-${offset}`}
+            onClick={() => { if (offset !== 0) setCurrent(current + offset); }}
             style={{
               minWidth: `${imageWidth}vw`,
-              height: "clamp(400px, 50vw, 680px)",
+              height: "100%",
               overflow: "hidden",
-              opacity: i === current ? 1 : 0.4,
-              transition: "opacity 0.5s ease",
-              cursor: i === current ? "default" : "pointer",
+              opacity: offset === 0 ? 1 : 0.4,
+              transition: "opacity 0.4s ease",
+              cursor: offset === 0 ? "default" : "pointer",
+              flexShrink: 0,
             }}
           >
             <img
-              src={img}
+              src={src}
               alt=""
               draggable={false}
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", userSelect: "none" }}
@@ -104,18 +109,17 @@ function GalleryCarousel({ images }: { images: string[] }) {
       </div>
       <div style={{ display: "flex", gap: "4px", justifyContent: "flex-end", padding: "20px 40px 0" }}>
         <button
-          onClick={() => goTo(current - 1)}
-          disabled={current === 0}
+          onClick={goPrev}
           style={{
             width: "40px",
             height: "40px",
-            background: current === 0 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.9)",
+            background: "rgba(255,255,255,0.9)",
             border: "none",
-            cursor: current === 0 ? "default" : "pointer",
+            cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: current === 0 ? "rgba(0,0,0,0.3)" : "#000000",
+            color: "#000000",
             fontSize: "18px",
             fontFamily: "'Montserrat', sans-serif",
             fontWeight: 700,
@@ -124,18 +128,17 @@ function GalleryCarousel({ images }: { images: string[] }) {
           &#8592;
         </button>
         <button
-          onClick={() => goTo(current + 1)}
-          disabled={current === images.length - 1}
+          onClick={goNext}
           style={{
             width: "40px",
             height: "40px",
-            background: current === images.length - 1 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.9)",
+            background: "rgba(255,255,255,0.9)",
             border: "none",
-            cursor: current === images.length - 1 ? "default" : "pointer",
+            cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: current === images.length - 1 ? "rgba(0,0,0,0.3)" : "#000000",
+            color: "#000000",
             fontSize: "18px",
             fontFamily: "'Montserrat', sans-serif",
             fontWeight: 700,
