@@ -140,7 +140,7 @@ export default function Contact() {
         >
           <div style={{ overflow: "hidden" }}>
             <img
-              src={`${import.meta.env.BASE_URL}images/about/forest-rays-bri-dwyer-pgtsnd.jpeg`}
+              src={`${import.meta.env.BASE_URL}images/about/pgtsnd-eagle-bri-dwyer.jpeg`}
               alt="Alaska wilderness"
               style={{
                 width: "110%",
