@@ -68,7 +68,7 @@ function WebsiteMockup() {
       <div
         style={{
           border: "2px solid rgba(255,255,255,0.6)",
-          height: "520px",
+          height: "400px",
           overflow: "hidden",
           overflowY: "auto",
           position: "relative",
