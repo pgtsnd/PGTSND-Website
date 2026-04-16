@@ -30,7 +30,6 @@ import TeamProjectDetail from "@/pages/TeamProjectDetail";
 import TeamClients from "@/pages/TeamClients";
 import TeamMessages from "@/pages/TeamMessages";
 import TeamSchedule from "@/pages/TeamSchedule";
-import TeamAssets from "@/pages/TeamAssets";
 import TeamCrew from "@/pages/TeamCrew";
 import TeamSettings from "@/pages/TeamSettings";
 import AuthVerify from "@/pages/AuthVerify";
@@ -56,6 +55,7 @@ function ScrollToTop() {
 }
 
 const TEAM_ROLES = ["owner", "partner", "crew"];
+const OWNER_ROLES = ["owner", "partner"];
 
 function Router() {
   return (
@@ -170,13 +170,6 @@ function Router() {
           </ProtectedRoute>
         )}
       </Route>
-      <Route path="/team/clients">
-        {() => (
-          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
-            <TeamClients />
-          </ProtectedRoute>
-        )}
-      </Route>
       <Route path="/team/messages">
         {() => (
           <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
@@ -191,23 +184,23 @@ function Router() {
           </ProtectedRoute>
         )}
       </Route>
-      <Route path="/team/assets">
+      <Route path="/team/crew">
         {() => (
-          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
-            <TeamAssets />
+          <ProtectedRoute allowedRoles={OWNER_ROLES} redirectTo="/team/dashboard">
+            <TeamCrew />
           </ProtectedRoute>
         )}
       </Route>
-      <Route path="/team/crew">
+      <Route path="/team/clients">
         {() => (
-          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
-            <TeamCrew />
+          <ProtectedRoute allowedRoles={OWNER_ROLES} redirectTo="/team/dashboard">
+            <TeamClients />
           </ProtectedRoute>
         )}
       </Route>
       <Route path="/team/settings">
         {() => (
-          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
+          <ProtectedRoute allowedRoles={OWNER_ROLES} redirectTo="/team/dashboard">
             <TeamSettings />
           </ProtectedRoute>
         )}
