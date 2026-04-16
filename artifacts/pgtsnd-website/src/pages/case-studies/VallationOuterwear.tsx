@@ -158,7 +158,8 @@ export default function VallationOuterwear() {
       const rect = heroRef.current.getBoundingClientRect();
       const viewH = window.innerHeight;
       const progress = 1 - (rect.top + rect.height) / (viewH + rect.height);
-      setHeroOffset(progress * 25);
+      const clamped = Math.max(0, Math.min(1, progress));
+      setHeroOffset(clamped * 10);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
@@ -186,7 +187,7 @@ export default function VallationOuterwear() {
               <img
                 src={heroImage}
                 alt="Vallation Outerwear - On the Water"
-                style={{ width: "130%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", transform: `translateX(${-heroOffset}%)`, willChange: "transform" }}
+                style={{ width: "120%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", marginLeft: "-10%", transform: `translateX(${-heroOffset + 5}%)`, willChange: "transform" }}
               />
             </div>
             <div style={{ position: "absolute", bottom: "-60px", left: "60px", maxWidth: "420px", zIndex: 2 }}>
