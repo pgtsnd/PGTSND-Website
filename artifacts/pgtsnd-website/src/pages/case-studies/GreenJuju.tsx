@@ -552,15 +552,6 @@ export default function GreenJuju() {
           </div>
         </section>
 
-        {/* Product Lineup Full Width */}
-        <section style={{ padding: "0 40px 0" }}>
-          <img
-            src={"/images/case-studies/green-juju/green-juju-ingredientspgtsnd-photography.jpeg"}
-            alt="Green Juju Product Lineup"
-            style={{ width: "100%", height: "auto", display: "block" }}
-          />
-        </section>
-
         {/* Snack Cutout Full Width */}
         <section style={{ padding: "0" }}>
           <img
