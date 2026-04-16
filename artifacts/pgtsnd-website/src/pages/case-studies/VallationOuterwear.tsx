@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import CTAButton from "../../components/CTAButton";
 import ScrollBadge from "../../components/ScrollBadge";
 import Footer from "../../components/Footer";
@@ -149,6 +149,22 @@ function GalleryCarousel({ images }: { images: string[] }) {
 }
 
 export default function VallationOuterwear() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [heroOffset, setHeroOffset] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!heroRef.current) return;
+      const rect = heroRef.current.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      const progress = 1 - (rect.top + rect.height) / (viewH + rect.height);
+      setHeroOffset(progress * 25);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
       <Header />
@@ -165,12 +181,12 @@ export default function VallationOuterwear() {
         </section>
 
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
-          <div style={{ position: "relative", overflow: "visible" }}>
+          <div ref={heroRef} style={{ position: "relative", overflow: "visible" }}>
             <div style={{ width: "100%", height: "clamp(340px, 40vw, 520px)", overflow: "hidden" }}>
               <img
                 src={heroImage}
                 alt="Vallation Outerwear - On the Water"
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block" }}
+                style={{ width: "130%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", transform: `translateX(${-heroOffset}%)`, willChange: "transform" }}
               />
             </div>
             <div style={{ position: "absolute", bottom: "-60px", left: "60px", maxWidth: "420px", zIndex: 2 }}>
