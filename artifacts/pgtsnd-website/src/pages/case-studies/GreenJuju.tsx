@@ -324,7 +324,7 @@ export default function GreenJuju() {
             >
               <div
                 style={{
-                  height: "420px",
+                  height: "560px",
                   overflowY: "auto",
                   borderRadius: "4px",
                   border: "1px solid rgba(255,255,255,0.15)",
