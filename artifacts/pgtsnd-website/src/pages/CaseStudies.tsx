@@ -215,7 +215,7 @@ export default function CaseStudies() {
         <img
           src="/images/site/pgtsnd-camera.webp"
           alt="Camera illustration"
-          style={{ width: "160px", height: "auto", marginBottom: "48px", opacity: 0.9 }}
+          style={{ width: "320px", height: "auto", marginBottom: "48px", opacity: 0.9 }}
         />
         <h2
           style={f({
