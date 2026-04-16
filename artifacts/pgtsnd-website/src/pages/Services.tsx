@@ -346,6 +346,7 @@ export default function Services() {
         author="Cory Jackson"
         authorTitle="Vallation Outerwear"
         avatarSrc="/images/case-studies/vallation-outerwear/vallation-outerwear-logo.png"
+        scrollSlide
       />
 
       {/* 6. How We Work */}
