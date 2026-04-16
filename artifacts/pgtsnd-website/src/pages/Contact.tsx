@@ -29,8 +29,8 @@ const serviceOptions = [
   { id: "film", label: "Film & Video Production" },
   { id: "brand", label: "Brand & Marketing" },
   { id: "photo", label: "Photography" },
-  { id: "systems", label: "Systems Design" },
-  { id: "consulting", label: "Consulting" },
+  { id: "web", label: "Web Design & Development" },
+  { id: "strategy", label: "Digital Strategy" },
   { id: "apply", label: "Apply to Work With Us" },
   { id: "other", label: "Something Else" },
 ];
