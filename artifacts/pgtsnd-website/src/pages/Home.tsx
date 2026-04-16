@@ -220,18 +220,17 @@ export default function Home() {
               src={`${import.meta.env.BASE_URL}images/2024_BRI_DWYER-02064.jpg`}
               hoverSrc={`${import.meta.env.BASE_URL}images/net-hands-close-pgtsnd-bri-dwyer.jpeg`}
               alt="PGTSND Productions videographer filming on a commercial fishing vessel."
+            />
+            <div
+              style={{
+                position: "absolute",
+                top: "16px",
+                right: "16px",
+                zIndex: 99,
+              }}
             >
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "216px",
-                  right: "16px",
-                  zIndex: 99,
-                }}
-              >
-                <ScrollBadge position="bottom-right" inline />
-              </div>
-            </HoverFlipImage>
+              <ScrollBadge position="bottom-right" inline />
+            </div>
           </div>
         </div>
       </section>
