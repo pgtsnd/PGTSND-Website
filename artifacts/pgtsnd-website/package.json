@@ -10,8 +10,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@tanstack/react-query": "catalog:",
     "@workspace/api-client-react": "workspace:*",
-    "@tanstack/react-query": "catalog:"
+    "jspdf": "^4.2.1"
   },
   "devDependencies": {
     "@replit/vite-plugin-cartographer": "catalog:",

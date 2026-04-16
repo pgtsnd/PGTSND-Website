@@ -273,6 +273,7 @@ export default function ClientContracts() {
                               href={contract.documentUrl}
                               target="_blank"
                               rel="noreferrer"
+                              download={`${contract.title || "contract"}.pdf`}
                               style={{
                                 fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px",
                                 color: t.textTertiary, textDecoration: "underline", textUnderlineOffset: "3px",

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 import { api, type Invoice } from "../lib/api";
+import { exportInvoicesToCsv, generateInvoicePdf } from "../lib/exports";
 
 function formatDate(date: string | Date | null) {
   if (!date) return "—";
@@ -157,7 +158,13 @@ export default function ClientBilling() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
           <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "24px", color: t.text }}>Billing</h1>
           {invoices.length > 0 && (
-            <button style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary, background: t.hoverBg, border: `1px solid ${t.border}`, borderRadius: "8px", padding: "10px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
+            <button
+              onClick={() => {
+                const stamp = new Date().toISOString().slice(0, 10);
+                exportInvoicesToCsv(invoices, `invoices-${stamp}.csv`);
+              }}
+              style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary, background: t.hoverBg, border: `1px solid ${t.border}`, borderRadius: "8px", padding: "10px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
               Export All
             </button>
@@ -255,8 +262,10 @@ export default function ClientBilling() {
                               "Pay Now"
                             )}
                           </button>
-                          {inv.stripePdfUrl && (
+                          {inv.stripePdfUrl ? (
                             <a href={inv.stripePdfUrl} target="_blank" rel="noreferrer" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px", display: "flex", alignItems: "center" }}>PDF</a>
+                          ) : (
+                            <button onClick={() => generateInvoicePdf(inv)} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px", display: "flex", alignItems: "center", padding: 0 }}>PDF</button>
                           )}
                         </div>
                       </div>
@@ -287,6 +296,11 @@ export default function ClientBilling() {
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                           {details?.receiptUrl && (
                             <a href={details.receiptUrl} target="_blank" rel="noreferrer" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted, textDecoration: "underline", textUnderlineOffset: "3px" }}>Receipt</a>
+                          )}
+                          {payment.stripePdfUrl ? (
+                            <a href={payment.stripePdfUrl} target="_blank" rel="noreferrer" style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted, textDecoration: "underline", textUnderlineOffset: "3px" }}>PDF</a>
+                          ) : (
+                            <button onClick={() => generateInvoicePdf(payment)} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px", padding: 0 }}>PDF</button>
                           )}
                           <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: "rgba(96,208,96,0.7)" }}>-${displayAmount.toLocaleString()}</p>
                         </div>
