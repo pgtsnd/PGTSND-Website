@@ -186,7 +186,7 @@ export default function GreenJuju() {
               <img
                 src={"/images/case-studies/green-juju/seasons-green-juju-pgtsnd-carousel.gif"}
                 alt="Green Juju seasons Instagram post"
-                style={{ width: "240px", height: "auto", display: "block", transform: "translateY(-40px)", flexShrink: 0 }}
+                style={{ width: "240px", height: "auto", display: "block", transform: "translateY(-20px)", flexShrink: 0 }}
               />
             </div>
           </div>
