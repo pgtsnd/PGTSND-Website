@@ -245,9 +245,9 @@ export default function GreenJuju() {
             alt="Dog eating Green Juju Pork Pink"
             style={{
               position: "absolute",
-              right: "8%",
-              top: "-960px",
-              width: "22%",
+              right: "6%",
+              top: "-180px",
+              width: "240px",
               height: "auto",
               zIndex: 50,
               pointerEvents: "none",
