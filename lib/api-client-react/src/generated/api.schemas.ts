@@ -602,6 +602,35 @@ export interface CreateMessage {
   content: string;
 }
 
+export type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus];
+
+export const InvoiceStatus = {
+  draft: "draft",
+  sent: "sent",
+  paid: "paid",
+  overdue: "overdue",
+  void: "void",
+} as const;
+
+export interface Invoice {
+  id: string;
+  projectId: string;
+  stripeInvoiceId?: string | null;
+  stripePaymentIntentId?: string | null;
+  stripeCheckoutSessionId?: string | null;
+  invoiceNumber?: string | null;
+  description: string;
+  amount: number;
+  status: InvoiceStatus;
+  dueDate?: string | null;
+  paidAt?: string | null;
+  paymentMethod?: string | null;
+  stripeHostedUrl?: string | null;
+  stripePdfUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type ContractStatus =
   (typeof ContractStatus)[keyof typeof ContractStatus];
 

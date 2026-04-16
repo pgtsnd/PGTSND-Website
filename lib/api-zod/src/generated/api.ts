@@ -1266,6 +1266,29 @@ export const DeleteContractResponse = zod.object({
 });
 
 /**
+ * @summary List all invoices (owner / partner only)
+ */
+export const ListInvoicesResponseItem = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  stripeInvoiceId: zod.string().nullish(),
+  stripePaymentIntentId: zod.string().nullish(),
+  stripeCheckoutSessionId: zod.string().nullish(),
+  invoiceNumber: zod.string().nullish(),
+  description: zod.string(),
+  amount: zod.number(),
+  status: zod.enum(["draft", "sent", "paid", "overdue", "void"]),
+  dueDate: zod.coerce.date().nullish(),
+  paidAt: zod.coerce.date().nullish(),
+  paymentMethod: zod.string().nullish(),
+  stripeHostedUrl: zod.string().nullish(),
+  stripePdfUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListInvoicesResponse = zod.array(ListInvoicesResponseItem);
+
+/**
  * Creates (or reuses) a Stripe Checkout session for the given invoice and
 returns the hosted checkout URL. The successUrl and cancelUrl must share
 the same origin as the request.

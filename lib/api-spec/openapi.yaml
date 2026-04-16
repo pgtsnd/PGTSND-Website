@@ -1055,6 +1055,25 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [invoices]
+      summary: List all invoices (owner / partner only)
+      responses:
+        "200":
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /invoices/{id}/checkout:
     post:
       operationId: createInvoiceCheckoutSession
@@ -2084,6 +2103,64 @@ components:
           type: string
       required:
         - content
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        stripeInvoiceId:
+          type: string
+          nullable: true
+        stripePaymentIntentId:
+          type: string
+          nullable: true
+        stripeCheckoutSessionId:
+          type: string
+          nullable: true
+        invoiceNumber:
+          type: string
+          nullable: true
+        description:
+          type: string
+        amount:
+          type: integer
+        status:
+          type: string
+          enum: [draft, sent, paid, overdue, void]
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+        paymentMethod:
+          type: string
+          nullable: true
+        stripeHostedUrl:
+          type: string
+          nullable: true
+        stripePdfUrl:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - projectId
+        - description
+        - amount
+        - status
+        - createdAt
+        - updatedAt
 
     Contract:
       type: object

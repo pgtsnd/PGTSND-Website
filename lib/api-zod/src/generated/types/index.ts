@@ -37,6 +37,8 @@ export * from "./deliverableVersion";
 export * from "./error";
 export * from "./forbiddenResponse";
 export * from "./healthStatus";
+export * from "./invoice";
+export * from "./invoiceStatus";
 export * from "./message";
 export * from "./notFoundResponse";
 export * from "./organization";

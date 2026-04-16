@@ -36,6 +36,7 @@ import type {
   Error,
   ForbiddenResponse,
   HealthStatus,
+  Invoice,
   Message,
   NotFoundResponse,
   Organization,
@@ -4681,6 +4682,83 @@ export const useDeleteContract = <
 > => {
   return useMutation(getDeleteContractMutationOptions(options));
 };
+
+/**
+ * @summary List all invoices (owner / partner only)
+ */
+export const getListInvoicesUrl = () => {
+  return `/api/invoices`;
+};
+
+export const listInvoices = async (
+  options?: RequestInit,
+): Promise<Invoice[]> => {
+  return customFetch<Invoice[]>(getListInvoicesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListInvoicesQueryKey = () => {
+  return [`/api/invoices`] as const;
+};
+
+export const getListInvoicesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listInvoices>>,
+  TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listInvoices>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListInvoicesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listInvoices>>> = ({
+    signal,
+  }) => listInvoices({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listInvoices>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListInvoicesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listInvoices>>
+>;
+export type ListInvoicesQueryError = ErrorType<
+  UnauthorizedResponse | ForbiddenResponse
+>;
+
+/**
+ * @summary List all invoices (owner / partner only)
+ */
+
+export function useListInvoices<
+  TData = Awaited<ReturnType<typeof listInvoices>>,
+  TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listInvoices>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListInvoicesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * Creates (or reuses) a Stripe Checkout session for the given invoice and
