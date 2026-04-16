@@ -27,26 +27,56 @@ export default function AlaskaWhitefishTrawlers() {
           </div>
         </section>
 
-        {/* Website Screenshot - Wide Scrollable */}
-        <section style={{ padding: "0 40px 40px" }}>
-          <div style={{
-            overflow: "hidden",
-            overflowY: "auto",
-            borderRadius: "4px",
-            border: "2px solid rgba(255,255,255,0.15)",
-            aspectRatio: "21 / 9",
-            background: "#ffffff",
-          }}>
-            <img
-              src={"/images/case-studies/awt/alaska-white-fish-web-design-sample-pgtsnd.webp"}
-              alt="Alaska Whitefish Trawlers Website Design"
-              style={{ width: "100%", height: "auto", display: "block" }}
-            />
+        {/* Website Screenshot - Wide Scrollable + Laptop Overlay */}
+        <section style={{ padding: "0 40px 0", position: "relative" }}>
+          <div style={{ position: "relative" }}>
+            <div style={{
+              overflow: "hidden",
+              overflowY: "auto",
+              borderRadius: "4px",
+              border: "2px solid rgba(255,255,255,0.15)",
+              aspectRatio: "21 / 9",
+              background: "#ffffff",
+            }}>
+              <img
+                src={"/images/case-studies/awt/alaska-white-fish-web-design-sample-pgtsnd.webp"}
+                alt="Alaska Whitefish Trawlers Website Design"
+                style={{ width: "100%", height: "auto", display: "block" }}
+              />
+            </div>
+            <div style={{ position: "absolute", bottom: "-60px", right: "60px", width: "280px", zIndex: 2 }}>
+              <div style={{ position: "relative" }}>
+                <div style={{
+                  background: "#1a1a1a",
+                  borderRadius: "6px 6px 0 0",
+                  padding: "6px 10px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                }}>
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#ff5f57" }} />
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#febc2e" }} />
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#28c840" }} />
+                </div>
+                <div style={{ overflow: "hidden", borderRadius: "0 0 3px 3px" }}>
+                  <img
+                    src={"/images/case-studies/awt/alaska-whitefish-web-design-sample-2.png"}
+                    alt="Alaska Whitefish Trawlers Website on Laptop"
+                    style={{ width: "100%", display: "block" }}
+                  />
+                </div>
+                <div style={{ background: "#1a1a1a", height: "10px", borderRadius: "0 0 2px 2px" }} />
+                <div style={{ background: "#2a2a2a", height: "6px", borderRadius: "0 0 3px 3px", width: "120%", marginLeft: "-10%" }} />
+              </div>
+            </div>
+          </div>
+          <div style={{ position: "absolute", left: "0px", bottom: "20px" }}>
+            <ScrollBadge position="bottom-right" inline />
           </div>
         </section>
 
-        {/* Wild Sustainable & Affordable - Website Content Section */}
-        <section style={{ padding: "0 40px 40px", position: "relative" }}>
+        {/* Wild Sustainable & Affordable */}
+        <section style={{ padding: "200px 40px 40px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", alignItems: "start" }}>
             <div style={{ background: "#f0ede8", padding: "60px 40px", borderRadius: "4px" }}>
               <div style={{ borderTop: "3px solid #1a2e5a", paddingTop: "40px", textAlign: "center" }}>
@@ -58,7 +88,7 @@ export default function AlaskaWhitefishTrawlers() {
                   alt="Pollock Fish"
                   style={{ width: "280px", height: "auto", margin: "0 auto 32px", display: "block" }}
                 />
-                <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "15px", color: "#1a2e5a", lineHeight: 1.7, marginBottom: "16px", textAlign: "left" })}>
+                <p style={f({ fontWeight: 400, fontSize: "15px", color: "#1a2e5a", lineHeight: 1.7, marginBottom: "16px", textAlign: "left" })}>
                   77% of what we catch in the Gulf of Alaska is pollock caught with a midwater trawl.
                 </p>
                 <p style={f({ fontWeight: 400, fontSize: "13px", color: "rgba(26,46,90,0.8)", lineHeight: 1.7, textAlign: "left" })}>
@@ -66,21 +96,11 @@ export default function AlaskaWhitefishTrawlers() {
                 </p>
               </div>
             </div>
-            <div style={{ position: "relative" }}>
-              <ScrollBadge position="bottom-left" bottomOffset={-58} />
-              <div style={{ borderRadius: "4px", overflow: "hidden", border: "2px solid rgba(255,255,255,0.15)" }}>
-                <img
-                  src={"/images/case-studies/awt/alaska-whitefish-web-design-sample-2.png"}
-                  alt="Alaska Whitefish Trawlers Website on Laptop"
-                  style={{ width: "100%", height: "auto", display: "block" }}
-                />
-              </div>
-            </div>
           </div>
         </section>
 
         {/* Inside Our Partnership */}
-        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "center" }}>
+        <section style={{ padding: "200px 80px 240px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "center" }}>
           <div style={{ background: "#ffffff", borderRadius: "4px", padding: "60px 40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <img
               src={"/images/case-studies/awt/aktrawlers-FINAL.png"}
