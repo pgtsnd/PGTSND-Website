@@ -236,6 +236,19 @@ export default function GreenJuju() {
                 poster={"/images/case-studies/green-juju/puppies-green-juju-pgtsnd.jpeg"}
               />
             </div>
+            <img
+              src={"/images/case-studies/green-juju/dog-eating-pork-pink-green-juju-pgtsnd.png"}
+              alt="Dog eating Green Juju Pork Pink"
+              style={{
+                position: "absolute",
+                right: "8%",
+                bottom: "-12%",
+                width: "32%",
+                height: "auto",
+                zIndex: 3,
+                pointerEvents: "none",
+              }}
+            />
             <div style={{ position: "absolute", bottom: "20px", right: "20px", zIndex: 2 }}>
               <ScrollBadge position="bottom-right" inline />
             </div>
