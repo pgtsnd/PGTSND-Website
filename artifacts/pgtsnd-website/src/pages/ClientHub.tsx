@@ -154,7 +154,7 @@ export default function ClientHub() {
       <section
         style={{
           paddingTop: "140px",
-          paddingBottom: "160px",
+          paddingBottom: "80px",
           paddingLeft: "80px",
           paddingRight: "80px",
           maxWidth: "520px",
