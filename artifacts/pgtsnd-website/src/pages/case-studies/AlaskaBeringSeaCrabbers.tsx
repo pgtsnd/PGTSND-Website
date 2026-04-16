@@ -189,7 +189,7 @@ export default function AlaskaBeringSeaCrabbers() {
         </section>
 
         {/* Video Placeholders */}
-        <section style={{ padding: "0 80px 80px" }}>
+        <section style={{ padding: "0 80px 130px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", position: "relative" }}>
             <VideoPlaceholder
               thumbnail={"/images/case-studies/absc/pgtsnd-ABSC-photography-7.jpeg"}
