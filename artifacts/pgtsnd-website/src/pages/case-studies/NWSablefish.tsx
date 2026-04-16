@@ -340,41 +340,6 @@ export default function NWSablefish() {
           </div>
         </section>
 
-        {/* Social Media Phones on Topo Background */}
-        <section style={{ padding: "0 40px 0", position: "relative" }}>
-          <div style={{
-            background: "#2d6a6f",
-            borderRadius: "8px",
-            padding: "60px 40px",
-            display: "flex",
-            justifyContent: "center",
-            gap: "24px",
-            alignItems: "center",
-            overflow: "hidden",
-            position: "relative",
-          }}>
-            <div style={{ position: "absolute", inset: 0, opacity: 0.3 }}>
-              <img
-                src={"/images/case-studies/nw-sablefish/sablefish-topo-blue2-1.png"}
-                alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </div>
-            <PhoneMockup
-              src={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-2.JPG"}
-              style={{ transform: "translateY(10px)", zIndex: 1 }}
-            />
-            <PhoneMockup
-              src={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-3.jpg"}
-              style={{ transform: "translateY(-10px)", zIndex: 2 }}
-            />
-            <PhoneMockup
-              src={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-8.jpg"}
-              style={{ transform: "translateY(10px)", zIndex: 1 }}
-            />
-          </div>
-        </section>
-
         {/* ScrollBadge + Instagram Button */}
         <section style={{ padding: "40px 40px 80px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <ScrollBadge position="bottom-left" bottomOffset={-58} />
