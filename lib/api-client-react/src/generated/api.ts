@@ -17,7 +17,9 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  CheckoutSession,
   Contract,
+  CreateCheckoutSessionRequest,
   CreateContract,
   CreateDeliverable,
   CreateMessage,
@@ -36,6 +38,7 @@ import type {
   Message,
   NotFoundResponse,
   Organization,
+  PaymentDetails,
   Project,
   ProjectMember,
   Review,
@@ -4588,3 +4591,186 @@ export const useDeleteContract = <
 > => {
   return useMutation(getDeleteContractMutationOptions(options));
 };
+
+/**
+ * Creates (or reuses) a Stripe Checkout session for the given invoice and
+returns the hosted checkout URL. The successUrl and cancelUrl must share
+the same origin as the request.
+
+ * @summary Create a Stripe Checkout session for an invoice
+ */
+export const getCreateInvoiceCheckoutSessionUrl = (id: string) => {
+  return `/api/invoices/${id}/checkout`;
+};
+
+export const createInvoiceCheckoutSession = async (
+  id: string,
+  createCheckoutSessionRequest: CreateCheckoutSessionRequest,
+  options?: RequestInit,
+): Promise<CheckoutSession> => {
+  return customFetch<CheckoutSession>(getCreateInvoiceCheckoutSessionUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createCheckoutSessionRequest),
+  });
+};
+
+export const getCreateInvoiceCheckoutSessionMutationOptions = <
+  TError = ErrorType<ValidationErrorResponse | Error>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createInvoiceCheckoutSession>>,
+    TError,
+    { id: string; data: BodyType<CreateCheckoutSessionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createInvoiceCheckoutSession>>,
+  TError,
+  { id: string; data: BodyType<CreateCheckoutSessionRequest> },
+  TContext
+> => {
+  const mutationKey = ["createInvoiceCheckoutSession"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createInvoiceCheckoutSession>>,
+    { id: string; data: BodyType<CreateCheckoutSessionRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return createInvoiceCheckoutSession(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateInvoiceCheckoutSessionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createInvoiceCheckoutSession>>
+>;
+export type CreateInvoiceCheckoutSessionMutationBody =
+  BodyType<CreateCheckoutSessionRequest>;
+export type CreateInvoiceCheckoutSessionMutationError = ErrorType<
+  ValidationErrorResponse | Error
+>;
+
+/**
+ * @summary Create a Stripe Checkout session for an invoice
+ */
+export const useCreateInvoiceCheckoutSession = <
+  TError = ErrorType<ValidationErrorResponse | Error>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createInvoiceCheckoutSession>>,
+    TError,
+    { id: string; data: BodyType<CreateCheckoutSessionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createInvoiceCheckoutSession>>,
+  TError,
+  { id: string; data: BodyType<CreateCheckoutSessionRequest> },
+  TContext
+> => {
+  return useMutation(getCreateInvoiceCheckoutSessionMutationOptions(options));
+};
+
+/**
+ * @summary Get Stripe payment details for a paid invoice
+ */
+export const getGetInvoicePaymentDetailsUrl = (id: string) => {
+  return `/api/invoices/${id}/payment`;
+};
+
+export const getInvoicePaymentDetails = async (
+  id: string,
+  options?: RequestInit,
+): Promise<PaymentDetails> => {
+  return customFetch<PaymentDetails>(getGetInvoicePaymentDetailsUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetInvoicePaymentDetailsQueryKey = (id: string) => {
+  return [`/api/invoices/${id}/payment`] as const;
+};
+
+export const getGetInvoicePaymentDetailsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getInvoicePaymentDetails>>,
+  TError = ErrorType<NotFoundResponse>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getInvoicePaymentDetails>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetInvoicePaymentDetailsQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getInvoicePaymentDetails>>
+  > = ({ signal }) =>
+    getInvoicePaymentDetails(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getInvoicePaymentDetails>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetInvoicePaymentDetailsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getInvoicePaymentDetails>>
+>;
+export type GetInvoicePaymentDetailsQueryError = ErrorType<NotFoundResponse>;
+
+/**
+ * @summary Get Stripe payment details for a paid invoice
+ */
+
+export function useGetInvoicePaymentDetails<
+  TData = Awaited<ReturnType<typeof getInvoicePaymentDetails>>,
+  TError = ErrorType<NotFoundResponse>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getInvoicePaymentDetails>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetInvoicePaymentDetailsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

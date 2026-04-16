@@ -1215,3 +1215,50 @@ export const DeleteContractParams = zod.object({
 export const DeleteContractResponse = zod.object({
   message: zod.string(),
 });
+
+/**
+ * Creates (or reuses) a Stripe Checkout session for the given invoice and
+returns the hosted checkout URL. The successUrl and cancelUrl must share
+the same origin as the request.
+
+ * @summary Create a Stripe Checkout session for an invoice
+ */
+export const CreateInvoiceCheckoutSessionParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const CreateInvoiceCheckoutSessionBody = zod.object({
+  successUrl: zod
+    .string()
+    .url()
+    .describe(
+      "URL to redirect to after successful payment. Must share origin with the request.",
+    ),
+  cancelUrl: zod
+    .string()
+    .url()
+    .describe(
+      "URL to redirect to if checkout is cancelled. Must share origin with the request.",
+    ),
+});
+
+export const CreateInvoiceCheckoutSessionResponse = zod.object({
+  url: zod.string().url().describe("Hosted Stripe Checkout URL"),
+});
+
+/**
+ * @summary Get Stripe payment details for a paid invoice
+ */
+export const GetInvoicePaymentDetailsParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetInvoicePaymentDetailsResponse = zod.object({
+  paymentIntentId: zod.string().nullable(),
+  amount: zod.number(),
+  currency: zod.string(),
+  status: zod.string(),
+  paymentMethod: zod.string().nullable(),
+  receiptUrl: zod.string().nullable(),
+  paidAt: zod.coerce.date().nullable(),
+});

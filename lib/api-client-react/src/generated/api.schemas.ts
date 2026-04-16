@@ -634,6 +634,28 @@ export interface UpdateContract {
   expiresAt?: string;
 }
 
+export interface CreateCheckoutSessionRequest {
+  /** URL to redirect to after successful payment. Must share origin with the request. */
+  successUrl: string;
+  /** URL to redirect to if checkout is cancelled. Must share origin with the request. */
+  cancelUrl: string;
+}
+
+export interface CheckoutSession {
+  /** Hosted Stripe Checkout URL */
+  url: string;
+}
+
+export interface PaymentDetails {
+  paymentIntentId: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  paymentMethod: string | null;
+  receiptUrl: string | null;
+  paidAt: string | null;
+}
+
 /**
  * Authentication required
  */

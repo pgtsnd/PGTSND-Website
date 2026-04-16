@@ -26,6 +26,8 @@ tags:
     description: Project messaging
   - name: contracts
     description: Contract management
+  - name: invoices
+    description: Invoice billing and Stripe payment operations
   - name: Storage
     description: Object storage upload and serving endpoints.
 paths:
@@ -1034,6 +1036,62 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /invoices/{id}/checkout:
+    post:
+      operationId: createInvoiceCheckoutSession
+      tags: [invoices]
+      summary: Create a Stripe Checkout session for an invoice
+      description: |
+        Creates (or reuses) a Stripe Checkout session for the given invoice and
+        returns the hosted checkout URL. The successUrl and cancelUrl must share
+        the same origin as the request.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCheckoutSessionRequest"
+      responses:
+        "200":
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSession"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          description: Invoice not found, already paid, or Stripe not connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to create checkout session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /invoices/{id}/payment:
+    get:
+      operationId: getInvoicePaymentDetails
+      tags: [invoices]
+      summary: Get Stripe payment details for a paid invoice
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Payment details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentDetails"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
   parameters:
     Id:
@@ -2004,3 +2062,59 @@ components:
         expiresAt:
           type: string
           format: date-time
+
+    CreateCheckoutSessionRequest:
+      type: object
+      properties:
+        successUrl:
+          type: string
+          format: uri
+          description: URL to redirect to after successful payment. Must share origin with the request.
+        cancelUrl:
+          type: string
+          format: uri
+          description: URL to redirect to if checkout is cancelled. Must share origin with the request.
+      required:
+        - successUrl
+        - cancelUrl
+
+    CheckoutSession:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Hosted Stripe Checkout URL
+      required:
+        - url
+
+    PaymentDetails:
+      type: object
+      properties:
+        paymentIntentId:
+          type: string
+          nullable: true
+        amount:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+        paymentMethod:
+          type: string
+          nullable: true
+        receiptUrl:
+          type: string
+          nullable: true
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - paymentIntentId
+        - amount
+        - currency
+        - status
+        - paymentMethod
+        - receiptUrl
+        - paidAt
