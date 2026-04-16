@@ -114,8 +114,8 @@ export default function Contact() {
       <div style={{ background: "#000000", minHeight: "100vh" }}>
         {/* Hero */}
         <section style={{ padding: "160px 80px 120px", position: "relative" }}>
-          <div style={{ maxWidth: "520px" }}>
-            <h1 style={f({ fontWeight: 900, fontSize: "clamp(48px, 7vw, 84px)", textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 0.95, color: "#ffffff", marginBottom: "40px" })}>
+          <div style={{ maxWidth: "800px" }}>
+            <h1 style={f({ fontWeight: 900, fontSize: "clamp(48px, 7vw, 84px)", textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 0.95, color: "#ffffff", marginBottom: "40px", whiteSpace: "nowrap" })}>
               Let's Get To Work.
             </h1>
             <p style={f({ fontWeight: 400, fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
