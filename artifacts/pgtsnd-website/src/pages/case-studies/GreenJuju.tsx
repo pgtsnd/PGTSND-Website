@@ -600,15 +600,15 @@ function VeggieScrollBar() {
     };
   }, []);
 
-  const overflowPct = 60;
+  const overflowPct = 20;
   const translatePct = -overflowPct * progress;
 
   return (
     <section
       ref={sectionRef}
-      style={{ padding: "0 40px 40px", position: "relative" }}
+      style={{ padding: "0", position: "relative" }}
     >
-      <div style={{ width: "100%", overflow: "hidden", height: "320px" }}>
+      <div style={{ width: "100%", overflow: "hidden", height: "100vh" }}>
         <img
           src={"/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg"}
           alt="Green Juju Products"
