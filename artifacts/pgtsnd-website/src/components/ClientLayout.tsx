@@ -98,13 +98,27 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    api
-      .getClientMessages()
-      .then((convos) => {
-        const total = convos.reduce((sum: number, c: Conversation) => sum + (c.unreadCount || 0), 0);
-        setUnreadCount(total);
-      })
-      .catch(() => {});
+    const load = () => {
+      api
+        .getClientMessages()
+        .then((convos) => {
+          const total = convos.reduce((sum: number, c: Conversation) => sum + (c.unreadCount || 0), 0);
+          setUnreadCount(total);
+        })
+        .catch(() => {});
+    };
+    load();
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") load();
+    }, 15000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, []);
 
   const displayName = user?.name || "Client";

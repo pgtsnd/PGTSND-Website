@@ -29,11 +29,29 @@ export default function ClientDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api
-      .getClientDashboard()
-      .then(setData)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
-      .finally(() => setLoading(false));
+    const load = (initial: boolean) => {
+      api
+        .getClientDashboard()
+        .then(setData)
+        .catch((err: unknown) => {
+          if (initial) setError(err instanceof Error ? err.message : "Failed to load");
+        })
+        .finally(() => {
+          if (initial) setLoading(false);
+        });
+    };
+    load(true);
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") load(false);
+    }, 15000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") load(false);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, []);
 
   if (loading) {

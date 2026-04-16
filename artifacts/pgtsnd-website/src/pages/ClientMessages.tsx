@@ -25,11 +25,12 @@ export default function ClientMessages() {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const loadMessages = () => {
+  const loadMessages = (initial = false) => {
     api
       .getClientMessages()
       .then((data) => {
         setConversations(data);
+        setError(null);
         if (!activeConvo && data.length > 0) {
           setActiveConvo(data[0]);
         } else if (activeConvo) {
@@ -37,13 +38,30 @@ export default function ClientMessages() {
           if (updated) setActiveConvo(updated);
         }
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
-      .finally(() => setLoading(false));
+      .catch((err: unknown) => {
+        if (initial) setError(err instanceof Error ? err.message : "Failed to load");
+      })
+      .finally(() => {
+        if (initial) setLoading(false);
+      });
   };
 
   useEffect(() => {
-    loadMessages();
-  }, []);
+    loadMessages(true);
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        loadMessages();
+      }
+    }, 10000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") loadMessages();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [activeConvo?.projectId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
