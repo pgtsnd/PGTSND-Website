@@ -53,7 +53,7 @@ function ServiceCategory({
       >
         {title}
       </h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: "56px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "56px", paddingLeft: "100px" }}>
         {items.map((item, i) => (
           <div
             key={i}
