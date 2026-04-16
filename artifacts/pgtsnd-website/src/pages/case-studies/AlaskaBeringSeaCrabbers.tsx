@@ -137,8 +137,11 @@ export default function AlaskaBeringSeaCrabbers() {
 
         {/* Hero Video Placeholder + Testimonial */}
         <section style={{ padding: "0 80px", position: "relative" }}>
-          <ScrollBadge position="bottom-left" bottomOffset={-58} />
-          <div style={{ width: "100%", aspectRatio: "16 / 9", overflow: "hidden", position: "relative", background: "#111" }}>
+          <div style={{ width: "100%", position: "relative" }}>
+            <div style={{ position: "absolute", top: "-30px", left: "0", zIndex: 5 }}>
+              <ScrollBadge position="bottom-left" inline />
+            </div>
+            <div style={{ width: "100%", aspectRatio: "16 / 9", overflow: "hidden", position: "relative", background: "#111" }}>
             <img
               src={"/images/case-studies/absc/pgtsnd-ABSC-photography-5.jpeg"}
               alt="Alaska Bering Sea"
@@ -165,6 +168,7 @@ export default function AlaskaBeringSeaCrabbers() {
                   Jamie Goen, Executive Director at ABSC
                 </p>
               </div>
+            </div>
             </div>
           </div>
         </section>
