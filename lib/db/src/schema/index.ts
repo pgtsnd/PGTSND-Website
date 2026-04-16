@@ -1,4 +1,5 @@
 export * from "./users";
+export * from "./magic-link-tokens";
 export * from "./organizations";
 export * from "./projects";
 export * from "./project-members";

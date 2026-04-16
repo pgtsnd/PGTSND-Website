@@ -11,7 +11,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
 - **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
+- **Database**: PostgreSQL + Drizzle ORM (tables: `users`, `magic_link_tokens`)
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
@@ -93,6 +93,7 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
 - **Design**: Black background, white text, bold Montserrat 900 weight headings, pill-shaped CTA buttons, hamburger nav overlay
 - **Images**: Served locally from `public/images/` (migrated from Squarespace CDN)
 - **Logo**: Uses src/assets/logo.webp via @assets alias
+- **Authentication**: Magic link email login + Google SSO + demo bypass (`demo@pgtsnd.com`), JWT sessions in httpOnly cookies, role-based routing (client → client hub, crew/partner/owner → team portal), protected route guards on all dashboard pages
 - **No backend required**: Pure frontend, contact form is client-side only
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.

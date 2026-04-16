@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { ThemeProvider } from "@/components/ThemeContext";
+import { AuthProvider } from "@/lib/auth";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Header from "@/components/Header";
 import Home from "@/pages/Home";
 import Services from "@/pages/Services";
@@ -30,6 +32,7 @@ import TeamSchedule from "@/pages/TeamSchedule";
 import TeamAssets from "@/pages/TeamAssets";
 import TeamCrew from "@/pages/TeamCrew";
 import TeamSettings from "@/pages/TeamSettings";
+import AuthVerify from "@/pages/AuthVerify";
 import CaseStudyDetail from "@/pages/case-studies/CaseStudyDetail";
 import AlaskaBeringSeaCrabbers from "@/pages/case-studies/AlaskaBeringSeaCrabbers";
 import GreenJuju from "@/pages/case-studies/GreenJuju";
@@ -50,32 +53,165 @@ function ScrollToTop() {
   return null;
 }
 
+const CLIENT_ROLES = ["client", "owner", "partner"];
+const TEAM_ROLES = ["owner", "partner", "crew"];
+
 function Router() {
   return (
     <Switch>
-      <Route path="/client-hub/dashboard" component={ClientDashboard} />
-      <Route path="/client-hub/messages" component={ClientMessages} />
-      <Route path="/client-hub/projects/:id/treatment" component={ProjectTreatment} />
-      <Route path="/client-hub/projects/:id/storyboard" component={ProjectStoryboard} />
-      <Route path="/client-hub/projects/:id/shotlist" component={ProjectShotList} />
-      <Route path="/client-hub/projects/:id/notes" component={ProjectNotes} />
-      <Route path="/client-hub/projects" component={ClientProjects} />
-      <Route path="/client-hub/assets" component={ClientAssets} />
-      <Route path="/client-hub/review" component={ClientVideoReview} />
-      <Route path="/client-hub/contracts" component={ClientContracts} />
-      <Route path="/client-hub/billing" component={ClientBilling} />
-      <Route path="/client-hub/account" component={ClientAccount} />
+      <Route path="/auth/verify" component={AuthVerify} />
+
+      <Route path="/client-hub/dashboard">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ClientDashboard />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-hub/messages">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ClientMessages />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-hub/projects/:id/treatment">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ProjectTreatment />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-hub/projects/:id/storyboard">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ProjectStoryboard />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-hub/projects/:id/shotlist">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ProjectShotList />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-hub/projects/:id/notes">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ProjectNotes />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-hub/projects">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ClientProjects />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-hub/assets">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ClientAssets />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-hub/review">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ClientVideoReview />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-hub/contracts">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ClientContracts />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-hub/billing">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ClientBilling />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-hub/account">
+        {() => (
+          <ProtectedRoute redirectTo="/client-hub">
+            <ClientAccount />
+          </ProtectedRoute>
+        )}
+      </Route>
       <Route path="/client-hub" component={ClientHub} />
-      <Route path="/team/dashboard" component={TeamDashboard} />
-      <Route path="/team/projects/:id" component={TeamProjectDetail} />
-      <Route path="/team/projects" component={TeamProjects} />
-      <Route path="/team/clients" component={TeamClients} />
-      <Route path="/team/messages" component={TeamMessages} />
-      <Route path="/team/schedule" component={TeamSchedule} />
-      <Route path="/team/assets" component={TeamAssets} />
-      <Route path="/team/crew" component={TeamCrew} />
-      <Route path="/team/settings" component={TeamSettings} />
+
+      <Route path="/team/dashboard">
+        {() => (
+          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
+            <TeamDashboard />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/team/projects/:id">
+        {() => (
+          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
+            <TeamProjectDetail />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/team/projects">
+        {() => (
+          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
+            <TeamProjects />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/team/clients">
+        {() => (
+          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
+            <TeamClients />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/team/messages">
+        {() => (
+          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
+            <TeamMessages />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/team/schedule">
+        {() => (
+          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
+            <TeamSchedule />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/team/assets">
+        {() => (
+          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
+            <TeamAssets />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/team/crew">
+        {() => (
+          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
+            <TeamCrew />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/team/settings">
+        {() => (
+          <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
+            <TeamSettings />
+          </ProtectedRoute>
+        )}
+      </Route>
       <Route path="/team" component={TeamLogin} />
+
       <Route path="/case-studies/alaska-bering-sea-crabbers" component={AlaskaBeringSeaCrabbers} />
       <Route path="/case-studies/green-juju" component={GreenJuju} />
       <Route path="/case-studies/nw-sablefish" component={NWSablefish} />
@@ -109,8 +245,10 @@ function App() {
   return (
     <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
       <ThemeProvider>
-        <ScrollToTop />
-        <Router />
+        <AuthProvider>
+          <ScrollToTop />
+          <Router />
+        </AuthProvider>
       </ThemeProvider>
     </WouterRouter>
   );

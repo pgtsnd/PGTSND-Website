@@ -15,8 +15,9 @@ export const usersTable = pgTable("users", {
     .primaryKey()
     .$defaultFn(() => randomUUID()),
   email: varchar("email", { length: 255 }).notNull().unique(),
-  name: varchar("name", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }),
   role: userRoleEnum("role").notNull().default("crew"),
+  googleId: varchar("google_id", { length: 255 }),
   avatarUrl: text("avatar_url"),
   phone: varchar("phone", { length: 50 }),
   title: varchar("title", { length: 255 }),

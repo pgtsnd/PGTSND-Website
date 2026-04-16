@@ -1,15 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-
-const BYPASS_EMAIL = "demo@pgtsnd.com";
+import { useAuth, getDashboardPath } from "../lib/auth";
 
 export default function ClientHub() {
   const [mode, setMode] = useState<"login" | "register" | "check-email">("login");
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [, navigate] = useLocation();
+  const { login, googleLogin, user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate(getDashboardPath(user.role));
+    }
+  }, [user, loading, navigate]);
 
   const inputStyle: React.CSSProperties = {
     fontFamily: "'Montserrat', sans-serif",
@@ -35,13 +43,29 @@ export default function ClientHub() {
     marginBottom: "8px",
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.toLowerCase().trim() === BYPASS_EMAIL) {
-      navigate("/client-hub/dashboard");
-      return;
+    setError("");
+    setSubmitting(true);
+
+    try {
+      const result = await login(email);
+
+      if (result.demo && result.redirect) {
+        navigate(result.redirect);
+        return;
+      }
+
+      if (result.success) {
+        setMode("check-email");
+      } else {
+        setError(result.error || "Something went wrong");
+      }
+    } catch {
+      setError("Something went wrong");
+    } finally {
+      setSubmitting(false);
     }
-    setMode("check-email");
   };
 
   if (mode === "check-email") {
@@ -204,7 +228,7 @@ export default function ClientHub() {
         </p>
 
         <button
-          onClick={() => {}}
+          onClick={googleLogin}
           style={{
             fontFamily: "'Montserrat', sans-serif",
             fontWeight: 500,
@@ -284,14 +308,28 @@ export default function ClientHub() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); setError(""); }}
               placeholder="you@company.com"
               style={inputStyle}
             />
+            {error && (
+              <p
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "13px",
+                  color: "#ff6b6b",
+                  marginTop: "12px",
+                }}
+              >
+                {error}
+              </p>
+            )}
           </div>
 
           <button
             type="submit"
+            disabled={submitting}
             style={{
               fontFamily: "'Montserrat', sans-serif",
               fontWeight: 600,
@@ -303,14 +341,15 @@ export default function ClientHub() {
               border: "none",
               borderRadius: "100px",
               padding: "16px 0",
-              cursor: "pointer",
+              cursor: submitting ? "not-allowed" : "pointer",
               width: "100%",
               transition: "opacity 0.2s ease",
+              opacity: submitting ? 0.6 : 1,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+            onMouseEnter={(e) => { if (!submitting) e.currentTarget.style.opacity = "0.85"; }}
+            onMouseLeave={(e) => { if (!submitting) e.currentTarget.style.opacity = "1"; }}
           >
-            {mode === "login" ? "Send Magic Link" : "Create Account"}
+            {submitting ? "Sending..." : mode === "login" ? "Send Magic Link" : "Create Account"}
           </button>
         </form>
 
