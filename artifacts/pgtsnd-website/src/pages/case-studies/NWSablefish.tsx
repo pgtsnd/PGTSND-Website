@@ -134,6 +134,76 @@ function PhoneMockup({ src, style }: { src: string; style?: React.CSSProperties 
   );
 }
 
+function VideoPhoneMockup({ poster, style }: { poster?: string; style?: React.CSSProperties }) {
+  return (
+    <div
+      style={{
+        width: "220px",
+        aspectRatio: "9 / 19",
+        borderRadius: "32px",
+        overflow: "hidden",
+        border: "8px solid #111",
+        boxShadow: "0 0 0 2px rgba(255,255,255,0.08), 0 20px 60px rgba(0,0,0,0.5)",
+        background: "#1a1a1a",
+        position: "relative",
+        flexShrink: 0,
+        ...style,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: "10px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "80px",
+          height: "20px",
+          background: "#111",
+          borderRadius: "0 0 12px 12px",
+          zIndex: 3,
+        }}
+      />
+      {poster ? (
+        <img
+          src={poster}
+          alt=""
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "brightness(0.85)" }}
+        />
+      ) : (
+        <div style={{ width: "100%", height: "100%", background: "linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%)" }} />
+      )}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 2,
+        }}
+      >
+        <div
+          style={{
+            width: "64px",
+            height: "64px",
+            borderRadius: "50%",
+            background: "rgba(0,0,0,0.55)",
+            border: "2px solid rgba(255,255,255,0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backdropFilter: "blur(4px)",
+          }}
+        >
+          <svg width="20" height="24" viewBox="0 0 18 22" fill="white">
+            <polygon points="0,0 18,11 0,22" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function VideoPlaceholder({ thumbnail, duration }: { thumbnail: string; duration: string }) {
   return (
     <div style={{ position: "relative", background: "#111", aspectRatio: "16 / 9", overflow: "hidden" }}>
@@ -368,6 +438,47 @@ export default function NWSablefish() {
             <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
               We built their social presence from zero into a growing community, establishing a foundation for awareness and storytelling that positioned North West Sablefish as both a high-value product and as an experience worth savoring.
             </p>
+          </div>
+        </section>
+
+        {/* Vertical Video Phone Array on Topo Background */}
+        <section style={{ padding: "0 40px 0", position: "relative" }}>
+          <div
+            style={{
+              position: "relative",
+              borderRadius: "8px",
+              overflow: "hidden",
+              background: "#1a3a4a",
+              padding: "80px 40px",
+            }}
+          >
+            <div style={{ position: "absolute", inset: 0, opacity: 0.55, pointerEvents: "none" }}>
+              <img
+                src={"/images/case-studies/nw-sablefish/sablefish-topo-blue2-1.png"}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            </div>
+            <div
+              style={{
+                position: "relative",
+                zIndex: 1,
+                display: "flex",
+                justifyContent: "space-evenly",
+                alignItems: "center",
+                gap: "40px",
+              }}
+            >
+              <VideoPhoneMockup
+                poster={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-4.jpg"}
+              />
+              <VideoPhoneMockup
+                poster={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-7.jpeg"}
+              />
+              <VideoPhoneMockup
+                poster={"/images/case-studies/nw-sablefish/nw-sablefish-pgtsnd-photography-9.JPG"}
+              />
+            </div>
           </div>
         </section>
 
