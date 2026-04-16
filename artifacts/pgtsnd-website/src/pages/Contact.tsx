@@ -130,7 +130,6 @@ export default function Contact() {
               </a>
             </p>
           </div>
-          <ScrollBadge position="bottom-right" />
         </section>
 
         {/* Full-Width Hero Image with Scroll Slide Effect */}
