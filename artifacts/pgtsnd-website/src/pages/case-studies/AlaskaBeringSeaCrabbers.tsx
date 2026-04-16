@@ -62,32 +62,52 @@ function VideoPlaceholder({ thumbnail, duration }: { thumbnail: string; duration
 }
 
 function WebsiteMockup() {
-  const [hovered, setHovered] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   return (
-    <div
-      style={{ position: "relative", overflow: "hidden", cursor: "pointer" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <img
-        src={"/images/case-studies/absc/ABSC-PGTSND-Web-Design-Sample.webp"}
-        alt="ABSC Website Design"
-        style={{ width: "100%", height: "auto", display: "block" }}
-      />
-      <img
-        src={"/images/site/-web-preview-cursor-pgtsnd.png"}
-        alt=""
+    <div style={{ position: "relative" }}>
+      <div
+        style={{
+          border: "2px solid rgba(255,255,255,0.6)",
+          height: "520px",
+          overflow: "hidden",
+          overflowY: "auto",
+          position: "relative",
+        }}
+        onScroll={(e) => {
+          setIsScrolled((e.target as HTMLDivElement).scrollTop > 10);
+        }}
+      >
+        <img
+          src={"/images/case-studies/absc/ABSC-PGTSND-Web-Design-Sample.webp"}
+          alt="ABSC Website Design"
+          style={{ width: "100%", height: "auto", display: "block" }}
+        />
+      </div>
+      <div
         style={{
           position: "absolute",
-          top: "30%",
-          right: "25%",
-          width: "60px",
-          height: "auto",
-          opacity: hovered ? 1 : 0.85,
-          transition: "opacity 0.3s",
+          bottom: "16px",
+          right: "16px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          background: "rgba(0,0,0,0.7)",
+          borderRadius: "20px",
+          padding: "8px 14px",
+          opacity: isScrolled ? 0 : 1,
+          transition: "opacity 0.4s",
           pointerEvents: "none",
         }}
-      />
+      >
+        <svg width="16" height="20" viewBox="0 0 16 20" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5">
+          <rect x="4" y="0.5" width="8" height="13" rx="4" />
+          <line x1="8" y1="4" x2="8" y2="7" />
+          <path d="M4 16l4 3.5 4-3.5" />
+        </svg>
+        <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.8)" }}>
+          Scroll to explore
+        </span>
+      </div>
     </div>
   );
 }
