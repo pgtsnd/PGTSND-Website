@@ -10,6 +10,11 @@ import {
 import { and, eq, ne, inArray, isNotNull } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { sendEmail, getAppBaseUrl } from "./email";
+import {
+  renderReviewReadyEmail,
+  renderNewCommentEmail,
+  renderPublicCommentEmail,
+} from "./email-templates";
 
 interface MinimalUser {
   id: string;
@@ -111,6 +116,12 @@ export async function notifyDeliverableSubmittedForReview(
               `Title: ${deliverable.title}\n` +
               `Open the review page: ${link}\n\n` +
               `— PGTSND Productions`,
+            html: renderReviewReadyEmail({
+              recipientName: u.name,
+              projectName: project.name,
+              deliverableTitle: deliverable.title,
+              link,
+            }),
           }),
         ),
     );
@@ -212,6 +223,18 @@ export async function notifyNewVideoComment(opts: {
               `"${opts.content}"\n\n` +
               `View the conversation: ${link}\n\n` +
               `— PGTSND Productions`,
+            html: renderNewCommentEmail({
+              actorName: opts.actorName,
+              projectName: project.name,
+              deliverableTitle: deliverable.title,
+              content: opts.content,
+              timestampLabel:
+                opts.timestampSeconds !== undefined && !opts.isReply
+                  ? formatTimestamp(opts.timestampSeconds)
+                  : null,
+              isReply: Boolean(opts.isReply),
+              link,
+            }),
           }),
         ),
     );
@@ -289,6 +312,18 @@ export async function notifyPublicReviewComment(opts: {
               `"${opts.content}"\n\n` +
               `View the review: ${link}\n\n` +
               `— PGTSND Productions`,
+            html: renderPublicCommentEmail({
+              authorName: opts.authorName,
+              projectName: project.name,
+              deliverableTitle: deliverable.title,
+              content: opts.content,
+              timestampLabel:
+                opts.timestampSeconds !== undefined && !opts.isReply
+                  ? formatTimestamp(opts.timestampSeconds)
+                  : null,
+              isReply: Boolean(opts.isReply),
+              link,
+            }),
           }),
         ),
     );
