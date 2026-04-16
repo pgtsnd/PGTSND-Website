@@ -408,7 +408,7 @@ export default function NWSablefish() {
               <img
                 src={"/images/case-studies/nw-sablefish/nw-sablefish-website-design-pgtsnd.jpeg"}
                 alt="NW Sablefish Website"
-                style={{ width: "100%", height: "auto", display: "block", borderRadius: "4px", border: "2px solid rgba(255,255,255,0.15)" }}
+                style={{ width: "100%", height: "auto", display: "block", borderRadius: "4px", border: "2px solid #ffffff", boxShadow: "0 8px 40px rgba(0,0,0,0.5)" }}
               />
               <img
                 src={"/images/case-studies/nw-sablefish/NWsablefish-arrow-gold.png"}
