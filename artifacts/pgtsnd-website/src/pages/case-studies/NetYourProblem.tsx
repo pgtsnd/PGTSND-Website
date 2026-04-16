@@ -56,7 +56,7 @@ export default function NetYourProblem() {
       <Header />
       <div style={{ background: "#000000", minHeight: "100vh" }}>
         {/* Hero */}
-        <section style={{ padding: "140px 80px 60px", textAlign: "center" }}>
+        <section style={{ padding: "160px 80px 180px", textAlign: "center" }}>
           <h1 style={f({ fontWeight: 900, fontSize: "clamp(36px, 5vw, 64px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
             Net Your Problem X PGTSND
           </h1>
@@ -69,14 +69,14 @@ export default function NetYourProblem() {
 
         {/* Hero Image with Testimonial Overlay */}
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
-          <div style={{ position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "relative", overflow: "visible" }}>
             <img
               src={heroImage}
               alt="Net Your Problem - Aerial View"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
-            <div style={{ position: "absolute", bottom: "40px", left: "60px", maxWidth: "420px" }}>
-              <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
+            <div style={{ position: "absolute", bottom: "-60px", left: "60px", maxWidth: "420px", zIndex: 2 }}>
+              <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
                 <img
                   src={"/images/nicole-baker-pgtsnd.jpg"}
                   alt="Nicole Baker"
@@ -84,10 +84,10 @@ export default function NetYourProblem() {
                 />
               </div>
               <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px", background: "rgba(0,0,0,0.85)" }}>
-                <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, marginBottom: "16px" })}>
+                <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
                   &ldquo;Bri is the mother in a fishing family. So when we decided to make a film highlighting a friend of ours, their multigenerational fishing family and their decision to recycle nets from their barn, there was no better choice.&rdquo;
                 </p>
-                <p style={f({ fontWeight: 700, fontSize: "12px", color: "#ffffff" })}>
+                <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
                   Nicole Baker, Net Your Problem
                 </p>
               </div>
@@ -99,16 +99,16 @@ export default function NetYourProblem() {
         </section>
 
         {/* Inside Our Partnership + Video 1 */}
-        <section style={{ padding: "120px 80px 80px" }}>
+        <section style={{ padding: "220px 80px 240px" }}>
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff", marginBottom: "60px" })}>
             Inside Our Partnership
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
             <div>
-              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
                 Net Your Problem is tackling one of the fishing industry's biggest challenges: what to do with old nets once their original use life is through. PGTSND brought that mission to life by developing and producing two unique brand films that show the positive impact of net recycling on both communities and the environment.
               </p>
-              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8 })}>
+              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
                 We showcased the unique partnership NYP has with coastal communities and the ports they operate in.
               </p>
             </div>
@@ -120,17 +120,17 @@ export default function NetYourProblem() {
         </section>
 
         {/* Video 2 + Text */}
-        <section style={{ padding: "0 80px 120px" }}>
+        <section style={{ padding: "0 80px 230px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
             <VideoPlaceholder
               thumbnail={heroImage}
               duration="07:49"
             />
             <div>
-              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
                 In addition, we captured the story of a fishing family on Lopez Island, showing how piles of unused gear, left sitting for decades, can be given a new life through recycling.
               </p>
-              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8 })}>
+              <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
                 Each piece was designed to educate, inspire, and connect, proving that visual storytelling can show how sustainability is not just a practical matter, but deeply human.
               </p>
             </div>
@@ -180,20 +180,20 @@ export default function NetYourProblem() {
         </section>
 
         {/* Bottom CTA */}
-        <section style={{ padding: "80px 80px 80px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
-          <div style={{ maxWidth: "440px" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
+        <section style={{ padding: "200px 80px 200px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+          <div style={{ maxWidth: "480px" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
               <img
                 src={"/images/nicole-baker-pgtsnd.jpg"}
                 alt="Nicole Baker"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
-            <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px" }}>
-              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.8)", lineHeight: 1.7, marginBottom: "16px" })}>
+            <div style={{ border: "2px solid #ffffff", padding: "64px 40px 42px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "24px" })}>
                 &ldquo;Bri and her team make the whole process of making a film simple. They come up with interview questions and a shot list, and have let me be as picky as I want during the editing process. The films we've created with her have been remarkably useful for us at conferences and in helping to recruit new partners. We've also taken clips from the long form video to use in social media and they are some of our most successful posts.&rdquo;
               </p>
-              <p style={f({ fontWeight: 700, fontSize: "12px", color: "#ffffff" })}>
+              <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
                 Nicole Baker, Net Your Problem
               </p>
             </div>
@@ -202,7 +202,9 @@ export default function NetYourProblem() {
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(28px, 4.5vw, 52px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
               Your work speaks volumes. We're here to make sure it's seen &amp; heard.
             </h2>
-            <CTAButton href="/contact" label="Start a Project" />
+            <div style={{ marginTop: "10px" }}>
+              <CTAButton href="/contact" label="Start a Project" />
+            </div>
           </div>
         </section>
 

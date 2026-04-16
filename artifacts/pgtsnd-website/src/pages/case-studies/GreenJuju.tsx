@@ -92,7 +92,7 @@ export default function GreenJuju() {
       <Header />
       <div style={{ background: "#000000", minHeight: "100vh" }}>
         {/* Hero */}
-        <section style={{ padding: "140px 80px 80px" }}>
+        <section style={{ padding: "160px 80px 180px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", alignItems: "start" }}>
             <div>
               <h1 style={f({ fontWeight: 900, fontSize: "clamp(48px, 6vw, 76px)", textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 0.95, color: "#ffffff", marginBottom: "48px", whiteSpace: "nowrap" })}>
@@ -154,22 +154,22 @@ export default function GreenJuju() {
         </section>
 
         {/* The Big Picture */}
-        <section style={{ padding: "120px 80px", display: "grid", gridTemplateColumns: "2fr 3fr", gap: "80px", alignItems: "start" }}>
+        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "start" }}>
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff" })}>
             The Big Picture
           </h2>
-          <div>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+          <div style={{ maxWidth: "560px", marginLeft: "auto" }}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
               PGTSND's partnership with Green Juju is full-spectrum storytelling in action.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8 })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
               Green Juju came to PGTSND looking for a creative partner who could match their ambition and amplify their reach. Since 2024, we've become a full-spectrum extension of their team, trusted to creatively shape everything from daily social content to long-term brand strategy.
             </p>
           </div>
         </section>
 
         {/* Product Tubs + Testimonial */}
-        <section style={{ padding: "0 80px 0", position: "relative" }}>
+        <section style={{ padding: "0 80px 120px", position: "relative" }}>
           <div style={{ width: "100%", overflow: "hidden", position: "relative" }}>
             <img
               src={"/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg"}
@@ -181,7 +181,7 @@ export default function GreenJuju() {
             </div>
           </div>
           <div style={{ maxWidth: "400px", position: "relative", marginTop: "-60px", marginLeft: "60px", zIndex: 2 }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
               <img
                 src={"/images/case-studies/green-juju/kelly-green-juju.webp"}
                 alt="Kelley Mirian"
@@ -200,7 +200,7 @@ export default function GreenJuju() {
         </section>
 
         {/* The Solve */}
-        <section style={{ padding: "120px 80px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
+        <section style={{ padding: "160px 80px 230px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
           <div>
             <div
               style={{ position: "relative", cursor: "pointer", marginBottom: "24px" }}
@@ -250,28 +250,28 @@ export default function GreenJuju() {
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff", marginBottom: "32px" })}>
               The Solve
             </h2>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
               We reimagined their website to become the homebase hub that sets the example and built out email marketing campaigns to nurture loyal customers.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
               Each piece we create ties back to a core narrative: Green Juju is about real food, real results, and healthier, happier pets.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8 })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
               In strategy and execution, we work as an extension of Green Juju's team, demonstrating how integrated storytelling can transform a brand, and how our approach strengthens business impact.
             </p>
           </div>
         </section>
 
         {/* Full Production Suite + */}
-        <section style={{ padding: "0 80px 120px", display: "grid", gridTemplateColumns: "2fr 3fr", gap: "80px", alignItems: "start" }}>
+        <section style={{ padding: "0 80px 180px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "start" }}>
           <div>
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(24px, 3vw, 36px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1, color: "#ffffff", marginBottom: "32px" })}>
               Full Production Suite +
             </h2>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
               We began with photo and video production, building a library of lifestyle and product visuals that showcased Green Juju's unique place in the pet food market.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8 })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
               Our role expanded to copywriting, blogs, website content, and product descriptions, delivered in a consistent voice that balances education, trust, and warmth.
             </p>
           </div>
@@ -319,14 +319,14 @@ export default function GreenJuju() {
         </section>
 
         {/* Partnership Results */}
-        <section style={{ padding: "100px 80px", display: "grid", gridTemplateColumns: "2fr 3fr", gap: "80px", alignItems: "start" }}>
+        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "start" }}>
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff" })}>
             Partnership Results
           </h2>
           <div>
             {partnershipResults.map((item, i) => (
               <div key={i} style={{ borderLeft: "3px solid rgba(255,255,255,0.6)", paddingLeft: "24px", marginBottom: "40px" }}>
-                <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8 })}>
+                <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
                   {item.bold && <strong style={{ fontWeight: 700 }}>{item.bold}</strong>}
                   {item.rest}
                   {item.boldInline && <strong style={{ fontWeight: 700 }}>{item.boldInline}</strong>}
@@ -363,7 +363,7 @@ export default function GreenJuju() {
         </section>
 
         {/* Videos */}
-        <section style={{ padding: "40px 80px 40px" }}>
+        <section style={{ padding: "120px 80px 120px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
             <VideoPlaceholder
               thumbnail={"/images/case-studies/green-juju/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg"}
@@ -403,20 +403,20 @@ export default function GreenJuju() {
         </section>
 
         {/* Bottom CTA */}
-        <section style={{ padding: "80px 80px 80px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
-          <div style={{ maxWidth: "440px" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
+        <section style={{ padding: "200px 80px 200px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+          <div style={{ maxWidth: "480px" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
               <img
                 src={"/images/case-studies/green-juju/kelly-green-juju.webp"}
                 alt="Kelley Mirian"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
-            <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px" }}>
-              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.8)", lineHeight: 1.7, marginBottom: "16px" })}>
+            <div style={{ border: "2px solid #ffffff", padding: "64px 40px 42px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "24px" })}>
                 &ldquo;PGTSND redesigned our website to be far more functional and user-friendly, and the difference has been remarkable. Their thoughtful approach to social media has also elevated how we connect with our audience. Working with their team has been seamless, and the impact on our business is clear—we've grown in ways we couldn't have without them.&rdquo;
               </p>
-              <p style={f({ fontWeight: 700, fontSize: "12px", color: "#ffffff" })}>
+              <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
                 Kelley Mirian, Founder at Green Juju
               </p>
             </div>
@@ -425,7 +425,9 @@ export default function GreenJuju() {
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 5vw, 56px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
               Ready to show the story behind the work? We're ready to roll.
             </h2>
-            <CTAButton href="/contact" label="Start a Project" />
+            <div style={{ marginTop: "10px" }}>
+              <CTAButton href="/contact" label="Start a Project" />
+            </div>
           </div>
         </section>
 

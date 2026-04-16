@@ -35,7 +35,7 @@ export default function Lodge58North() {
       <Header />
       <div style={{ background: "#000000", minHeight: "100vh" }}>
         {/* Hero */}
-        <section style={{ padding: "140px 80px 60px", textAlign: "center" }}>
+        <section style={{ padding: "160px 80px 180px", textAlign: "center" }}>
           <h1 style={f({ fontWeight: 900, fontSize: "clamp(36px, 5vw, 64px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
             Lodge @ 58 North X PGTSND
           </h1>
@@ -78,21 +78,21 @@ export default function Lodge58North() {
         </section>
 
         {/* Inside Our Partnership */}
-        <section style={{ padding: "120px 80px", display: "grid", gridTemplateColumns: "2fr 3fr", gap: "80px", alignItems: "start" }}>
+        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "start" }}>
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff" })}>
             Inside Our Partnership
           </h2>
-          <div>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+          <div style={{ maxWidth: "560px", marginLeft: "auto" }}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
               From still images to cinematic storytelling. What started as a single project grew into a trusted partnership with owners Kate and Justin as they expanded their lodge and their vision.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
               Our relationship with Lodge @ 58 North began documenting the sport fishing experience through photography set against the wild beauty of Bristol Bay.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
               When the new lodge was completed, PGTSND evolved the story with them. We returned to capture a fresh suite of photography and produced a brand film in partnership with our friends at <a href="#" style={{ color: "#ffffff", textDecoration: "underline" }}>Topo Films</a> that showcases both the modern design of the lodge and the people behind it.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8 })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
               This ongoing collaboration has given Lodge @ 58 North a visual foundation to share their story and connect their audience to the unique experience they've created in Bristol Bay.
             </p>
           </div>
@@ -140,20 +140,20 @@ export default function Lodge58North() {
         </section>
 
         {/* Bottom CTA */}
-        <section style={{ padding: "80px 80px 80px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
-          <div style={{ maxWidth: "440px" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
+        <section style={{ padding: "200px 80px 200px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+          <div style={{ maxWidth: "480px" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
               <img
                 src={galleryImages[4]}
                 alt="Kate Crump"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
-            <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px" }}>
-              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.8)", lineHeight: 1.7, marginBottom: "16px" })}>
+            <div style={{ border: "2px solid #ffffff", padding: "64px 40px 42px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "24px" })}>
                 &ldquo;PGTSND Productions has always been so professional and fun to work with in the last five years. The quality of people are outstanding and the work is always exceptional and timely. We are very proud to partner with Bri at PGT.&rdquo;
               </p>
-              <p style={f({ fontWeight: 700, fontSize: "12px", color: "#ffffff" })}>
+              <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
                 Kate Crump, Lodge at 58 North
               </p>
             </div>
@@ -162,7 +162,9 @@ export default function Lodge58North() {
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(28px, 4.5vw, 52px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
               You're already doing the hard work. We'll make sure people see why it matters.
             </h2>
-            <CTAButton href="/contact" label="Work With Us" />
+            <div style={{ marginTop: "10px" }}>
+              <CTAButton href="/contact" label="Work With Us" />
+            </div>
           </div>
         </section>
 

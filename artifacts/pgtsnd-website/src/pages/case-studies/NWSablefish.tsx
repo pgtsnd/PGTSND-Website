@@ -73,7 +73,7 @@ export default function NWSablefish() {
       <Header />
       <div style={{ background: "#000000", minHeight: "100vh" }}>
         {/* Hero */}
-        <section style={{ padding: "140px 80px 80px", position: "relative", overflow: "hidden" }}>
+        <section style={{ padding: "160px 80px 180px", position: "relative", overflow: "hidden" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", alignItems: "start" }}>
             <div>
               <h1 style={f({ fontWeight: 900, fontSize: "clamp(48px, 6vw, 76px)", textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 0.95, color: "#ffffff", marginBottom: "48px" })}>
@@ -92,7 +92,6 @@ export default function NWSablefish() {
               </div>
             </div>
           </div>
-          {/* Topo background at bottom of hero */}
           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "200px", overflow: "hidden", pointerEvents: "none" }}>
             <img
               src={"/images/case-studies/nw-sablefish/sablefish-topo-blue2-1.png"}
@@ -115,13 +114,12 @@ export default function NWSablefish() {
 
         {/* Fish Tail + Color Palette + Testimonial */}
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
-          <div style={{ position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "relative", overflow: "visible" }}>
             <img
               src={"/images/case-studies/nw-sablefish/pgtsnd-fish-tail-nw-sablefish.jpg"}
               alt="Sablefish on Ice"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
-            {/* Color Palette Circles */}
             <div style={{ position: "absolute", top: "40px", left: "60px", display: "flex", gap: "0" }}>
               {brandColors.map((c, i) => (
                 <div
@@ -138,7 +136,6 @@ export default function NWSablefish() {
                 />
               ))}
             </div>
-            {/* Gold Fish Icon */}
             <div style={{ position: "absolute", top: "30px", right: "60px" }}>
               <img
                 src={"/images/case-studies/nw-sablefish/NWsablefish-fish-gold.png"}
@@ -146,9 +143,8 @@ export default function NWSablefish() {
                 style={{ width: "80px", height: "auto" }}
               />
             </div>
-            {/* Testimonial Card */}
-            <div style={{ position: "absolute", bottom: "40px", right: "60px", maxWidth: "420px" }}>
-              <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
+            <div style={{ position: "absolute", bottom: "-60px", right: "60px", maxWidth: "420px", zIndex: 2 }}>
+              <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
                 <img
                   src={"/images/about/katie-harris-headshot-pgtsnd-testimonial.jpg"}
                   alt="Katie Harris"
@@ -156,10 +152,10 @@ export default function NWSablefish() {
                 />
               </div>
               <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px", background: "rgba(0,0,0,0.85)" }}>
-                <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, marginBottom: "16px" })}>
+                <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
                   &ldquo;PGTSND was an integral part of our campaign, helping us craft a compelling brand narrative and producing media assets that far exceeded our expectations.&rdquo;
                 </p>
-                <p style={f({ fontWeight: 700, fontSize: "12px", color: "#ffffff" })}>
+                <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
                   Katie Harris, Grants, Outreach &amp; Operations
                 </p>
               </div>
@@ -168,7 +164,7 @@ export default function NWSablefish() {
         </section>
 
         {/* Identity Guide + The Big Picture */}
-        <section style={{ padding: "80px 80px 120px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
+        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "start" }}>
           <div style={{ position: "relative" }}>
             <div style={{ background: "#ffffff", borderRadius: "4px", overflow: "hidden", boxShadow: "0 8px 40px rgba(0,0,0,0.5)" }}>
               <img
@@ -183,14 +179,14 @@ export default function NWSablefish() {
               style={{ position: "absolute", bottom: "-20px", right: "-10px", width: "50px", height: "auto", transform: "rotate(15deg)" }}
             />
           </div>
-          <div>
+          <div style={{ maxWidth: "560px", marginLeft: "auto" }}>
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff", marginBottom: "32px" })}>
               The Big Picture
             </h2>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
               North West Sablefish came to PGTSND with a goal to set their product apart in a crowded market and give it the premium presence it deserved.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8 })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
               Our team built the brand from the ground up, creating a logo, brand guide, and an aligned suite of digital platforms that framed their sablefish as both distinctive and versatile.
             </p>
           </div>
@@ -254,7 +250,7 @@ export default function NWSablefish() {
         </section>
 
         {/* Website Mockup + The Solve */}
-        <section style={{ padding: "0 80px 120px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
+        <section style={{ padding: "160px 80px 230px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
           <div style={{ position: "relative" }}>
             <div
               style={{ position: "relative", cursor: "pointer" }}
@@ -286,13 +282,13 @@ export default function NWSablefish() {
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff", marginBottom: "32px" })}>
               The Solve
             </h2>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
               To bring this story to life, we partnered with Pacific Northwest chefs to produce high-quality brand films and photography that showcased sablefish in their restaurants. Each dish highlighted the adaptability and value of the product as a premium ingredient, while the chefs' own voices added authenticity and connection.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
               PGTSND delivered a full suite of assets that carried the brand from launch and into steady audience growth.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8 })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
               We built their social presence from zero into a growing community, establishing a foundation for awareness and storytelling that positioned North West Sablefish as both a high-value product and as an experience worth savoring.
             </p>
           </div>
@@ -350,20 +346,20 @@ export default function NWSablefish() {
         </section>
 
         {/* Bottom CTA */}
-        <section style={{ padding: "80px 80px 80px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
-          <div style={{ maxWidth: "440px" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
+        <section style={{ padding: "200px 80px 200px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+          <div style={{ maxWidth: "480px" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
               <img
                 src={"/images/about/katie-harris-headshot-pgtsnd-testimonial.jpg"}
                 alt="Katie Harris"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
-            <div style={{ border: "2px solid #ffffff", padding: "44px 28px 28px" }}>
-              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.8)", lineHeight: 1.7, marginBottom: "16px" })}>
+            <div style={{ border: "2px solid #ffffff", padding: "64px 40px 42px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "24px" })}>
                 &ldquo;Bri was so easy to communicate with, helping find creative solutions that fit within our budget and delivering every project on time with consistently high-quality results. We're thrilled with our new marketing platform and are excited to work with PGTSND Productions again in the future!&rdquo;
               </p>
-              <p style={f({ fontWeight: 700, fontSize: "12px", color: "#ffffff" })}>
+              <p style={f({ fontWeight: 700, fontSize: "13px", color: "#ffffff" })}>
                 Katie Harris, Grants, Outreach &amp; Operations
               </p>
             </div>
@@ -372,7 +368,9 @@ export default function NWSablefish() {
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 5vw, 56px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "32px" })}>
               Real work, real impact, and visuals that prove it.
             </h2>
-            <CTAButton href="/contact" label="Let's Get to Work" />
+            <div style={{ marginTop: "10px" }}>
+              <CTAButton href="/contact" label="Let's Get to Work" />
+            </div>
           </div>
         </section>
 
