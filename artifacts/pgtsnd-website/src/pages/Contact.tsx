@@ -150,7 +150,7 @@ export default function Contact() {
               transition: "transform 0.1s linear",
             }}
           />
-          <div style={{ position: "absolute", top: "20px", right: "20px", zIndex: 2 }}>
+          <div style={{ position: "absolute", top: "-55px", right: "20px", zIndex: 2 }}>
             <ScrollBadge position="bottom-right" inline />
           </div>
         </section>
