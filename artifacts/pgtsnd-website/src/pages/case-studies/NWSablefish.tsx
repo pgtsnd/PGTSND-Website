@@ -33,9 +33,9 @@ const socialLinks = [
 ];
 
 const brandColors = [
-  { color: "#2d6a6f", border: "none" },
-  { color: "#b0b0a8", border: "3px solid rgba(255,255,255,0.4)" },
-  { color: "#c5a44e", border: "none" },
+  { color: "#2d6a6f", border: "3px solid #ffffff" },
+  { color: "#b0b0a8", border: "3px solid #ffffff" },
+  { color: "#c5a44e", border: "3px solid #ffffff" },
 ];
 
 function FishTailScrollBar() {
