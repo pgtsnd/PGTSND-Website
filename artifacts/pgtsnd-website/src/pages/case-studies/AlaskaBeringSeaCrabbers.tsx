@@ -225,11 +225,11 @@ export default function AlaskaBeringSeaCrabbers() {
         </section>
 
         {/* Social Media Graphics */}
-        <section style={{ padding: "0 80px 100px", position: "relative" }}>
-          <div style={{ position: "absolute", top: "-20px", right: "40px", zIndex: 2 }}>
+        <section style={{ padding: "120px 120px 160px", position: "relative" }}>
+          <div style={{ position: "absolute", top: "100px", right: "80px", zIndex: 2 }}>
             <ScrollBadge position="bottom-right" inline />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
             {socialGraphics.map((img, i) => (
               <div key={i} style={{ overflow: "hidden", borderRadius: "4px" }}>
                 <img src={img} alt="" style={{ width: "100%", height: "auto", display: "block" }} />
