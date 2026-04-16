@@ -24,7 +24,6 @@ const socialGraphics = [
 ];
 
 const galleryImages = [
-  "/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg",
   "/images/case-studies/green-juju/green-juju-dog-kitchen-pgtsnd.jpeg",
   "/images/case-studies/green-juju/green-juju-ingredientspgtsnd-photography.jpeg",
   "/images/case-studies/green-juju/pets-green-juju-pgtsnd-bri-dwyer.jpeg",
