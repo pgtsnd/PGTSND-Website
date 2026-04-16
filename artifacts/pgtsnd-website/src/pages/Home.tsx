@@ -226,7 +226,7 @@ export default function Home() {
                   position: "absolute",
                   bottom: "216px",
                   right: "16px",
-                  zIndex: 2,
+                  zIndex: 99,
                 }}
               >
                 <ScrollBadge position="bottom-right" inline />
