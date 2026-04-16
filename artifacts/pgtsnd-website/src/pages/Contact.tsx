@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ScrollBadge from "../components/ScrollBadge";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
@@ -7,6 +7,23 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({
   fontFamily: "'Montserrat', sans-serif",
   ...s,
 });
+
+function useScrollProgress(ref: React.RefObject<HTMLElement | null>) {
+  const [progress, setProgress] = useState(0);
+  const onScroll = useCallback(() => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const p = Math.max(0, Math.min(1, (vh - rect.top) / (vh + rect.height)));
+    setProgress(p);
+  }, [ref]);
+  useEffect(() => {
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [onScroll]);
+  return progress;
+}
 
 const serviceOptions = [
   { id: "film", label: "Film & Video Production" },
@@ -33,12 +50,17 @@ export default function Contact() {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const imageRef = useRef<HTMLElement>(null);
+  const scrollProgress = useScrollProgress(imageRef);
+
+  const translateX = scrollProgress * 80;
+  const translateY = scrollProgress * -50;
 
   const inputStyle: React.CSSProperties = {
     fontFamily: "'Montserrat', sans-serif",
     fontWeight: 400,
     fontSize: "15px",
-    color: "#ffffff",
+    color: "#000000",
     background: "#ffffff",
     border: "none",
     padding: "14px 16px",
@@ -61,7 +83,6 @@ export default function Contact() {
     fontWeight: 400,
     fontSize: "11px",
     color: "rgba(255,255,255,0.4)",
-    fontStyle: "italic",
     marginLeft: "6px",
   };
 
@@ -93,7 +114,7 @@ export default function Contact() {
         {/* Hero */}
         <section style={{ padding: "160px 80px 120px", position: "relative" }}>
           <div style={{ maxWidth: "520px" }}>
-            <h1 style={f({ fontWeight: 900, fontSize: "clamp(48px, 7vw, 84px)", textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 0.95, color: "#ffffff", marginBottom: "40px", fontStyle: "italic" })}>
+            <h1 style={f({ fontWeight: 900, fontSize: "clamp(48px, 7vw, 84px)", textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 0.95, color: "#ffffff", marginBottom: "40px" })}>
               Let's Get To Work.
             </h1>
             <p style={f({ fontWeight: 400, fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
@@ -112,17 +133,26 @@ export default function Contact() {
           <ScrollBadge position="bottom-right" />
         </section>
 
-        {/* Full-Width Hero Image with Scroll Effect */}
-        <section style={{ padding: "0 40px 0", position: "relative" }}>
-          <div style={{ overflow: "hidden", position: "relative" }}>
-            <img
-              src={`${import.meta.env.BASE_URL}images/2024_BRI_DWYER-02064.jpg`}
-              alt="Alaska wilderness"
-              style={{ width: "100%", height: "40vh", objectFit: "cover", objectPosition: "center 30%", display: "block" }}
-            />
-            <div style={{ position: "absolute", top: "20px", right: "20px" }}>
-              <ScrollBadge position="bottom-right" inline />
-            </div>
+        {/* Full-Width Hero Image with Scroll Slide Effect */}
+        <section
+          ref={imageRef}
+          style={{ position: "relative", overflow: "hidden" }}
+        >
+          <img
+            src={`${import.meta.env.BASE_URL}images/foggy-fishing-coast-pgtsnd.jpeg`}
+            alt="Alaska wilderness"
+            style={{
+              width: "110%",
+              height: "45vh",
+              objectFit: "cover",
+              display: "block",
+              marginLeft: "-5%",
+              transform: `translate(${translateX}px, ${translateY}px) scale(1.05)`,
+              transition: "transform 0.1s linear",
+            }}
+          />
+          <div style={{ position: "absolute", top: "20px", right: "20px", zIndex: 2 }}>
+            <ScrollBadge position="bottom-right" inline />
           </div>
         </section>
 
@@ -208,7 +238,7 @@ export default function Contact() {
                           required
                           value={formData.firstName}
                           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          style={{ ...inputStyle, color: "#000000" }}
+                          style={inputStyle}
                         />
                       </div>
                       <div>
@@ -220,7 +250,7 @@ export default function Contact() {
                           required
                           value={formData.lastName}
                           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          style={{ ...inputStyle, color: "#000000" }}
+                          style={inputStyle}
                         />
                       </div>
                     </div>
@@ -235,7 +265,7 @@ export default function Contact() {
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      style={{ ...inputStyle, color: "#000000" }}
+                      style={inputStyle}
                     />
                   </div>
 
@@ -245,7 +275,7 @@ export default function Contact() {
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      style={{ ...inputStyle, color: "#000000" }}
+                      style={inputStyle}
                     />
                   </div>
 
@@ -256,7 +286,7 @@ export default function Contact() {
                       placeholder="http://"
                       value={formData.website}
                       onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      style={{ ...inputStyle, color: "#000000" }}
+                      style={inputStyle}
                     />
                   </div>
 
@@ -269,7 +299,7 @@ export default function Contact() {
                       rows={5}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      style={{ ...inputStyle, color: "#000000", resize: "vertical", display: "block" }}
+                      style={{ ...inputStyle, resize: "vertical", display: "block" }}
                     />
                   </div>
 
@@ -293,7 +323,7 @@ export default function Contact() {
 
             {/* What to Expect */}
             <div style={{ borderLeft: "2px solid rgba(255,255,255,0.2)", paddingLeft: "60px" }}>
-              <h2 style={f({ fontWeight: 900, fontSize: "clamp(28px, 3.5vw, 42px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "40px", fontStyle: "italic" })}>
+              <h2 style={f({ fontWeight: 900, fontSize: "clamp(28px, 3.5vw, 42px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, color: "#ffffff", marginBottom: "40px" })}>
                 What to Expect
               </h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
