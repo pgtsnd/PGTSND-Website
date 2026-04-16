@@ -181,7 +181,7 @@ export default function AlaskaBeringSeaCrabbers() {
         </section>
 
         {/* The Big Picture */}
-        <section style={{ padding: "160px 80px 180px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "120px", alignItems: "start" }}>
+        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "2fr 3fr", gap: "40px", alignItems: "start" }}>
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff" })}>
             The Big Picture
           </h2>
