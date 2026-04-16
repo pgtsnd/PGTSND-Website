@@ -289,8 +289,8 @@ export default function AlaskaBeringSeaCrabbers() {
         </section>
 
         {/* Bottom CTA */}
-        <section style={{ padding: "200px 80px 200px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "stretch" }}>
-          <div style={{ maxWidth: "480px", display: "flex", flexDirection: "column" }}>
+        <section style={{ padding: "200px 80px 200px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+          <div style={{ maxWidth: "480px" }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
               <img
                 src={"/images/case-studies/absc/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"}
@@ -298,7 +298,7 @@ export default function AlaskaBeringSeaCrabbers() {
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </div>
-            <div style={{ border: "2px solid rgba(255,255,255,0.3)", padding: "44px 28px 28px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ border: "2px solid rgba(255,255,255,0.3)", padding: "52px 32px 40px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "14px", color: "rgba(255,255,255,0.8)", lineHeight: 1.7, marginBottom: "16px" })}>
                 &ldquo;PGTSND Productions was an absolute delight to work with! And their creative vision and execution are truly impressive! Bri and her team caught some epic shots that only true artists can see yet everyone loves to look at. Alaska Bering Sea Crabbers continue to use the video and photo assets years later to share our story with the world.&rdquo;
               </p>
