@@ -315,7 +315,7 @@ export default function GreenJuju() {
         </section>
 
         {/* The Solve */}
-        <section style={{ padding: "160px 80px 230px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
+        <section style={{ padding: "160px 80px 230px", display: "grid", gridTemplateColumns: "2fr 1fr", gap: "60px", alignItems: "start" }}>
           <div>
             <div
               style={{ position: "relative", cursor: "pointer", marginBottom: "24px" }}
@@ -324,7 +324,7 @@ export default function GreenJuju() {
             >
               <div
                 style={{
-                  height: "560px",
+                  height: "420px",
                   overflowY: "auto",
                   borderRadius: "4px",
                   border: "1px solid rgba(255,255,255,0.15)",
