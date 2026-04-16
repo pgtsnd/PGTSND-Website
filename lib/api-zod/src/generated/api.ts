@@ -1289,6 +1289,68 @@ export const ListInvoicesResponseItem = zod.object({
 export const ListInvoicesResponse = zod.array(ListInvoicesResponseItem);
 
 /**
+ * @summary Update an invoice (status, due date, etc.)
+ */
+export const UpdateInvoiceParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateInvoiceBody = zod.object({
+  description: zod.string().optional(),
+  amount: zod.number().optional(),
+  status: zod.enum(["draft", "sent", "paid", "overdue", "void"]).optional(),
+  dueDate: zod.coerce.date().nullish(),
+  paidAt: zod.coerce.date().nullish(),
+  paymentMethod: zod.string().nullish(),
+  invoiceNumber: zod.string().nullish(),
+});
+
+export const UpdateInvoiceResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  stripeInvoiceId: zod.string().nullish(),
+  stripePaymentIntentId: zod.string().nullish(),
+  stripeCheckoutSessionId: zod.string().nullish(),
+  invoiceNumber: zod.string().nullish(),
+  description: zod.string(),
+  amount: zod.number(),
+  status: zod.enum(["draft", "sent", "paid", "overdue", "void"]),
+  dueDate: zod.coerce.date().nullish(),
+  paidAt: zod.coerce.date().nullish(),
+  paymentMethod: zod.string().nullish(),
+  stripeHostedUrl: zod.string().nullish(),
+  stripePdfUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Mark invoice as sent (and send via Stripe if configured)
+ */
+export const SendInvoiceParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const SendInvoiceResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  stripeInvoiceId: zod.string().nullish(),
+  stripePaymentIntentId: zod.string().nullish(),
+  stripeCheckoutSessionId: zod.string().nullish(),
+  invoiceNumber: zod.string().nullish(),
+  description: zod.string(),
+  amount: zod.number(),
+  status: zod.enum(["draft", "sent", "paid", "overdue", "void"]),
+  dueDate: zod.coerce.date().nullish(),
+  paidAt: zod.coerce.date().nullish(),
+  paymentMethod: zod.string().nullish(),
+  stripeHostedUrl: zod.string().nullish(),
+  stripePdfUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
  * Creates (or reuses) a Stripe Checkout session for the given invoice and
 returns the hosted checkout URL. The successUrl and cancelUrl must share
 the same origin as the request.

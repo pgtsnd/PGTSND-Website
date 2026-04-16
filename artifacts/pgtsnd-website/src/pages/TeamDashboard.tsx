@@ -11,8 +11,16 @@ import {
   daysUntil,
   type Project,
 } from "../hooks/useTeamData";
-import { useListInvoices } from "@workspace/api-client-react";
-import type { Invoice } from "@workspace/api-client-react/src/generated/api.schemas";
+import {
+  useListInvoices,
+  useUpdateInvoice,
+  useSendInvoice,
+  useListProjectDeliverables,
+  useListProjectTasks,
+  getListInvoicesQueryKey,
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import type { Invoice, Deliverable, Task } from "@workspace/api-client-react";
 import { api, type Phase } from "../lib/api";
 
 const PHASE_COLORS = [
@@ -533,6 +541,246 @@ function RevenuePanel({ rev }: { rev: RevenueStats }) {
   );
 }
 
+function InvoiceActionButton({
+  label,
+  tone = "default",
+  disabled,
+  onClick,
+  href,
+  external = true,
+}: {
+  label: string;
+  tone?: "default" | "primary" | "success" | "danger";
+  disabled?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
+  href?: string;
+  external?: boolean;
+}) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const palette: Record<string, { bg: string; border: string; color: string }> = {
+    default: { bg: "transparent", border: t.border, color: t.text },
+    primary: { bg: "rgba(120,180,255,0.12)", border: "rgba(120,180,255,0.5)", color: "rgba(160,200,255,1)" },
+    success: { bg: "rgba(100,220,160,0.12)", border: "rgba(100,220,160,0.5)", color: "rgba(140,230,180,1)" },
+    danger: { bg: "rgba(255,90,90,0.1)", border: "rgba(255,90,90,0.5)", color: "rgba(255,140,140,1)" },
+  };
+  const c = palette[tone];
+  const style = f({
+    background: disabled ? "transparent" : c.bg,
+    border: `1px solid ${disabled ? t.borderSubtle : c.border}`,
+    color: disabled ? t.textTertiary : c.color,
+    padding: "6px 12px",
+    borderRadius: "6px",
+    fontSize: "11px",
+    fontWeight: 600,
+    cursor: disabled ? "not-allowed" : "pointer",
+    textDecoration: "none",
+    display: "inline-block",
+    opacity: disabled ? 0.5 : 1,
+  });
+  if (href && !disabled) {
+    if (external) {
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={style}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {label}
+        </a>
+      );
+    }
+    return (
+      <Link href={href} style={style} onClick={(e) => e.stopPropagation()}>
+        {label}
+      </Link>
+    );
+  }
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.(e);
+      }}
+      style={style}
+    >
+      {label}
+    </button>
+  );
+}
+
+function InvoiceRow({
+  inv,
+  project,
+  isLast,
+  expanded,
+  onToggle,
+}: {
+  inv: Invoice;
+  project: Project | undefined;
+  isLast: boolean;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const queryClient = useQueryClient();
+  const updateInvoice = useUpdateInvoice({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListInvoicesQueryKey() });
+      },
+    },
+  });
+  const sendInvoice = useSendInvoice({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListInvoicesQueryKey() });
+      },
+    },
+  });
+
+  const dueDays = inv.dueDate ? daysUntil(inv.dueDate) : null;
+  const isOverdue = inv.status === "overdue" || (inv.status === "sent" && dueDays !== null && dueDays < 0);
+  const isPending = updateInvoice.isPending || sendInvoice.isPending;
+  const stripeUrl = inv.stripeHostedUrl;
+
+  return (
+    <div
+      style={{
+        borderBottom: !isLast ? `1px solid ${t.borderSubtle}` : "none",
+      }}
+    >
+      <div
+        onClick={onToggle}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "auto 1fr auto auto auto",
+          gap: "12px",
+          alignItems: "center",
+          padding: "12px 18px",
+          cursor: "pointer",
+        }}
+        data-testid={`planned-inv-${inv.id}`}
+      >
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2.5"
+          style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+        <div style={{ minWidth: 0 }}>
+          <p style={f({ fontWeight: 700, fontSize: "13px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" })}>
+            {inv.description || `Invoice ${inv.invoiceNumber ?? inv.id.slice(0, 6)}`}
+          </p>
+          <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textTertiary, marginTop: "2px" })}>
+            {project?.name ?? "Unknown project"}
+          </p>
+        </div>
+        <span style={f({ fontWeight: 600, fontSize: "10px", color: t.textTertiary, background: t.hoverBg, padding: "3px 8px", borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.05em" })}>
+          {inv.status}
+        </span>
+        <span style={f({ fontWeight: 500, fontSize: "11px", color: isOverdue ? "#ff6b6b" : t.textTertiary, minWidth: "90px", textAlign: "right" as const })}>
+          {inv.dueDate
+            ? isOverdue
+              ? `${Math.abs(dueDays!)}d overdue`
+              : dueDays === 0
+              ? "Due today"
+              : `Due in ${dueDays}d`
+            : "No due date"}
+        </span>
+        <span style={f({ fontWeight: 800, fontSize: "14px", color: t.text, minWidth: "80px", textAlign: "right" as const })}>
+          {fmtUsd(inv.amount)}
+        </span>
+      </div>
+
+      {expanded && (
+        <div
+          style={{
+            padding: "0 18px 18px 41px",
+            background: t.bg,
+            borderTop: `1px solid ${t.borderSubtle}`,
+          }}
+        >
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 24px", padding: "14px 0" }}>
+            <div>
+              <p style={f({ fontSize: "10px", fontWeight: 600, color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" })}>Description</p>
+              <p style={f({ fontSize: "12px", color: t.text, lineHeight: 1.5 })}>{inv.description || "—"}</p>
+            </div>
+            <div>
+              <p style={f({ fontSize: "10px", fontWeight: 600, color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" })}>Invoice #</p>
+              <p style={f({ fontSize: "12px", color: t.text })}>{inv.invoiceNumber ?? inv.id.slice(0, 8)}</p>
+            </div>
+            <div>
+              <p style={f({ fontSize: "10px", fontWeight: 600, color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" })}>Due date</p>
+              <p style={f({ fontSize: "12px", color: t.text })}>{inv.dueDate ? formatDate(inv.dueDate) : "—"}</p>
+            </div>
+            <div>
+              <p style={f({ fontSize: "10px", fontWeight: 600, color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" })}>Paid at</p>
+              <p style={f({ fontSize: "12px", color: t.text })}>{inv.paidAt ? formatDate(inv.paidAt) : "—"}</p>
+            </div>
+          </div>
+
+          {updateInvoice.isError && (
+            <p style={f({ fontSize: "11px", color: "#ff6b6b", marginBottom: "8px" })}>
+              Couldn't update invoice. Please try again.
+            </p>
+          )}
+
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", paddingTop: "4px" }}>
+            <InvoiceActionButton
+              label={isPending ? "Saving…" : "Mark as paid"}
+              tone="success"
+              disabled={isPending || inv.status === "paid"}
+              onClick={() =>
+                updateInvoice.mutate({
+                  id: inv.id,
+                  data: { status: "paid", paidAt: new Date().toISOString() },
+                })
+              }
+            />
+            {inv.status === "draft" && (
+              <InvoiceActionButton
+                label={isPending ? "Sending…" : "Send to client"}
+                tone="primary"
+                disabled={isPending}
+                onClick={() => sendInvoice.mutate({ id: inv.id })}
+              />
+            )}
+            {inv.status === "sent" && !isOverdue && (
+              <InvoiceActionButton
+                label="Mark overdue"
+                tone="danger"
+                disabled={isPending}
+                onClick={() => updateInvoice.mutate({ id: inv.id, data: { status: "overdue" } })}
+              />
+            )}
+            {(inv.status === "overdue" || isOverdue) && inv.status !== "paid" && (
+              <InvoiceActionButton
+                label="Reset to sent"
+                disabled={isPending}
+                onClick={() => updateInvoice.mutate({ id: inv.id, data: { status: "sent" } })}
+              />
+            )}
+            {stripeUrl && (
+              <InvoiceActionButton label="Open in Stripe ↗" href={stripeUrl} />
+            )}
+            {project && (
+              <InvoiceActionButton
+                label="Open in project →"
+                href={`/team/projects/${project.id}`}
+                external={false}
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PlannedInvoicesPanel({
   rev,
   projectMap,
@@ -542,8 +790,8 @@ function PlannedInvoicesPanel({
 }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Top 5 upcoming + overdue together, sorted by due date
   const all = [...rev.overdueInvoices, ...rev.upcomingDue]
     .filter((inv, idx, arr) => arr.findIndex((x) => x.id === inv.id) === idx)
     .sort((a, b) => {
@@ -560,83 +808,240 @@ function PlannedInvoicesPanel({
       <h2 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "14px" })}>
         Planned & overdue invoices
       </h2>
+      <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", overflow: "hidden" }}>
+        {all.map((inv, i) => (
+          <InvoiceRow
+            key={inv.id}
+            inv={inv}
+            project={projectMap.get(inv.projectId)}
+            isLast={i === all.length - 1}
+            expanded={expandedId === inv.id}
+            onToggle={() => setExpandedId(expandedId === inv.id ? null : inv.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ActionItemRow({
+  href,
+  icon,
+  title,
+  subtitle,
+  badge,
+}: {
+  href: string;
+  icon: string;
+  title: string;
+  subtitle: string;
+  badge?: { label: string; color: string };
+}) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  return (
+    <Link href={href} style={{ textDecoration: "none" }}>
       <div
         style={{
-          background: t.bgCard,
-          border: `1px solid ${t.border}`,
-          borderRadius: "12px",
-          overflow: "hidden",
+          display: "grid",
+          gridTemplateColumns: "auto 1fr auto",
+          gap: "12px",
+          alignItems: "center",
+          padding: "10px 14px",
+          borderRadius: "6px",
+          cursor: "pointer",
+          background: t.hoverBg,
+          marginBottom: "6px",
         }}
       >
-        {all.map((inv, i) => {
-          const project = projectMap.get(inv.projectId);
-          const dueDays = inv.dueDate ? daysUntil(inv.dueDate) : null;
-          const isOverdue = inv.status === "overdue" || (dueDays !== null && dueDays < 0);
-          return (
-            <Link
-              key={inv.id}
-              href={project ? `/team/projects/${project.id}` : "/team/clients"}
-              style={{ textDecoration: "none" }}
-            >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto auto auto",
-                  gap: "12px",
-                  alignItems: "center",
-                  padding: "12px 18px",
-                  borderBottom: i < all.length - 1 ? `1px solid ${t.borderSubtle}` : "none",
-                  cursor: "pointer",
-                }}
-                data-testid={`planned-inv-${inv.id}`}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <p style={f({ fontWeight: 700, fontSize: "13px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" })}>
-                    {inv.description || `Invoice ${inv.invoiceNumber ?? inv.id.slice(0, 6)}`}
-                  </p>
-                  <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textTertiary, marginTop: "2px" })}>
-                    {project?.name ?? "Unknown project"}
-                  </p>
-                </div>
-                <span
-                  style={f({
-                    fontWeight: 600,
-                    fontSize: "10px",
-                    color: t.textTertiary,
-                    background: t.hoverBg,
-                    padding: "3px 8px",
-                    borderRadius: "4px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                  })}
-                >
-                  {inv.status}
-                </span>
-                <span
-                  style={f({
-                    fontWeight: 500,
-                    fontSize: "11px",
-                    color: isOverdue ? "#ff6b6b" : t.textTertiary,
-                    minWidth: "90px",
-                    textAlign: "right" as const,
-                  })}
-                >
-                  {inv.dueDate
-                    ? isOverdue
-                      ? `${Math.abs(dueDays!)}d overdue`
-                      : dueDays === 0
-                      ? "Due today"
-                      : `Due in ${dueDays}d`
-                    : "No due date"}
-                </span>
-                <span style={f({ fontWeight: 800, fontSize: "14px", color: t.text, minWidth: "80px", textAlign: "right" as const })}>
-                  {fmtUsd(inv.amount)}
-                </span>
-              </div>
-            </Link>
-          );
-        })}
+        <span style={f({ fontSize: "14px" })}>{icon}</span>
+        <div style={{ minWidth: 0 }}>
+          <p style={f({ fontWeight: 600, fontSize: "12px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" })}>
+            {title}
+          </p>
+          <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textTertiary, marginTop: "1px" })}>
+            {subtitle}
+          </p>
+        </div>
+        {badge && (
+          <span style={f({ fontWeight: 600, fontSize: "9px", color: badge.color, background: "rgba(255,255,255,0.05)", padding: "3px 8px", borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.05em" })}>
+            {badge.label}
+          </span>
+        )}
       </div>
+    </Link>
+  );
+}
+
+function ProjectActionItems({ projectId }: { projectId: string }) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+
+  const { data: deliverables, isLoading: dLoading } = useListProjectDeliverables(projectId);
+  const { data: tasks, isLoading: tLoading } = useListProjectTasks(projectId);
+
+  const reviewDeliverables: Deliverable[] = useMemo(
+    () => (deliverables ?? []).filter((d) => d.status === "in_review"),
+    [deliverables],
+  );
+  const openTasks: Task[] = useMemo(
+    () =>
+      (tasks ?? [])
+        .filter((tk) => tk.status === "in_progress" || tk.status === "blocked")
+        .sort((a, b) => {
+          const da = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+          const db_ = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+          return da - db_;
+        })
+        .slice(0, 6),
+    [tasks],
+  );
+
+  if (dLoading || tLoading) {
+    return (
+      <p style={f({ fontSize: "11px", color: t.textTertiary, padding: "8px 14px" })}>
+        Loading action items…
+      </p>
+    );
+  }
+
+  if (reviewDeliverables.length === 0 && openTasks.length === 0) {
+    return (
+      <p style={f({ fontSize: "11px", color: t.textTertiary, padding: "8px 14px" })}>
+        Nothing flagged on this project right now.
+      </p>
+    );
+  }
+
+  return (
+    <div>
+      {reviewDeliverables.length > 0 && (
+        <>
+          <p style={f({ fontWeight: 700, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", padding: "4px 14px 6px" })}>
+            Awaiting review · {reviewDeliverables.length}
+          </p>
+          {reviewDeliverables.map((d) => (
+            <ActionItemRow
+              key={d.id}
+              href={`/team/projects/${projectId}`}
+              icon="🎬"
+              title={d.title}
+              subtitle={`${d.type ?? "deliverable"} · sent for review`}
+              badge={{ label: "Review", color: "rgba(255,200,80,1)" }}
+            />
+          ))}
+        </>
+      )}
+      {openTasks.length > 0 && (
+        <>
+          <p style={f({ fontWeight: 700, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", padding: "10px 14px 6px" })}>
+            Open tasks · {openTasks.length}
+          </p>
+          {openTasks.map((tk) => {
+            const due = tk.dueDate ? daysUntil(tk.dueDate) : null;
+            const dueLabel = due === null
+              ? "no due date"
+              : due < 0
+              ? `${Math.abs(due)}d overdue`
+              : due === 0
+              ? "due today"
+              : `${due}d left`;
+            return (
+              <ActionItemRow
+                key={tk.id}
+                href={`/team/projects/${projectId}`}
+                icon={tk.status === "blocked" ? "🚫" : "▶"}
+                title={tk.title}
+                subtitle={`${tk.status === "blocked" ? "blocked" : "in progress"} · ${dueLabel}`}
+                badge={
+                  due !== null && due < 0
+                    ? { label: "Late", color: "#ff6b6b" }
+                    : due !== null && due <= 3
+                    ? { label: "Soon", color: "rgba(255,200,80,1)" }
+                    : undefined
+                }
+              />
+            );
+          })}
+        </>
+      )}
+    </div>
+  );
+}
+
+function NeedsAttentionRow({
+  p,
+  dleft,
+  expanded,
+  onToggle,
+  isLast,
+}: {
+  p: Project;
+  dleft: number | null;
+  expanded: boolean;
+  onToggle: () => void;
+  isLast: boolean;
+}) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const isOverdue = dleft !== null && dleft < 0;
+  const isSoon = dleft !== null && dleft >= 0 && dleft <= 7;
+
+  return (
+    <div style={{ borderBottom: !isLast ? `1px solid ${t.borderSubtle}` : "none" }}>
+      <div
+        onClick={onToggle}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "auto 1fr auto auto auto",
+          gap: "14px",
+          alignItems: "center",
+          padding: "14px 18px",
+          cursor: "pointer",
+        }}
+        data-testid={`attn-${p.id}`}
+      >
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2.5"
+          style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+        <div style={{ minWidth: 0 }}>
+          <p style={f({ fontWeight: 700, fontSize: "13px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" })}>
+            {p.name}
+          </p>
+          <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textTertiary, marginTop: "2px" })}>
+            {(p as Project & { organizationName?: string }).organizationName || "—"} · {formatPhase(p.phase)}
+          </p>
+        </div>
+        <div style={{ width: "120px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ flex: 1, height: "4px", background: t.borderSubtle, borderRadius: "2px", overflow: "hidden" }}>
+            <div style={{ width: `${p.progress}%`, height: "100%", background: t.accent, borderRadius: "2px", transition: "width 0.3s" }} />
+          </div>
+          <span style={f({ fontWeight: 700, fontSize: "11px", color: t.text, minWidth: "32px", textAlign: "right" as const })}>
+            {p.progress}%
+          </span>
+        </div>
+        <span style={f({ fontWeight: 600, fontSize: "11px", color: isOverdue ? "#ff6b6b" : isSoon ? "rgba(255,200,80,1)" : t.textTertiary, minWidth: "90px", textAlign: "right" as const })}>
+          {dleft === null
+            ? "No due date"
+            : isOverdue
+            ? `${Math.abs(dleft)}d overdue`
+            : dleft === 0
+            ? "Due today"
+            : `${dleft}d left`}
+        </span>
+        <Link href={`/team/projects/${p.id}`} onClick={(e) => e.stopPropagation()} style={{ textDecoration: "none" }}>
+          <span style={f({ fontWeight: 600, fontSize: "11px", color: t.textTertiary })}>
+            Open →
+          </span>
+        </Link>
+      </div>
+
+      {expanded && (
+        <div style={{ padding: "8px 18px 14px 41px", background: t.bg, borderTop: `1px solid ${t.borderSubtle}` }}>
+          <ProjectActionItems projectId={p.id} />
+        </div>
+      )}
     </div>
   );
 }
@@ -644,12 +1049,12 @@ function PlannedInvoicesPanel({
 function NeedsAttentionPanel({ projects }: { projects: Project[] }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const scored = projects
     .filter((p) => p.status !== "archived" && p.status !== "delivered")
     .map((p) => {
       const dleft = daysUntil(p.dueDate);
-      // Urgency = stale-progress + close-to-due-date
       let urgency = 0;
       if (dleft !== null) {
         if (dleft < 0) urgency += 1000 + Math.abs(dleft);
@@ -667,15 +1072,7 @@ function NeedsAttentionPanel({ projects }: { projects: Project[] }) {
 
   if (scored.length === 0) {
     return (
-      <div
-        style={{
-          background: t.bgCard,
-          border: `1px solid ${t.border}`,
-          borderRadius: "12px",
-          padding: "20px",
-          marginBottom: "32px",
-        }}
-      >
+      <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", padding: "20px", marginBottom: "32px" }}>
         <p style={f({ fontWeight: 600, fontSize: "13px", color: t.textTertiary })}>
           No active projects right now.
         </p>
@@ -688,99 +1085,91 @@ function NeedsAttentionPanel({ projects }: { projects: Project[] }) {
       <h2 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "14px" })}>
         Needs attention · top {scored.length}
       </h2>
-      <div
-        style={{
-          background: t.bgCard,
-          border: `1px solid ${t.border}`,
-          borderRadius: "12px",
-          overflow: "hidden",
-        }}
-      >
-        {scored.map(({ p, dleft }, i) => {
-          const isOverdue = dleft !== null && dleft < 0;
-          const isSoon = dleft !== null && dleft >= 0 && dleft <= 7;
-          return (
-            <Link key={p.id} href={`/team/projects/${p.id}`} style={{ textDecoration: "none" }}>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto auto auto auto",
-                  gap: "14px",
-                  alignItems: "center",
-                  padding: "14px 18px",
-                  borderBottom: i < scored.length - 1 ? `1px solid ${t.borderSubtle}` : "none",
-                  cursor: "pointer",
-                }}
-                data-testid={`attn-${p.id}`}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <p style={f({ fontWeight: 700, fontSize: "13px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" })}>
-                    {p.name}
-                  </p>
-                  <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textTertiary, marginTop: "2px" })}>
-                    {(p as Project & { organizationName?: string }).organizationName || "—"}
-                  </p>
-                </div>
-                <span
-                  style={f({
-                    fontWeight: 500,
-                    fontSize: "10px",
-                    color: t.textMuted,
-                    background: t.hoverBg,
-                    padding: "3px 9px",
-                    borderRadius: "4px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                  })}
-                >
-                  {formatPhase(p.phase)}
-                </span>
-                <div style={{ width: "120px", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div style={{ flex: 1, height: "4px", background: t.borderSubtle, borderRadius: "2px", overflow: "hidden" }}>
-                    <div
-                      style={{
-                        width: `${p.progress}%`,
-                        height: "100%",
-                        background: t.accent,
-                        borderRadius: "2px",
-                        transition: "width 0.3s",
-                      }}
-                    />
-                  </div>
-                  <span style={f({ fontWeight: 700, fontSize: "11px", color: t.text, minWidth: "32px", textAlign: "right" as const })}>
-                    {p.progress}%
-                  </span>
-                </div>
-                <span
-                  style={f({
-                    fontWeight: 600,
-                    fontSize: "11px",
-                    color: isOverdue ? "#ff6b6b" : isSoon ? "rgba(255,200,80,1)" : t.textTertiary,
-                    minWidth: "90px",
-                    textAlign: "right" as const,
-                  })}
-                >
-                  {dleft === null
-                    ? "No due date"
-                    : isOverdue
-                    ? `${Math.abs(dleft)}d overdue`
-                    : dleft === 0
-                    ? "Due today"
-                    : `${dleft}d left`}
-                </span>
-                <span style={f({ fontWeight: 700, fontSize: "13px", color: t.text, minWidth: "70px", textAlign: "right" as const })}>
-                  {p.budget ? fmtUsd(p.budget, { compact: true }) : "—"}
-                </span>
-              </div>
-            </Link>
-          );
-        })}
+      <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textTertiary, marginBottom: "10px", marginTop: "-8px" })}>
+        Click a project to see deliverables awaiting review and tasks in flight.
+      </p>
+      <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", overflow: "hidden" }}>
+        {scored.map(({ p, dleft }, i) => (
+          <NeedsAttentionRow
+            key={p.id}
+            p={p}
+            dleft={dleft}
+            expanded={expandedId === p.id}
+            onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
+            isLast={i === scored.length - 1}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
-// ───────────────────────── Production schedule (kept) ─────────────────────────
+// ───────────────────────── Production schedule ─────────────────────────
+
+type ScheduleStatus = "planning" | "on_schedule" | "ahead" | "behind" | "complete" | "no_dates";
+
+function computeScheduleStatus(
+  project: Project,
+  phases: Phase[],
+): { status: ScheduleStatus; expectedPct: number; deltaPct: number } {
+  if (project.progress >= 100) return { status: "complete", expectedPct: 100, deltaPct: 0 };
+  const dated = phases.filter((p) => p.startDate && p.endDate);
+  if (dated.length === 0) return { status: "no_dates", expectedPct: 0, deltaPct: 0 };
+
+  const start = Math.min(...dated.map((p) => new Date(p.startDate!).getTime()));
+  const end = Math.max(...dated.map((p) => new Date(p.endDate!).getTime()));
+  const now = Date.now();
+
+  if (now < start) return { status: "planning", expectedPct: 0, deltaPct: 0 - project.progress };
+
+  const span = Math.max(1, end - start);
+  const expectedPct = Math.min(100, Math.max(0, ((now - start) / span) * 100));
+  const delta = project.progress - expectedPct;
+
+  let status: ScheduleStatus;
+  if (delta >= 8) status = "ahead";
+  else if (delta <= -8) status = "behind";
+  else status = "on_schedule";
+
+  return { status, expectedPct, deltaPct: delta };
+}
+
+function ScheduleStatusBadge({
+  status,
+  deltaPct,
+}: {
+  status: ScheduleStatus;
+  deltaPct: number;
+}) {
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const config: Record<ScheduleStatus, { label: string; color: string; bg: string; border: string }> = {
+    planning: { label: "Planning", color: "rgba(180,180,200,1)", bg: "rgba(180,180,200,0.1)", border: "rgba(180,180,200,0.35)" },
+    on_schedule: { label: "On schedule", color: "rgba(140,220,180,1)", bg: "rgba(100,220,160,0.12)", border: "rgba(100,220,160,0.4)" },
+    ahead: { label: `Ahead +${Math.round(deltaPct)}%`, color: "rgba(160,200,255,1)", bg: "rgba(120,180,255,0.12)", border: "rgba(120,180,255,0.4)" },
+    behind: { label: `Behind ${Math.round(deltaPct)}%`, color: "rgba(255,140,140,1)", bg: "rgba(255,90,90,0.1)", border: "rgba(255,90,90,0.4)" },
+    complete: { label: "Complete", color: "rgba(200,200,200,1)", bg: "rgba(200,200,200,0.08)", border: "rgba(200,200,200,0.3)" },
+    no_dates: { label: "No dates", color: "rgba(160,160,160,1)", bg: "rgba(160,160,160,0.08)", border: "rgba(160,160,160,0.3)" },
+  };
+  const c = config[status];
+  return (
+    <span
+      style={f({
+        fontWeight: 700,
+        fontSize: "10px",
+        color: c.color,
+        background: c.bg,
+        border: `1px solid ${c.border}`,
+        padding: "3px 9px",
+        borderRadius: "4px",
+        textTransform: "uppercase",
+        letterSpacing: "0.05em",
+        whiteSpace: "nowrap" as const,
+      })}
+    >
+      {c.label}
+    </span>
+  );
+}
 
 function ProjectGantt({ project, phases }: { project: Project; phases: Phase[] }) {
   const { t } = useTheme();
@@ -868,18 +1257,25 @@ function ProjectGantt({ project, phases }: { project: Project; phases: Phase[] }
         const bgColor = color.replace("0.85", "0.15");
 
         return (
-          <div key={phase.id} style={{ display: "flex", alignItems: "center", height: "32px" }}>
-            <div style={{ width: `${labelWidth}px`, flexShrink: 0, paddingRight: "12px" }}>
-              <span style={f({ fontWeight: 600, fontSize: "11px", color: t.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" })}>
-                {phase.name}
-              </span>
-            </div>
-            <div style={{ flex: 1, position: "relative", height: "20px" }}>
-              <div style={{ position: "absolute", left: `${leftPct}%`, width: `${Math.max(widthPct, 0.5)}%`, top: "2px", height: "16px", borderRadius: "3px", background: bgColor, overflow: "hidden" }}>
-                <div style={{ width: `${fillPct}%`, height: "100%", background: color, borderRadius: "3px", transition: "width 0.4s ease" }} />
+          <Link key={phase.id} href={`/team/projects/${project.id}`} style={{ textDecoration: "none" }}>
+            <div
+              style={{ display: "flex", alignItems: "center", height: "32px", cursor: "pointer", borderRadius: "4px" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = t.hoverBg)}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              title={`${phase.name} · ${formatDate(phase.startDate!)} → ${formatDate(phase.endDate!)}`}
+            >
+              <div style={{ width: `${labelWidth}px`, flexShrink: 0, paddingRight: "12px", paddingLeft: "4px" }}>
+                <span style={f({ fontWeight: 600, fontSize: "11px", color: t.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" })}>
+                  {phase.name}
+                </span>
+              </div>
+              <div style={{ flex: 1, position: "relative", height: "20px" }}>
+                <div style={{ position: "absolute", left: `${leftPct}%`, width: `${Math.max(widthPct, 0.5)}%`, top: "2px", height: "16px", borderRadius: "3px", background: bgColor, overflow: "hidden" }}>
+                  <div style={{ width: `${fillPct}%`, height: "100%", background: color, borderRadius: "3px", transition: "width 0.4s ease" }} />
+                </div>
               </div>
             </div>
-          </div>
+          </Link>
         );
       })}
 
@@ -951,6 +1347,8 @@ function ScheduleSection({ projects }: { projects: Project[] }) {
             else currentPhaseName = phasesWithDates[0].name;
           }
 
+          const sched = computeScheduleStatus(project, phases);
+
           return (
             <div key={project.id}>
               <div
@@ -977,6 +1375,7 @@ function ScheduleSection({ projects }: { projects: Project[] }) {
                     {currentPhaseName}
                   </span>
                 )}
+                <ScheduleStatusBadge status={sched.status} deltaPct={sched.deltaPct} />
                 <div style={{ width: "60px", textAlign: "right" }}>
                   <span style={f({ fontWeight: 700, fontSize: "13px", color: t.text })}>{project.progress}%</span>
                 </div>
@@ -1004,7 +1403,7 @@ export default function TeamDashboard() {
   const { currentUser, isLoading: authLoading, userId } = useTeamAuth();
   const { projects, isLoading, isError, refetch } = useDashboardData();
   const { data: invoicesData, isLoading: invoicesLoading } = useListInvoices({
-    query: { enabled: !!userId },
+    query: { enabled: !!userId, queryKey: getListInvoicesQueryKey() },
   });
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 

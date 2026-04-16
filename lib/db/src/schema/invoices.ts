@@ -63,7 +63,11 @@ export const insertInvoiceSchema = createInsertSchema(invoicesTable).omit({
 
 export const updateInvoiceSchema = insertInvoiceSchema
   .omit({ projectId: true })
-  .partial();
+  .partial()
+  .extend({
+    dueDate: z.coerce.date().nullable().optional(),
+    paidAt: z.coerce.date().nullable().optional(),
+  });
 
 export const selectInvoiceSchema = createSelectSchema(invoicesTable);
 

@@ -602,6 +602,27 @@ export interface CreateMessage {
   content: string;
 }
 
+export type UpdateInvoiceStatus =
+  (typeof UpdateInvoiceStatus)[keyof typeof UpdateInvoiceStatus];
+
+export const UpdateInvoiceStatus = {
+  draft: "draft",
+  sent: "sent",
+  paid: "paid",
+  overdue: "overdue",
+  void: "void",
+} as const;
+
+export interface UpdateInvoice {
+  description?: string;
+  amount?: number;
+  status?: UpdateInvoiceStatus;
+  dueDate?: string | null;
+  paidAt?: string | null;
+  paymentMethod?: string | null;
+  invoiceNumber?: string | null;
+}
+
 export type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus];
 
 export const InvoiceStatus = {

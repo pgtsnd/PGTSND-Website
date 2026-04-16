@@ -1074,6 +1074,48 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /invoices/{id}:
+    patch:
+      operationId: updateInvoice
+      tags: [invoices]
+      summary: Update an invoice (status, due date, etc.)
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInvoice"
+      responses:
+        "200":
+          description: Invoice updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /invoices/{id}/send:
+    post:
+      operationId: sendInvoice
+      tags: [invoices]
+      summary: Mark invoice as sent (and send via Stripe if configured)
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Invoice sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /invoices/{id}/checkout:
     post:
       operationId: createInvoiceCheckoutSession
@@ -2103,6 +2145,31 @@ components:
           type: string
       required:
         - content
+
+    UpdateInvoice:
+      type: object
+      properties:
+        description:
+          type: string
+        amount:
+          type: integer
+        status:
+          type: string
+          enum: [draft, sent, paid, overdue, void]
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+        paymentMethod:
+          type: string
+          nullable: true
+        invoiceNumber:
+          type: string
+          nullable: true
 
     Invoice:
       type: object

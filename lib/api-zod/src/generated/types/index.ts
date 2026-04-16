@@ -58,6 +58,8 @@ export * from "./updateContractStatus";
 export * from "./updateDeliverable";
 export * from "./updateDeliverableStatus";
 export * from "./updateDeliverableType";
+export * from "./updateInvoice";
+export * from "./updateInvoiceStatus";
 export * from "./updateNotificationPreferences";
 export * from "./updateOrganization";
 export * from "./updateProject";

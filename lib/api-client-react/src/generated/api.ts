@@ -49,6 +49,7 @@ import type {
   UnauthorizedResponse,
   UpdateContract,
   UpdateDeliverable,
+  UpdateInvoice,
   UpdateNotificationPreferences,
   UpdateOrganization,
   UpdateProject,
@@ -4759,6 +4760,179 @@ export function useListInvoices<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Update an invoice (status, due date, etc.)
+ */
+export const getUpdateInvoiceUrl = (id: string) => {
+  return `/api/invoices/${id}`;
+};
+
+export const updateInvoice = async (
+  id: string,
+  updateInvoice: UpdateInvoice,
+  options?: RequestInit,
+): Promise<Invoice> => {
+  return customFetch<Invoice>(getUpdateInvoiceUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateInvoice),
+  });
+};
+
+export const getUpdateInvoiceMutationOptions = <
+  TError = ErrorType<ValidationErrorResponse | NotFoundResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateInvoice>>,
+    TError,
+    { id: string; data: BodyType<UpdateInvoice> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateInvoice>>,
+  TError,
+  { id: string; data: BodyType<UpdateInvoice> },
+  TContext
+> => {
+  const mutationKey = ["updateInvoice"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateInvoice>>,
+    { id: string; data: BodyType<UpdateInvoice> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateInvoice(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateInvoiceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateInvoice>>
+>;
+export type UpdateInvoiceMutationBody = BodyType<UpdateInvoice>;
+export type UpdateInvoiceMutationError = ErrorType<
+  ValidationErrorResponse | NotFoundResponse
+>;
+
+/**
+ * @summary Update an invoice (status, due date, etc.)
+ */
+export const useUpdateInvoice = <
+  TError = ErrorType<ValidationErrorResponse | NotFoundResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateInvoice>>,
+    TError,
+    { id: string; data: BodyType<UpdateInvoice> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateInvoice>>,
+  TError,
+  { id: string; data: BodyType<UpdateInvoice> },
+  TContext
+> => {
+  return useMutation(getUpdateInvoiceMutationOptions(options));
+};
+
+/**
+ * @summary Mark invoice as sent (and send via Stripe if configured)
+ */
+export const getSendInvoiceUrl = (id: string) => {
+  return `/api/invoices/${id}/send`;
+};
+
+export const sendInvoice = async (
+  id: string,
+  options?: RequestInit,
+): Promise<Invoice> => {
+  return customFetch<Invoice>(getSendInvoiceUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getSendInvoiceMutationOptions = <
+  TError = ErrorType<NotFoundResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendInvoice>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendInvoice>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["sendInvoice"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendInvoice>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return sendInvoice(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendInvoiceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendInvoice>>
+>;
+
+export type SendInvoiceMutationError = ErrorType<NotFoundResponse>;
+
+/**
+ * @summary Mark invoice as sent (and send via Stripe if configured)
+ */
+export const useSendInvoice = <
+  TError = ErrorType<NotFoundResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendInvoice>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendInvoice>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getSendInvoiceMutationOptions(options));
+};
 
 /**
  * Creates (or reuses) a Stripe Checkout session for the given invoice and

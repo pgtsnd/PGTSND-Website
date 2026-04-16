@@ -8,6 +8,9 @@ import {
   tasksTable,
   taskItemsTable,
   deliverablesTable,
+  deliverableVersionsTable,
+  mediaUploadsTable,
+  projectNotificationMutesTable,
   reviewsTable,
   messagesTable,
   contractsTable,
@@ -31,7 +34,10 @@ async function seed() {
   await db.delete(messagesTable);
   await db.delete(invoicesTable);
   await db.delete(contractsTable);
+  await db.delete(deliverableVersionsTable);
   await db.delete(deliverablesTable);
+  await db.delete(mediaUploadsTable);
+  await db.delete(projectNotificationMutesTable);
   await db.delete(taskItemsTable);
   await db.delete(tasksTable);
   await db.delete(phasesTable);
@@ -396,15 +402,25 @@ async function seed() {
 
   // ── PHASES ──
   // Proj1: Net Your Problem — Feb 1 → May 15 (post_production phase, 62%)
-  const [p1Pre, p1Prod, p1Post, p1Delivery] = await db
+  // 62% progress = mature project, lots of detail
+  const p1Phases = await db
     .insert(phasesTable)
     .values([
-      { projectId: proj1.id, name: "Pre-Production", sortOrder: 0, startDate: new Date("2026-02-01"), endDate: new Date("2026-02-28") },
-      { projectId: proj1.id, name: "Production", sortOrder: 1, startDate: new Date("2026-03-01"), endDate: new Date("2026-03-21") },
-      { projectId: proj1.id, name: "Post-Production", sortOrder: 2, startDate: new Date("2026-03-22"), endDate: new Date("2026-05-01") },
-      { projectId: proj1.id, name: "Delivery", sortOrder: 3, startDate: new Date("2026-05-02"), endDate: new Date("2026-05-15") },
+      { projectId: proj1.id, name: "Concept & Treatment", sortOrder: 0, startDate: new Date("2026-02-01"), endDate: new Date("2026-02-08") },
+      { projectId: proj1.id, name: "Script & Storyboard", sortOrder: 1, startDate: new Date("2026-02-09"), endDate: new Date("2026-02-16") },
+      { projectId: proj1.id, name: "Casting & Crew", sortOrder: 2, startDate: new Date("2026-02-17"), endDate: new Date("2026-02-23") },
+      { projectId: proj1.id, name: "Location Scout — Kodiak", sortOrder: 3, startDate: new Date("2026-02-24"), endDate: new Date("2026-02-28") },
+      { projectId: proj1.id, name: "Principal Photography", sortOrder: 4, startDate: new Date("2026-03-01"), endDate: new Date("2026-03-12") },
+      { projectId: proj1.id, name: "BTS & Pickup Shots", sortOrder: 5, startDate: new Date("2026-03-13"), endDate: new Date("2026-03-21") },
+      { projectId: proj1.id, name: "Assembly Edit", sortOrder: 6, startDate: new Date("2026-03-22"), endDate: new Date("2026-04-03") },
+      { projectId: proj1.id, name: "Rough Cut Review", sortOrder: 7, startDate: new Date("2026-04-04"), endDate: new Date("2026-04-10") },
+      { projectId: proj1.id, name: "Fine Cut & Sound Design", sortOrder: 8, startDate: new Date("2026-04-11"), endDate: new Date("2026-04-22") },
+      { projectId: proj1.id, name: "Color Grade", sortOrder: 9, startDate: new Date("2026-04-23"), endDate: new Date("2026-04-29") },
+      { projectId: proj1.id, name: "Social Cutdowns (3x 15s)", sortOrder: 10, startDate: new Date("2026-04-30"), endDate: new Date("2026-05-06") },
+      { projectId: proj1.id, name: "Final Delivery & Master", sortOrder: 11, startDate: new Date("2026-05-07"), endDate: new Date("2026-05-15") },
     ])
     .returning();
+  const [p1Pre, _p1S, _p1C, _p1L, p1Prod, _p1B, p1Post, _p1R, _p1F, _p1Co, _p1So, p1Delivery] = p1Phases;
 
   // Proj2: Tran Architecture — Mar 15 → Jun 30 (production phase, 35%)
   const [p2Pre, p2Prod, p2Post, p2Delivery] = await db
@@ -418,15 +434,26 @@ async function seed() {
     .returning();
 
   // Proj3: Pacific NW Health — Jan 10 → Apr 25 (review phase, 88%)
-  const [p3Pre, p3Prod, p3Post, p3Delivery] = await db
+  // 88% progress = nearly done, lots of completed phase detail
+  const p3Phases = await db
     .insert(phasesTable)
     .values([
-      { projectId: proj3.id, name: "Pre-Production", sortOrder: 0, startDate: new Date("2026-01-10"), endDate: new Date("2026-02-01") },
-      { projectId: proj3.id, name: "Production", sortOrder: 1, startDate: new Date("2026-02-02"), endDate: new Date("2026-02-28") },
-      { projectId: proj3.id, name: "Post-Production", sortOrder: 2, startDate: new Date("2026-03-01"), endDate: new Date("2026-04-05") },
-      { projectId: proj3.id, name: "Delivery", sortOrder: 3, startDate: new Date("2026-04-06"), endDate: new Date("2026-04-25") },
+      { projectId: proj3.id, name: "Brief & Discovery", sortOrder: 0, startDate: new Date("2026-01-10"), endDate: new Date("2026-01-17") },
+      { projectId: proj3.id, name: "Stakeholder Interviews Plan", sortOrder: 1, startDate: new Date("2026-01-18"), endDate: new Date("2026-01-25") },
+      { projectId: proj3.id, name: "Script & Motion Framework", sortOrder: 2, startDate: new Date("2026-01-26"), endDate: new Date("2026-02-01") },
+      { projectId: proj3.id, name: "Interview Shoot Days (3)", sortOrder: 3, startDate: new Date("2026-02-02"), endDate: new Date("2026-02-12") },
+      { projectId: proj3.id, name: "B-Roll & Archival", sortOrder: 4, startDate: new Date("2026-02-13"), endDate: new Date("2026-02-21") },
+      { projectId: proj3.id, name: "Data Visualization Design", sortOrder: 5, startDate: new Date("2026-02-22"), endDate: new Date("2026-02-28") },
+      { projectId: proj3.id, name: "Assembly & Story Edit", sortOrder: 6, startDate: new Date("2026-03-01"), endDate: new Date("2026-03-10") },
+      { projectId: proj3.id, name: "Motion Graphics Build", sortOrder: 7, startDate: new Date("2026-03-11"), endDate: new Date("2026-03-22") },
+      { projectId: proj3.id, name: "Music & VO Pass", sortOrder: 8, startDate: new Date("2026-03-23"), endDate: new Date("2026-03-30") },
+      { projectId: proj3.id, name: "Color & Sound Mix", sortOrder: 9, startDate: new Date("2026-03-31"), endDate: new Date("2026-04-05") },
+      { projectId: proj3.id, name: "Client Review Round 1", sortOrder: 10, startDate: new Date("2026-04-06"), endDate: new Date("2026-04-12") },
+      { projectId: proj3.id, name: "Revisions & Round 2", sortOrder: 11, startDate: new Date("2026-04-13"), endDate: new Date("2026-04-19") },
+      { projectId: proj3.id, name: "Final Master & Delivery", sortOrder: 12, startDate: new Date("2026-04-20"), endDate: new Date("2026-04-25") },
     ])
     .returning();
+  const [p3Pre, _p3S, _p3Sc, p3Prod, _p3B, _p3D, p3Post, _p3M, _p3Mu, _p3Co, _p3R, _p3R2, p3Delivery] = p3Phases;
 
   // Proj4: Cascade Coffee — Apr 1 → Jul 20 (pre_production phase, 12%)
   const [p4Pre, p4Prod, p4Post, p4Delivery] = await db
