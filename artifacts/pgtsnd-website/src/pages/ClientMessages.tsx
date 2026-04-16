@@ -57,7 +57,6 @@ export default function ClientMessages() {
       setNewMessage("");
       loadMessages();
     } catch {
-      // silently fail send
     }
     setSending(false);
   };
@@ -93,35 +92,41 @@ export default function ClientMessages() {
           </div>
 
           <div style={{ flex: 1, overflowY: "auto" }}>
-            {conversations.map((convo) => (
-              <div
-                key={convo.projectId}
-                onClick={() => setActiveConvo(convo)}
-                style={{
-                  padding: "16px 20px",
-                  cursor: "pointer",
-                  background: activeConvo?.projectId === convo.projectId ? t.hoverBg : "transparent",
-                  borderLeft: activeConvo?.projectId === convo.projectId ? `2px solid ${t.accent}` : "2px solid transparent",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "14px", color: t.text }}>{convo.projectName}</p>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    {convo.unreadCount > 0 && (
-                      <span style={{ width: "20px", height: "20px", borderRadius: "50%", background: t.badgeBg, color: t.badgeText, fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {convo.unreadCount}
-                      </span>
-                    )}
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>
-                      {convo.lastMessageTime ? timeAgo(convo.lastMessageTime) : ""}
-                    </span>
-                  </div>
-                </div>
-                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {convo.lastMessage || "No messages yet"}
-                </p>
+            {conversations.length === 0 ? (
+              <div style={{ padding: "20px", textAlign: "center" }}>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textMuted }}>No conversations yet</p>
               </div>
-            ))}
+            ) : (
+              conversations.map((convo) => (
+                <div
+                  key={convo.projectId}
+                  onClick={() => setActiveConvo(convo)}
+                  style={{
+                    padding: "16px 20px",
+                    cursor: "pointer",
+                    background: activeConvo?.projectId === convo.projectId ? t.hoverBg : "transparent",
+                    borderLeft: activeConvo?.projectId === convo.projectId ? `2px solid ${t.accent}` : "2px solid transparent",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                    <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "14px", color: t.text }}>{convo.projectName}</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      {convo.unreadCount > 0 && (
+                        <span style={{ width: "20px", height: "20px", borderRadius: "50%", background: t.badgeBg, color: t.badgeText, fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {convo.unreadCount}
+                        </span>
+                      )}
+                      <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>
+                        {convo.lastMessageTime ? timeAgo(convo.lastMessageTime) : ""}
+                      </span>
+                    </div>
+                  </div>
+                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {convo.lastMessage || "No messages yet"}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -131,6 +136,7 @@ export default function ClientMessages() {
               <div style={{ padding: "20px 32px", borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <h3 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "16px", color: t.text, marginBottom: "4px" }}>{activeConvo.projectName}</h3>
+                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary }}>Project conversation</p>
                 </div>
               </div>
 

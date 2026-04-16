@@ -10,12 +10,22 @@ import reviewsRouter from "./reviews";
 import messagesRouter from "./messages";
 import contractsRouter from "./contracts";
 import clientRouter from "./client";
+import integrationsRouter from "./integrations";
 import { authMiddleware } from "../middleware/auth";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(authRouter);
+
+router.post("/webhooks/stripe", (req, res, next) => {
+  req.url = "/webhooks/stripe";
+  integrationsRouter(req, res, next);
+});
+router.post("/webhooks/docusign", (req, res, next) => {
+  req.url = "/webhooks/docusign";
+  integrationsRouter(req, res, next);
+});
 
 router.use(authMiddleware);
 router.use(usersRouter);
@@ -27,5 +37,6 @@ router.use(reviewsRouter);
 router.use(messagesRouter);
 router.use(contractsRouter);
 router.use(clientRouter);
+router.use(integrationsRouter);
 
 export default router;

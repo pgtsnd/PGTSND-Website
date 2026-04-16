@@ -33,6 +33,8 @@ export const contractsTable = pgTable(
     status: contractStatusEnum("status").notNull().default("draft"),
     amount: integer("amount"),
     documentUrl: text("document_url"),
+    docusignEnvelopeId: text("docusign_envelope_id"),
+    docusignSigningUrl: text("docusign_signing_url"),
     sentAt: timestamp("sent_at"),
     signedAt: timestamp("signed_at"),
     expiresAt: timestamp("expires_at"),

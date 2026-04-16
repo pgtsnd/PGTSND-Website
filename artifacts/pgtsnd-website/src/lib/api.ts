@@ -99,8 +99,27 @@ export interface Contract {
   sentAt: string | null;
   signedAt: string | null;
   documentUrl: string | null;
+  docusignEnvelopeId: string | null;
+  docusignSigningUrl: string | null;
+  expiresAt: string | null;
   createdAt: string;
+  updatedAt: string;
   projectName: string;
+}
+
+export interface Invoice {
+  id: string;
+  projectId: string;
+  invoiceNumber: string | null;
+  description: string;
+  amount: number;
+  status: "draft" | "sent" | "paid" | "overdue" | "void";
+  dueDate: string | null;
+  paidAt: string | null;
+  paymentMethod: string | null;
+  stripeHostedUrl: string | null;
+  stripePdfUrl: string | null;
+  createdAt: string;
 }
 
 export interface TeamMember {
@@ -211,6 +230,14 @@ export const api = {
     }),
 
   getClientContracts: () => apiFetch<Contract[]>("/client/contracts"),
+
+  getClientInvoices: () => apiFetch<Invoice[]>("/client/invoices"),
+
+  getProjectInvoices: (projectId: string) =>
+    apiFetch<Invoice[]>(`/projects/${projectId}/invoices`),
+
+  getDocuSignSigningUrl: (contractId: string) =>
+    apiFetch<{ url: string }>(`/integrations/docusign/signing-url/${contractId}`),
 
   getProjectMessages: (projectId: string) =>
     apiFetch<Message[]>(`/projects/${projectId}/messages`),

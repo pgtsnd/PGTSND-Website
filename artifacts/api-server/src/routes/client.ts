@@ -7,6 +7,7 @@ import {
   reviewsTable,
   messagesTable,
   contractsTable,
+  invoicesTable,
   usersTable,
   projectMembersTable,
   reviewRemindersTable,
@@ -585,6 +586,34 @@ router.get(
       ...user,
       organizationName,
     });
+  },
+);
+
+router.get(
+  "/client/invoices",
+  requireRole("client"),
+  async (req, res) => {
+    const userId = req.user!.id;
+
+    const projects = await db
+      .select()
+      .from(projectsTable)
+      .where(eq(projectsTable.clientId, userId));
+
+    if (projects.length === 0) {
+      res.json([]);
+      return;
+    }
+
+    const projectIds = projects.map((p) => p.id);
+
+    const invoices = await db
+      .select()
+      .from(invoicesTable)
+      .where(inArray(invoicesTable.projectId, projectIds))
+      .orderBy(desc(invoicesTable.createdAt));
+
+    res.json(invoices);
   },
 );
 

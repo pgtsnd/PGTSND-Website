@@ -4,6 +4,12 @@ import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
 import { useUpdateProfile } from "../hooks/useTeamData";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  useIntegrations,
+  useUpdateIntegration,
+  useDisconnectIntegration,
+  type IntegrationSetting,
+} from "../hooks/useIntegrations";
 
 export default function TeamSettings() {
   const { t } = useTheme();
@@ -152,44 +158,215 @@ export default function TeamSettings() {
             )}
 
             {activeSection === "integrations" && (
-              <div>
-                <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Integrations</h2>
-                <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "24px" })}>Connect your tools.</p>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {[
-                    { name: "DocuSign", desc: "Send contracts for e-signature", connected: false },
-                    { name: "Stripe", desc: "Accept payments and manage invoices", connected: false },
-                    { name: "Google Drive", desc: "Sync project files and deliverables", connected: false },
-                    { name: "Frame.io", desc: "Video review and collaboration", connected: false },
-                    { name: "Slack", desc: "Team notifications and alerts", connected: false },
-                  ].map((integration) => (
-                    <div key={integration.name} style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
-                      padding: "16px 20px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "8px",
-                    }}>
-                      <div>
-                        <p style={f({ fontWeight: 600, fontSize: "13px", color: t.text, marginBottom: "2px" })}>{integration.name}</p>
-                        <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>{integration.desc}</p>
-                      </div>
-                      <button style={f({
-                        fontWeight: 500, fontSize: "11px",
-                        color: t.textMuted,
-                        background: "transparent",
-                        border: `1px solid ${t.border}`,
-                        borderRadius: "6px", padding: "6px 14px", cursor: "pointer",
-                      })}>
-                        Coming Soon
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <IntegrationsPanel t={t} f={f} />
             )}
           </div>
         </div>
       </div>
     </TeamLayout>
+  );
+}
+
+const integrationMeta: Record<string, { label: string; desc: string; fields: { key: string; label: string; placeholder: string; sensitive?: boolean }[] }> = {
+  stripe: {
+    label: "Stripe",
+    desc: "Accept payments and manage invoices",
+    fields: [
+      { key: "secretKey", label: "Secret Key", placeholder: "sk_live_...", sensitive: true },
+      { key: "publishableKey", label: "Publishable Key", placeholder: "pk_live_..." },
+      { key: "webhookSecret", label: "Webhook Secret", placeholder: "whsec_...", sensitive: true },
+    ],
+  },
+  google_drive: {
+    label: "Google Drive",
+    desc: "Sync project files and deliverables",
+    fields: [
+      { key: "accessToken", label: "Access Token", placeholder: "ya29...", sensitive: true },
+      { key: "clientId", label: "Client ID", placeholder: "xxxx.apps.googleusercontent.com" },
+      { key: "clientSecret", label: "Client Secret", placeholder: "GOCSPX-...", sensitive: true },
+    ],
+  },
+  slack: {
+    label: "Slack",
+    desc: "Team notifications and client messaging",
+    fields: [
+      { key: "botToken", label: "Bot Token", placeholder: "xoxb-...", sensitive: true },
+      { key: "defaultChannelId", label: "Default Channel ID", placeholder: "C01234567" },
+    ],
+  },
+  docusign: {
+    label: "DocuSign",
+    desc: "Send contracts for e-signature",
+    fields: [
+      { key: "accessToken", label: "Access Token", placeholder: "eyJ0...", sensitive: true },
+      { key: "accountId", label: "Account ID", placeholder: "xxxxxxxx-xxxx-..." },
+      { key: "basePath", label: "Base Path", placeholder: "https://demo.docusign.net/restapi" },
+    ],
+  },
+};
+
+function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
+  const { data: integrations, isLoading } = useIntegrations();
+  const updateMutation = useUpdateIntegration();
+  const disconnectMutation = useDisconnectIntegration();
+  const [expandedType, setExpandedType] = useState<string | null>(null);
+  const [formData, setFormData] = useState<Record<string, Record<string, string>>>({});
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+
+  const types = ["stripe", "google_drive", "slack", "docusign"] as const;
+
+  const getIntegration = (type: string): IntegrationSetting | undefined =>
+    integrations?.find((i) => i.type === type);
+
+  const handleFieldChange = (type: string, key: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [type]: { ...(prev[type] || {}), [key]: value },
+    }));
+  };
+
+  const handleSave = (type: string) => {
+    const config = formData[type] || {};
+    updateMutation.mutate(
+      { type, enabled: true, config },
+      {
+        onSuccess: () => {
+          setSaveMsg(type);
+          setTimeout(() => setSaveMsg(null), 2000);
+          setFormData((prev) => ({ ...prev, [type]: {} }));
+        },
+      },
+    );
+  };
+
+  const handleDisconnect = (type: string) => {
+    disconnectMutation.mutate(type, {
+      onSuccess: () => {
+        setExpandedType(null);
+      },
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div>
+        <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Integrations</h2>
+        <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>Loading...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Integrations</h2>
+      <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "24px" })}>Connect external services to power billing, file storage, messaging, and contracts.</p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        {types.map((type) => {
+          const meta = integrationMeta[type];
+          const integration = getIntegration(type);
+          const isConnected = integration?.enabled ?? false;
+          const isExpanded = expandedType === type;
+
+          return (
+            <div key={type} style={{
+              background: t.bgCard,
+              border: `1px solid ${isConnected ? "rgba(96,208,96,0.2)" : t.border}`,
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}>
+              <div
+                onClick={() => setExpandedType(isExpanded ? null : type)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "16px 20px", cursor: "pointer",
+                }}
+              >
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "2px" }}>
+                    <p style={f({ fontWeight: 600, fontSize: "13px", color: t.text })}>{meta.label}</p>
+                    {isConnected && (
+                      <span style={f({
+                        fontWeight: 600, fontSize: "9px", textTransform: "uppercase",
+                        color: "rgba(96,208,96,0.8)", background: "rgba(96,208,96,0.08)",
+                        padding: "2px 8px", borderRadius: "3px", letterSpacing: "0.05em",
+                      })}>Connected</span>
+                    )}
+                  </div>
+                  <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>{meta.desc}</p>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2" style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s ease" }}>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+
+              {isExpanded && (
+                <div style={{ padding: "0 20px 20px", borderTop: `1px solid ${t.border}` }}>
+                  <div style={{ paddingTop: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                    {meta.fields.map((field) => {
+                      const currentValue = formData[type]?.[field.key] ?? "";
+                      const savedValue = integration?.config?.[field.key] ?? "";
+                      return (
+                        <div key={field.key}>
+                          <label style={f({
+                            fontWeight: 500, fontSize: "11px", color: t.textMuted,
+                            textTransform: "uppercase", letterSpacing: "0.06em",
+                            display: "block", marginBottom: "6px",
+                          })}>{field.label}</label>
+                          <input
+                            type={field.sensitive ? "password" : "text"}
+                            value={currentValue}
+                            onChange={(e) => handleFieldChange(type, field.key, e.target.value)}
+                            placeholder={savedValue || field.placeholder}
+                            style={f({
+                              fontWeight: 400, fontSize: "13px", color: t.text,
+                              background: t.bgCard, border: `1px solid ${t.border}`,
+                              borderRadius: "6px", padding: "10px 14px", width: "100%",
+                              outline: "none", boxSizing: "border-box" as const,
+                            })}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "16px" }}>
+                    <button
+                      onClick={() => handleSave(type)}
+                      disabled={updateMutation.isPending}
+                      style={f({
+                        fontWeight: 600, fontSize: "12px", color: t.accentText,
+                        background: t.accent, border: "none", borderRadius: "6px",
+                        padding: "10px 20px", cursor: "pointer",
+                        opacity: updateMutation.isPending ? 0.7 : 1,
+                      })}
+                    >
+                      {updateMutation.isPending ? "Saving..." : isConnected ? "Update" : "Connect"}
+                    </button>
+                    {isConnected && (
+                      <button
+                        onClick={() => handleDisconnect(type)}
+                        disabled={disconnectMutation.isPending}
+                        style={f({
+                          fontWeight: 500, fontSize: "11px", color: "rgba(255,120,120,0.8)",
+                          background: "transparent", border: `1px solid rgba(255,120,120,0.2)`,
+                          borderRadius: "6px", padding: "10px 16px", cursor: "pointer",
+                        })}
+                      >
+                        Disconnect
+                      </button>
+                    )}
+                    {saveMsg === type && (
+                      <span style={f({ fontWeight: 500, fontSize: "12px", color: "rgba(96,208,96,0.8)" })}>Saved!</span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

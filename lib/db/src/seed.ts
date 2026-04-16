@@ -11,6 +11,8 @@ import {
   messagesTable,
   contractsTable,
   reviewRemindersTable,
+  invoicesTable,
+  integrationSettingsTable,
   magicLinkTokensTable,
 } from "./schema";
 
@@ -20,6 +22,7 @@ async function seed() {
   await db.delete(reviewRemindersTable);
   await db.delete(reviewsTable);
   await db.delete(messagesTable);
+  await db.delete(invoicesTable);
   await db.delete(contractsTable);
   await db.delete(deliverablesTable);
   await db.delete(taskItemsTable);
@@ -27,6 +30,7 @@ async function seed() {
   await db.delete(projectMembersTable);
   await db.delete(projectsTable);
   await db.delete(organizationsTable);
+  await db.delete(integrationSettingsTable);
   await db.delete(magicLinkTokensTable);
   await db.delete(usersTable);
 

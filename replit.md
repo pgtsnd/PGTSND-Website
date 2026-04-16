@@ -38,8 +38,10 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
 - **deliverables** — Link to projects (and optionally tasks), with review states: draft, pending, in_review, approved, revision_requested
 - **reviews** — Review records for deliverables, linked to a reviewer
 - **messages** — Project-scoped messages with read status
-- **contracts** — Project contracts (SOW, amendments, etc.) with status: draft, sent, signed, expired
+- **contracts** — Project contracts (SOW, amendments, etc.) with status: draft, sent, signed, expired. Includes DocuSign fields: `docusign_envelope_id`, `docusign_signing_url`
 - **review_reminders** — Tracks automated review reminders per deliverable (day 3, 5, 7+ daily), FK to deliverables
+- **invoices** — Billing invoices linked to projects with Stripe fields: `stripe_invoice_id`, `stripe_payment_intent_id`, `stripe_hosted_url`, `stripe_pdf_url`. Status: draft, sent, paid, overdue, void
+- **integration_settings** — External service configurations (Stripe, Google Drive, Slack, DocuSign) with encrypted config storage. Type enum: stripe, google_drive, slack, docusign
 
 ## API Architecture
 
@@ -94,6 +96,11 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
 - **Images**: Served locally from `public/images/` (migrated from Squarespace CDN)
 - **Logo**: Uses src/assets/logo.webp via @assets alias
 - **Authentication**: Magic link email login + Google SSO + demo bypass (`demo@pgtsnd.com`), JWT sessions in httpOnly cookies, role-based routing (client → client hub, crew/partner/owner → team portal), protected route guards on all dashboard pages
-- **Backend**: Both Team Portal and Client Portal use API server for real data; public pages (Home, Services, etc.) are frontend-only
+- **External Integrations**: Backend service modules at `artifacts/api-server/src/services/` for Stripe (invoicing/payments), Google Drive (file storage), Slack (messaging bridge), DocuSign (contract signing). Each integration stores credentials in `integration_settings` DB table. Manage connections via Team Settings → Integrations panel. API routes at `/api/integrations/*` for status, config, and service-specific operations.
+  - **Stripe**: Invoice creation, sending, payment tracking via webhooks (`/api/webhooks/stripe`)
+  - **Google Drive**: Folder-scoped file listing, download URLs (`/api/integrations/drive/files`)
+  - **Slack**: Send messages, list channels, get history (`/api/integrations/slack/*`)
+  - **DocuSign**: Send envelopes, get signing URLs, status tracking via webhooks (`/api/webhooks/docusign`)
+- **Backend**: Both Team Portal and Client Portal use API server for real data; public pages (Home, Services, etc.) are frontend-only. Client Portal pages (Billing, Messages, Assets, Contracts) now wired to real API data.
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
