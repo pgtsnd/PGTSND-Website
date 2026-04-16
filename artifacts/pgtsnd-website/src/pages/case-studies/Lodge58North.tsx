@@ -47,7 +47,7 @@ export default function Lodge58North() {
         </section>
 
         {/* Video Thumbnail */}
-        <section style={{ padding: "0 40px 40px", position: "relative" }}>
+        <section style={{ padding: "0", position: "relative" }}>
           <div style={{ position: "relative", overflow: "hidden", aspectRatio: "16 / 9" }}>
             <img
               src={galleryImages[9]}
