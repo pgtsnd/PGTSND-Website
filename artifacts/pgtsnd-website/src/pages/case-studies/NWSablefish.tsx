@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CTAButton from "../../components/CTAButton";
 import ScrollBadge from "../../components/ScrollBadge";
 import Footer from "../../components/Footer";
@@ -37,6 +37,54 @@ const brandColors = [
   { color: "#b0b0a8", border: "3px solid rgba(255,255,255,0.4)" },
   { color: "#c5a44e", border: "none" },
 ];
+
+function BrandMockupsSlideIn() {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      const p = 1 - rect.top / viewH;
+      setProgress(Math.max(0, Math.min(1, p)));
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const translate = (1 - progress) * 50;
+  const brightness = 0.5 + progress * 0.5;
+
+  return (
+    <section ref={ref} style={{ padding: "0 40px 40px", position: "relative" }}>
+      <div style={{ position: "relative", overflow: "hidden", background: "#000" }}>
+        <div style={{ position: "absolute", inset: 0, opacity: 0.45, pointerEvents: "none" }}>
+          <img
+            src={"/images/case-studies/nw-sablefish/sablefish-topo-blue2-1.png"}
+            alt=""
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        </div>
+        <img
+          src={"/images/case-studies/nw-sablefish/pgtsnd-nw-sablefish-brand-identity-mockups.png"}
+          alt="NW Sablefish Brand Identity Mockups"
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "auto",
+            display: "block",
+            transform: `translateY(${translate}%)`,
+            filter: `brightness(${brightness})`,
+            willChange: "transform, filter",
+          }}
+        />
+      </div>
+    </section>
+  );
+}
 
 function PhoneMockup({ src, style }: { src: string; style?: React.CSSProperties }) {
   return (
@@ -101,16 +149,8 @@ export default function NWSablefish() {
           </div>
         </section>
 
-        {/* Brand Identity Mockups - Full Width Hero */}
-        <section style={{ padding: "0 40px 40px" }}>
-          <div style={{ position: "relative", overflow: "hidden" }}>
-            <img
-              src={"/images/case-studies/nw-sablefish/pgtsnd-nw-sablefish-brand-identity-mockups.png"}
-              alt="NW Sablefish Brand Identity Mockups"
-              style={{ width: "100%", height: "auto", display: "block" }}
-            />
-          </div>
-        </section>
+        {/* Brand Identity Mockups - slides up over topo background */}
+        <BrandMockupsSlideIn />
 
         {/* Fish Tail + Color Palette + Testimonial */}
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
