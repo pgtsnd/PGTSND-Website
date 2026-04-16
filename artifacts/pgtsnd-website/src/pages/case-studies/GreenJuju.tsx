@@ -84,6 +84,76 @@ function PhoneMockup({ src, style }: { src: string; style?: React.CSSProperties 
   );
 }
 
+function VideoPhoneMockup({ poster, style }: { poster?: string; style?: React.CSSProperties }) {
+  return (
+    <div
+      style={{
+        width: "220px",
+        aspectRatio: "9 / 19",
+        borderRadius: "32px",
+        overflow: "hidden",
+        border: "8px solid #111",
+        boxShadow: "0 0 0 2px rgba(255,255,255,0.08), 0 20px 60px rgba(0,0,0,0.5)",
+        background: "#1a1a1a",
+        position: "relative",
+        flexShrink: 0,
+        ...style,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: "10px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "80px",
+          height: "20px",
+          background: "#111",
+          borderRadius: "0 0 12px 12px",
+          zIndex: 3,
+        }}
+      />
+      {poster ? (
+        <img
+          src={poster}
+          alt=""
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "grayscale(60%) brightness(0.55)" }}
+        />
+      ) : (
+        <div style={{ width: "100%", height: "100%", background: "linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%)" }} />
+      )}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 2,
+        }}
+      >
+        <div
+          style={{
+            width: "64px",
+            height: "64px",
+            borderRadius: "50%",
+            background: "rgba(0,0,0,0.55)",
+            border: "2px solid rgba(255,255,255,0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backdropFilter: "blur(4px)",
+          }}
+        >
+          <svg width="20" height="24" viewBox="0 0 18 22" fill="white">
+            <polygon points="0,0 18,11 0,22" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function GreenJuju() {
   const [webHovered, setWebHovered] = useState(false);
 
@@ -125,10 +195,49 @@ export default function GreenJuju() {
         {/* Social Media Showcase */}
         <section style={{ padding: "0 40px 40px", position: "relative" }}>
           <ScrollBadge position="bottom-left" bottomOffset={-58} />
-          <div style={{ background: "rgba(96,120,100,0.4)", borderRadius: "8px", padding: "60px 40px", display: "flex", justifyContent: "center", gap: "24px", alignItems: "center", overflow: "hidden", position: "relative" }}>
-            <PhoneMockup src={"/images/case-studies/green-juju/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg"} style={{ width: "220px" }} />
-            <PhoneMockup src={"/images/case-studies/green-juju/green-juju-supplements-close-pgtsnd.jpeg"} style={{ width: "220px", transform: "translateY(-30px)" }} />
-            <PhoneMockup src={"/images/case-studies/green-juju/puppies-green-juju-pgtsnd.jpeg"} style={{ width: "220px" }} />
+          <div
+            style={{
+              position: "relative",
+              borderRadius: "8px",
+              overflow: "hidden",
+              aspectRatio: "16 / 9",
+              backgroundImage: `url("/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg")`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "rgba(96,120,100,0.55)",
+                mixBlendMode: "multiply",
+              }}
+            />
+            <div
+              style={{
+                position: "relative",
+                zIndex: 1,
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "60px",
+                padding: "40px",
+              }}
+            >
+              <VideoPhoneMockup
+                poster={"/images/case-studies/green-juju/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg"}
+              />
+              <VideoPhoneMockup
+                poster={"/images/case-studies/green-juju/green-juju-supplements-close-pgtsnd.jpeg"}
+                style={{ transform: "translateY(-20px)" }}
+              />
+              <VideoPhoneMockup
+                poster={"/images/case-studies/green-juju/puppies-green-juju-pgtsnd.jpeg"}
+              />
+            </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: "40px" }}>
             <div style={{ display: "flex", alignItems: "flex-end", gap: "12px" }}>
