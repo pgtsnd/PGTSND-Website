@@ -152,7 +152,7 @@ export default function Contact() {
               }}
             />
           </div>
-          <div style={{ position: "absolute", top: "-55px", right: "20px", zIndex: 10 }}>
+          <div style={{ position: "absolute", top: "-60px", right: "20px", zIndex: 10 }}>
             <ScrollBadge position="bottom-right" inline />
           </div>
         </section>
