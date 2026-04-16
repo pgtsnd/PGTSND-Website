@@ -112,7 +112,7 @@ export default function TeamProjects() {
                   overflow: "hidden", cursor: "pointer", opacity: project.status === "archived" ? 0.5 : 1,
                 }}>
                   <div style={{
-                    height: "120px",
+                    aspectRatio: "16 / 9",
                     backgroundImage: `url("${pickHeaderImage(project)}")`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
