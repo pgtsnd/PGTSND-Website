@@ -136,12 +136,12 @@ export default function AlaskaBeringSeaCrabbers() {
         </section>
 
         {/* Hero Video Placeholder + Testimonial */}
-        <section style={{ padding: "0 80px", position: "relative" }}>
+        <section style={{ padding: "0 80px", paddingBottom: "120px", position: "relative" }}>
           <div style={{ width: "100%", position: "relative" }}>
             <div style={{ position: "absolute", top: "-30px", left: "0", zIndex: 5 }}>
               <ScrollBadge position="bottom-left" inline />
             </div>
-            <div style={{ width: "100%", aspectRatio: "16 / 9", overflow: "hidden", position: "relative", background: "#111" }}>
+            <div style={{ width: "100%", aspectRatio: "16 / 9", overflow: "visible", position: "relative", background: "#111" }}>
             <img
               src={"/images/case-studies/absc/pgtsnd-ABSC-photography-5.jpeg"}
               alt="Alaska Bering Sea"
@@ -160,7 +160,7 @@ export default function AlaskaBeringSeaCrabbers() {
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               </div>
-              <div style={{ border: "2px solid rgba(255,255,255,0.5)", padding: "48px 32px 32px", background: "rgba(0,0,0,0.85)" }}>
+              <div style={{ border: "2px solid rgba(255,255,255,0.85)", padding: "48px 32px 32px", background: "rgba(0,0,0,0.85)" }}>
                 <p style={f({ fontWeight: 400, fontStyle: "italic", fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, marginBottom: "20px" })}>
                   &ldquo;Bri had an amazing vision for how to tell our story from various angles &mdash; showcasing the true grit, hard work, passion, and resilience that are the heart of our industry.&rdquo;
                 </p>
