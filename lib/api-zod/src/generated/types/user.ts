@@ -16,6 +16,26 @@ export interface User {
   phone?: string | null;
   title?: string | null;
   initials?: string | null;
+  dayRate?: number | null;
+  halfDayRate?: number | null;
+  hourlyRate?: number | null;
+  rateNotes?: string | null;
+  w9OnFile?: boolean | null;
+  taxClassification?: string | null;
+  ein?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyContactRelation?: string | null;
+  equipment?: string | null;
+  specialties?: string | null;
+  portfolio?: string | null;
+  availability?: string | null;
+  paymentMethod?: string | null;
+  notes?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

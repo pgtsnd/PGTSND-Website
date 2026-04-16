@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, varchar, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, varchar, pgEnum, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { randomUUID } from "crypto";
@@ -22,6 +22,32 @@ export const usersTable = pgTable("users", {
   phone: varchar("phone", { length: 50 }),
   title: varchar("title", { length: 255 }),
   initials: varchar("initials", { length: 5 }),
+
+  dayRate: integer("day_rate"),
+  halfDayRate: integer("half_day_rate"),
+  hourlyRate: integer("hourly_rate"),
+  rateNotes: text("rate_notes"),
+
+  w9OnFile: boolean("w9_on_file").default(false),
+  taxClassification: varchar("tax_classification", { length: 50 }),
+  ein: varchar("ein", { length: 20 }),
+
+  address: text("address"),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 50 }),
+  zip: varchar("zip", { length: 20 }),
+
+  emergencyContactName: varchar("emergency_contact_name", { length: 255 }),
+  emergencyContactPhone: varchar("emergency_contact_phone", { length: 50 }),
+  emergencyContactRelation: varchar("emergency_contact_relation", { length: 100 }),
+
+  equipment: text("equipment"),
+  specialties: text("specialties"),
+  portfolio: varchar("portfolio", { length: 500 }),
+  availability: text("availability"),
+  paymentMethod: varchar("payment_method", { length: 50 }),
+  notes: text("notes"),
+
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()

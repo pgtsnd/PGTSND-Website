@@ -15,4 +15,24 @@ export interface CreateUser {
   phone?: string;
   title?: string;
   initials?: string;
+  dayRate?: number;
+  halfDayRate?: number;
+  hourlyRate?: number;
+  rateNotes?: string;
+  w9OnFile?: boolean;
+  taxClassification?: string;
+  ein?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelation?: string;
+  equipment?: string;
+  specialties?: string;
+  portfolio?: string;
+  availability?: string;
+  paymentMethod?: string;
+  notes?: string;
 }

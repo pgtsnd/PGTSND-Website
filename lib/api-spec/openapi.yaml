@@ -1028,6 +1028,66 @@ components:
         initials:
           type: string
           nullable: true
+        dayRate:
+          type: integer
+          nullable: true
+        halfDayRate:
+          type: integer
+          nullable: true
+        hourlyRate:
+          type: integer
+          nullable: true
+        rateNotes:
+          type: string
+          nullable: true
+        w9OnFile:
+          type: boolean
+          nullable: true
+        taxClassification:
+          type: string
+          nullable: true
+        ein:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        zip:
+          type: string
+          nullable: true
+        emergencyContactName:
+          type: string
+          nullable: true
+        emergencyContactPhone:
+          type: string
+          nullable: true
+        emergencyContactRelation:
+          type: string
+          nullable: true
+        equipment:
+          type: string
+          nullable: true
+        specialties:
+          type: string
+          nullable: true
+        portfolio:
+          type: string
+          nullable: true
+        availability:
+          type: string
+          nullable: true
+        paymentMethod:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -1060,6 +1120,46 @@ components:
           type: string
         initials:
           type: string
+        dayRate:
+          type: integer
+        halfDayRate:
+          type: integer
+        hourlyRate:
+          type: integer
+        rateNotes:
+          type: string
+        w9OnFile:
+          type: boolean
+        taxClassification:
+          type: string
+        ein:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        emergencyContactName:
+          type: string
+        emergencyContactPhone:
+          type: string
+        emergencyContactRelation:
+          type: string
+        equipment:
+          type: string
+        specialties:
+          type: string
+        portfolio:
+          type: string
+        availability:
+          type: string
+        paymentMethod:
+          type: string
+        notes:
+          type: string
       required:
         - email
         - name
@@ -1076,6 +1176,46 @@ components:
         title:
           type: string
         initials:
+          type: string
+        dayRate:
+          type: integer
+        halfDayRate:
+          type: integer
+        hourlyRate:
+          type: integer
+        rateNotes:
+          type: string
+        w9OnFile:
+          type: boolean
+        taxClassification:
+          type: string
+        ein:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        emergencyContactName:
+          type: string
+        emergencyContactPhone:
+          type: string
+        emergencyContactRelation:
+          type: string
+        equipment:
+          type: string
+        specialties:
+          type: string
+        portfolio:
+          type: string
+        availability:
+          type: string
+        paymentMethod:
+          type: string
+        notes:
           type: string
 
     Organization:

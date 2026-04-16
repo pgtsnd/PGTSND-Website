@@ -92,7 +92,7 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
   - **Messages** (`TeamMessages.tsx`): `/team/messages` — Real messages grouped by project, send new messages via API
   - **Schedule** (`TeamSchedule.tsx`): `/team/schedule` — Timeline and Upcoming views from real project dates
   - **Asset Library** (`TeamAssets.tsx`): `/team/assets` — Deliverables from all projects
-  - **Crew** (`TeamCrew.tsx`): `/team/crew` — Real team members with roles, project assignments
+  - **Crew** (`TeamCrew.tsx`): `/team/crew` — Full contractor management hub with summary stats (Total Crew, Available, On Project, W-9 Missing), expandable member rows with 3 tabs: Profile & Gear (contact info, portfolio, availability, specialties tags, equipment list, emergency contact, notes), Rates & Pay (day/half-day/hourly rate cards, payment method, rate notes), Tax & Address (W-9 status, tax classification, mailing address). Multi-step Add Member modal (Basics, Rates & Pay, Details). DB fields: dayRate, halfDayRate, hourlyRate, rateNotes, w9OnFile, taxClassification, address/city/state/zip, equipment, specialties, portfolio, availability, paymentMethod, emergencyContact*, notes
   - **Settings** (`TeamSettings.tsx`): `/team/settings` — Profile update via `useUpdateProfile` mutation
   - Sidebar: Dashboard, Projects, Clients, Messages (badge), Schedule, Asset Library, Crew, Settings — user info from `currentUser`
   - Seed users: bri@pgtsnd.com (owner), marcus/jamie/alex/sam@pgtsnd.com (crew), testcrew@pgtsnd.com (crew/PA), kandice@pgtsnd.com (partner), nicole@netyourproblem.com, marcus@tranarch.com, lena@cascadecoffee.com, ryan@vallationouterwear.com (clients), testclient@pgtsnd.com (client, assigned to proj1+proj3)

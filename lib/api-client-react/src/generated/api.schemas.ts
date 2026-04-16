@@ -42,6 +42,26 @@ export interface User {
   phone?: string | null;
   title?: string | null;
   initials?: string | null;
+  dayRate?: number | null;
+  halfDayRate?: number | null;
+  hourlyRate?: number | null;
+  rateNotes?: string | null;
+  w9OnFile?: boolean | null;
+  taxClassification?: string | null;
+  ein?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyContactRelation?: string | null;
+  equipment?: string | null;
+  specialties?: string | null;
+  portfolio?: string | null;
+  availability?: string | null;
+  paymentMethod?: string | null;
+  notes?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -64,6 +84,26 @@ export interface CreateUser {
   phone?: string;
   title?: string;
   initials?: string;
+  dayRate?: number;
+  halfDayRate?: number;
+  hourlyRate?: number;
+  rateNotes?: string;
+  w9OnFile?: boolean;
+  taxClassification?: string;
+  ein?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelation?: string;
+  equipment?: string;
+  specialties?: string;
+  portfolio?: string;
+  availability?: string;
+  paymentMethod?: string;
+  notes?: string;
 }
 
 export interface UpdateUser {
@@ -72,6 +112,26 @@ export interface UpdateUser {
   phone?: string;
   title?: string;
   initials?: string;
+  dayRate?: number;
+  halfDayRate?: number;
+  hourlyRate?: number;
+  rateNotes?: string;
+  w9OnFile?: boolean;
+  taxClassification?: string;
+  ein?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelation?: string;
+  equipment?: string;
+  specialties?: string;
+  portfolio?: string;
+  availability?: string;
+  paymentMethod?: string;
+  notes?: string;
 }
 
 export interface Organization {
