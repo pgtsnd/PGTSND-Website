@@ -181,6 +181,70 @@ function TestimonialImage({
   );
 }
 
+function BoatCTA() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const progress = useScrollProgress(sectionRef);
+  const translateX = -7.5 + progress * 10;
+
+  return (
+    <section
+      ref={sectionRef}
+      style={{
+        position: "relative",
+        minHeight: "80vh",
+        marginBottom: "80px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        overflow: "hidden",
+      }}
+    >
+      <img
+        src="/images/about/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
+        alt=""
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "115%",
+          height: "100%",
+          objectFit: "cover",
+          filter: "brightness(0.3)",
+          transform: `translateX(${translateX}%)`,
+          transition: "transform 0.1s linear",
+        }}
+      />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <img
+          src="/images/site/pgtsnd-camera.webp"
+          alt="Camera illustration"
+          style={{ width: "360px", height: "auto", margin: "0 auto 40px", display: "block", opacity: 0.9 }}
+        />
+        <h2
+          style={f({
+            fontWeight: 900,
+            fontSize: "clamp(36px, 5vw, 60px)",
+            textTransform: "uppercase",
+            letterSpacing: "-0.02em",
+            lineHeight: 1.0,
+            color: "#ffffff",
+            marginBottom: "20px",
+          })}
+        >
+          Wherever the job
+          <br />
+          takes you&hellip;
+        </h2>
+        <p style={f({ fontWeight: 400, fontSize: "16px", color: "rgba(255,255,255,0.8)", marginBottom: "40px" })}>
+          We&rsquo;ll meet you there.
+        </p>
+        <CTAButton href="/contact" label="Let's Get To Work" />
+      </div>
+    </section>
+  );
+}
+
 export default function Services() {
   return (
     <div style={{ background: "#000000", minHeight: "100vh" }}>
@@ -332,59 +396,8 @@ export default function Services() {
         </div>
       </section>
 
-      {/* 7. Final CTA — Boat background */}
-      <section
-        style={{
-          position: "relative",
-          minHeight: "80vh",
-          marginBottom: "80px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          overflow: "hidden",
-        }}
-      >
-        <img
-          src="/images/about/fishing-boat-seafoam-bri-dwyer-pgtsnd.jpeg"
-          alt=""
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            filter: "brightness(0.3)",
-          }}
-        />
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <img
-            src="/images/site/pgtsnd-camera.webp"
-            alt="Camera illustration"
-            style={{ width: "360px", height: "auto", margin: "0 auto 40px", display: "block", opacity: 0.9 }}
-          />
-          <h2
-            style={f({
-              fontWeight: 900,
-              fontSize: "clamp(36px, 5vw, 60px)",
-              textTransform: "uppercase",
-              letterSpacing: "-0.02em",
-              lineHeight: 1.0,
-              color: "#ffffff",
-              marginBottom: "20px",
-            })}
-          >
-            Wherever the job
-            <br />
-            takes you&hellip;
-          </h2>
-          <p style={f({ fontWeight: 400, fontSize: "16px", color: "rgba(255,255,255,0.8)", marginBottom: "40px" })}>
-            We&rsquo;ll meet you there.
-          </p>
-          <CTAButton href="/contact" label="Let's Get To Work" />
-        </div>
-      </section>
+      {/* 7. Final CTA — Boat background with scroll slide */}
+      <BoatCTA />
 
       <Footer />
     </div>
