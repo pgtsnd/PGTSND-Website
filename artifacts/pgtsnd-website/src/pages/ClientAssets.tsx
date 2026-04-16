@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 import { api, type Deliverable, type Project, type DriveFolderGroup, type DriveFile } from "../lib/api";
+import { AssetsSkeleton, ErrorState } from "../components/TeamLoadingStates";
+import { useToast } from "../components/Toast";
 
 function formatShortDate(date: string | Date) {
   const d = new Date(date);
@@ -59,6 +61,8 @@ export default function ClientAssets() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const { toast } = useToast();
 
   useEffect(() => {
     Promise.all([
@@ -70,16 +74,24 @@ export default function ClientAssets() {
         setDeliverables(dels);
         setProjects(dash.projects);
         setDriveGroups(drive);
+        setError(null);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [reloadKey]);
+
+  const refetch = () => {
+    setLoading(true);
+    setError(null);
+    setReloadKey((k) => k + 1);
+  };
 
   const handleDownload = async (fileId: string, fallbackUrl: string) => {
     try {
       const { url } = await api.getClientDriveDownloadUrl(fileId);
       window.open(url || fallbackUrl, "_blank", "noopener,noreferrer");
     } catch {
+      toast("Couldn't get a secure download link, opening original", "info");
       window.open(fallbackUrl, "_blank", "noopener,noreferrer");
     }
   };
@@ -101,9 +113,7 @@ export default function ClientAssets() {
   if (loading) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: t.textTertiary }}>Loading...</p>
-        </div>
+        <AssetsSkeleton />
       </ClientLayout>
     );
   }
@@ -111,8 +121,11 @@ export default function ClientAssets() {
   if (error) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: "rgba(255,100,100,0.8)" }}>{error}</p>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState
+            message="We couldn't load your assets. Please check your connection and try again."
+            onRetry={refetch}
+          />
         </div>
       </ClientLayout>
     );

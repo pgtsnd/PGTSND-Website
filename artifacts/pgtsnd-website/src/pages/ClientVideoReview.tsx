@@ -5,21 +5,30 @@ import VideoPlayer from "../components/VideoPlayer";
 import VideoReviewPanel from "../components/VideoReviewPanel";
 import type { VideoComment } from "../components/VideoReviewPanel";
 import { api, type Deliverable, type VideoCommentWithReplies } from "../lib/api";
+import { ClientVideoReviewSkeleton, ErrorState } from "../components/TeamLoadingStates";
+import { useToast } from "../components/Toast";
 
 export default function ClientVideoReview() {
   const { t } = useTheme();
+  const { toast } = useToast();
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [selectedDeliverable, setSelectedDeliverable] = useState<Deliverable | null>(null);
   const [comments, setComments] = useState<VideoCommentWithReplies[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [activeTimestamp, setActiveTimestamp] = useState<number | null>(null);
   const [seekTo, setSeekTo] = useState<number | null>(null);
-  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const refetch = () => {
+    setError(null);
+    setLoading(true);
+    setReloadKey((k) => k + 1);
+  };
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     api
       .getClientDeliverables()
       .then((data) => {
@@ -44,7 +53,7 @@ export default function ClientVideoReview() {
         setError(err instanceof Error ? err.message : "Failed to load"),
       )
       .finally(() => setLoading(false));
-  }, []);
+  }, [reloadKey]);
 
   useEffect(() => {
     if (!selectedDeliverable) return;
@@ -59,16 +68,14 @@ export default function ClientVideoReview() {
     setSubmitting(true);
     try {
       await api.approveDeliverable(selectedDeliverable.id);
-      setActionMessage("Approved successfully!");
+      toast("Approved successfully!", "success");
       const updated = { ...selectedDeliverable, status: "approved" };
       setSelectedDeliverable(updated);
       setDeliverables((prev) =>
         prev.map((d) => (d.id === selectedDeliverable.id ? updated : d)),
       );
     } catch (err: unknown) {
-      setActionMessage(
-        `Error: ${err instanceof Error ? err.message : "Failed"}`,
-      );
+      toast(err instanceof Error ? err.message : "Failed to approve", "error");
     }
     setSubmitting(false);
   };
@@ -81,16 +88,14 @@ export default function ClientVideoReview() {
     setSubmitting(true);
     try {
       await api.requestRevision(selectedDeliverable.id, revisionComment);
-      setActionMessage("Revision requested.");
+      toast("Revision requested", "success");
       const updated = { ...selectedDeliverable, status: "revision_requested" };
       setSelectedDeliverable(updated);
       setDeliverables((prev) =>
         prev.map((d) => (d.id === selectedDeliverable.id ? updated : d)),
       );
     } catch (err: unknown) {
-      setActionMessage(
-        `Error: ${err instanceof Error ? err.message : "Failed"}`,
-      );
+      toast(err instanceof Error ? err.message : "Failed to request revision", "error");
     }
     setSubmitting(false);
   };
@@ -167,16 +172,7 @@ export default function ClientVideoReview() {
   if (loading) {
     return (
       <ClientLayout>
-        <div style={{ padding: "32px 48px" }}>
-          <p
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              color: t.textTertiary,
-            }}
-          >
-            Loading...
-          </p>
-        </div>
+        <ClientVideoReviewSkeleton />
       </ClientLayout>
     );
   }
@@ -184,15 +180,11 @@ export default function ClientVideoReview() {
   if (error) {
     return (
       <ClientLayout>
-        <div style={{ padding: "32px 48px" }}>
-          <p
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              color: "rgba(255,100,100,0.8)",
-            }}
-          >
-            {error}
-          </p>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState
+            message={error || "We couldn't load your videos. Please check your connection and try again."}
+            onRetry={refetch}
+          />
         </div>
       </ClientLayout>
     );
@@ -310,33 +302,6 @@ export default function ClientVideoReview() {
           )}
         </div>
 
-        {actionMessage && (
-          <div
-            style={{
-              padding: "12px 16px",
-              background: actionMessage.startsWith("Error")
-                ? "rgba(255,100,100,0.08)"
-                : "rgba(96,208,96,0.08)",
-              border: `1px solid ${actionMessage.startsWith("Error") ? "rgba(255,100,100,0.2)" : "rgba(96,208,96,0.2)"}`,
-              borderRadius: "8px",
-              marginBottom: "16px",
-            }}
-          >
-            <p
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 500,
-                fontSize: "13px",
-                color: actionMessage.startsWith("Error")
-                  ? "rgba(255,100,100,0.8)"
-                  : "rgba(96,208,96,0.8)",
-              }}
-            >
-              {actionMessage}
-            </p>
-          </div>
-        )}
-
         <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
           {deliverables
             .filter((d) => d.status === "in_review" || d.status === "pending")
@@ -345,7 +310,6 @@ export default function ClientVideoReview() {
                 key={d.id}
                 onClick={() => {
                   setSelectedDeliverable(d);
-                  setActionMessage(null);
                   setActiveTimestamp(null);
                 }}
                 style={{

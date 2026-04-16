@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 import { api, type Conversation, type Message } from "../lib/api";
+import { MessagesSkeleton, ErrorState } from "../components/TeamLoadingStates";
+import { useToast } from "../components/Toast";
 
 function timeAgo(date: string | Date) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -23,7 +25,15 @@ export default function ClientMessages() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const refetch = () => {
+    setLoading(true);
+    setError(null);
+    setReloadKey((k) => k + 1);
+  };
 
   const loadMessages = (initial = false) => {
     api
@@ -48,6 +58,10 @@ export default function ClientMessages() {
 
   useEffect(() => {
     loadMessages(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reloadKey]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") {
         loadMessages();
@@ -73,8 +87,10 @@ export default function ClientMessages() {
     try {
       await api.sendClientMessage(activeConvo.projectId, newMessage.trim());
       setNewMessage("");
+      toast("Message sent", "success");
       loadMessages();
     } catch {
+      toast("Failed to send message", "error");
     }
     setSending(false);
   };
@@ -82,9 +98,7 @@ export default function ClientMessages() {
   if (loading) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: t.textTertiary }}>Loading...</p>
-        </div>
+        <MessagesSkeleton />
       </ClientLayout>
     );
   }
@@ -92,8 +106,11 @@ export default function ClientMessages() {
   if (error) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: "rgba(255,100,100,0.8)" }}>{error}</p>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState
+            message="We couldn't load your conversations. Please check your connection and try again."
+            onRetry={refetch}
+          />
         </div>
       </ClientLayout>
     );

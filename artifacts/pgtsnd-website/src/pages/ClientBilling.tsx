@@ -3,6 +3,8 @@ import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 import { api, type Invoice } from "../lib/api";
 import { exportInvoicesToCsv, generateInvoicePdf } from "../lib/exports";
+import { ClientBillingSkeleton, ErrorState } from "../components/TeamLoadingStates";
+import { useToast } from "../components/Toast";
 
 function formatDate(date: string | Date | null) {
   if (!date) return "—";
@@ -14,6 +16,8 @@ export default function ClientBilling() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const { toast } = useToast();
   const [showPayModal, setShowPayModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
@@ -66,6 +70,7 @@ export default function ClientBilling() {
       .getClientInvoices()
       .then((data) => {
         setInvoices(data);
+        setError(null);
         const paidOnes = data.filter((i) => i.status === "paid");
         paidOnes.forEach((inv) => {
           api.getPaymentDetails(inv.id).then((details) => {
@@ -75,7 +80,13 @@ export default function ClientBilling() {
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [reloadKey]);
+
+  const refetch = () => {
+    setLoading(true);
+    setError(null);
+    setReloadKey((k) => k + 1);
+  };
 
   useEffect(() => {
     if (!paymentSuccess && !paymentCanceled) return;
@@ -123,8 +134,10 @@ export default function ClientBilling() {
       window.location.href = result.url;
     } catch (err) {
       if (invoice.stripeHostedUrl) {
+        toast("Opening hosted checkout in a new tab", "info");
         window.open(invoice.stripeHostedUrl, "_blank");
       } else {
+        toast("Couldn't start online checkout. Contact your team for payment options.", "error");
         setSelectedInvoice(invoice);
         setShowPayModal(true);
       }
@@ -135,9 +148,7 @@ export default function ClientBilling() {
   if (loading) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: t.textTertiary }}>Loading...</p>
-        </div>
+        <ClientBillingSkeleton />
       </ClientLayout>
     );
   }
@@ -145,8 +156,11 @@ export default function ClientBilling() {
   if (error) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: "rgba(255,100,100,0.8)" }}>{error}</p>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState
+            message="We couldn't load your billing information. Please check your connection and try again."
+            onRetry={refetch}
+          />
         </div>
       </ClientLayout>
     );

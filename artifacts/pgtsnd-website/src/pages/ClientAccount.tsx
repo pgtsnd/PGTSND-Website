@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 import { api, type UserProfile } from "../lib/api";
+import { ClientAccountSkeleton, ErrorState } from "../components/TeamLoadingStates";
+import { useToast } from "../components/Toast";
 
 export default function ClientAccount() {
   const { t } = useTheme();
@@ -10,8 +12,9 @@ export default function ClientAccount() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: "", phone: "", title: "" });
+  const [reloadKey, setReloadKey] = useState(0);
+  const { toast } = useToast();
 
   useEffect(() => {
     api
@@ -23,20 +26,26 @@ export default function ClientAccount() {
           phone: data.phone || "",
           title: data.title || "",
         });
+        setError(null);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [reloadKey]);
+
+  const refetch = () => {
+    setLoading(true);
+    setError(null);
+    setReloadKey((k) => k + 1);
+  };
 
   const handleSave = async () => {
     setSaving(true);
-    setSaveMessage(null);
     try {
       const updated = await api.updateClientProfile(formData);
       setProfile(updated);
-      setSaveMessage("Changes saved!");
+      toast("Profile updated", "success");
     } catch (err: unknown) {
-      setSaveMessage(`Error: ${err instanceof Error ? err.message : "Failed to save"}`);
+      toast(err instanceof Error ? err.message : "Failed to update profile", "error");
     }
     setSaving(false);
   };
@@ -75,9 +84,7 @@ export default function ClientAccount() {
   if (loading) {
     return (
       <ClientLayout>
-        <div style={{ padding: "48px 56px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: t.textTertiary }}>Loading...</p>
-        </div>
+        <ClientAccountSkeleton />
       </ClientLayout>
     );
   }
@@ -85,8 +92,11 @@ export default function ClientAccount() {
   if (error) {
     return (
       <ClientLayout>
-        <div style={{ padding: "48px 56px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: "rgba(255,100,100,0.8)" }}>{error}</p>
+        <div style={{ padding: "80px 56px" }}>
+          <ErrorState
+            message="We couldn't load your account information. Please check your connection and try again."
+            onRetry={refetch}
+          />
         </div>
       </ClientLayout>
     );
@@ -142,12 +152,6 @@ export default function ClientAccount() {
                 </p>
               </div>
             </div>
-
-            {saveMessage && (
-              <div style={{ padding: "12px 16px", background: saveMessage.startsWith("Error") ? "rgba(255,100,100,0.08)" : "rgba(96,208,96,0.08)", borderRadius: "8px", marginBottom: "24px" }}>
-                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "13px", color: saveMessage.startsWith("Error") ? "rgba(255,100,100,0.8)" : "rgba(96,208,96,0.8)" }}>{saveMessage}</p>
-              </div>
-            )}
 
             <div style={{ marginBottom: "24px" }}>
               <label style={labelStyle}>Full Name</label>
@@ -212,8 +216,10 @@ export default function ClientAccount() {
                 try {
                   const updated = await api.updateNotificationPreferences({ [pref.key]: next });
                   setProfile((p) => (p ? { ...p, ...updated } : p));
+                  toast("Notification preferences updated", "success");
                 } catch {
                   setProfile((p) => (p ? { ...p, [pref.key]: checked } : p));
+                  toast("Failed to update preferences", "error");
                 }
               };
               return (

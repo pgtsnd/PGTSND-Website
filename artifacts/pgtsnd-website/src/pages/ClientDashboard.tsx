@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 import { api, type DashboardData, type Project, type PendingReview, type Message } from "../lib/api";
+import { ClientDashboardSkeleton, ErrorState } from "../components/TeamLoadingStates";
 
 function timeAgo(date: string | Date) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -27,12 +28,16 @@ export default function ClientDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const load = (initial: boolean) => {
       api
         .getClientDashboard()
-        .then(setData)
+        .then((d) => {
+          setData(d);
+          if (initial) setError(null);
+        })
         .catch((err: unknown) => {
           if (initial) setError(err instanceof Error ? err.message : "Failed to load");
         })
@@ -52,14 +57,18 @@ export default function ClientDashboard() {
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, []);
+  }, [reloadKey]);
+
+  const refetch = () => {
+    setLoading(true);
+    setError(null);
+    setReloadKey((k) => k + 1);
+  };
 
   if (loading) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: t.textTertiary }}>Loading...</p>
-        </div>
+        <ClientDashboardSkeleton />
       </ClientLayout>
     );
   }
@@ -67,10 +76,11 @@ export default function ClientDashboard() {
   if (error || !data) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: "rgba(255,100,100,0.8)" }}>
-            {error || "Failed to load dashboard"}
-          </p>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState
+            message={error || "We couldn't load your dashboard data. Please check your connection and try again."}
+            onRetry={refetch}
+          />
         </div>
       </ClientLayout>
     );

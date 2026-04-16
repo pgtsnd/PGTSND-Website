@@ -303,6 +303,176 @@ export function SettingsSkeleton() {
   );
 }
 
+export function ClientDashboardSkeleton() {
+  return (
+    <div style={{ padding: "40px 48px", maxWidth: "1100px" }}>
+      <div style={{ marginBottom: "40px" }}>
+        <ShimmerBlock width="90px" height="12px" style={{ marginBottom: "6px" }} />
+        <ShimmerBlock width="180px" height="26px" />
+      </div>
+      <ShimmerBlock width="100%" height="72px" borderRadius="10px" style={{ marginBottom: "36px" }} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", marginBottom: "36px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <ShimmerBlock width="140px" height="14px" style={{ marginBottom: "8px" }} />
+          <SkeletonRow count={3} />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <ShimmerBlock width="140px" height="14px" style={{ marginBottom: "8px" }} />
+          <SkeletonRow count={3} />
+        </div>
+      </div>
+      <ShimmerBlock width="140px" height="14px" style={{ marginBottom: "16px" }} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <SkeletonCard height="120px" />
+        <SkeletonCard height="120px" />
+      </div>
+    </div>
+  );
+}
+
+export function ClientProjectsSkeleton() {
+  const { t } = useTheme();
+  return (
+    <div style={{ padding: "40px 48px" }}>
+      <ShimmerBlock width="130px" height="24px" style={{ marginBottom: "32px" }} />
+      <div style={{ display: "flex", gap: "8px", marginBottom: "40px" }}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <ShimmerBlock key={i} width="120px" height="36px" borderRadius="6px" />
+        ))}
+      </div>
+      <div style={{ marginBottom: "40px" }}>
+        <ShimmerBlock width="200px" height="14px" style={{ marginBottom: "20px" }} />
+        <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} style={{ flex: 1, padding: "16px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "8px", display: "flex", flexDirection: "column", gap: "8px", alignItems: "center" }}>
+              <ShimmerBlock width="40%" height="18px" />
+              <ShimmerBlock width="60%" height="10px" />
+            </div>
+          ))}
+        </div>
+        <ShimmerBlock width="100%" height="6px" borderRadius="3px" />
+      </div>
+      <ShimmerBlock width="100px" height="14px" style={{ marginBottom: "16px" }} />
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <ShimmerBlock key={i} width="220px" height="64px" borderRadius="8px" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ClientContractsSkeleton() {
+  return (
+    <div style={{ padding: "40px 48px", maxWidth: "1100px" }}>
+      <ShimmerBlock width="120px" height="24px" style={{ marginBottom: "32px" }} />
+      <ShimmerBlock width="100%" height="72px" borderRadius="10px" style={{ marginBottom: "28px" }} />
+      <div style={{ display: "flex", gap: "6px", marginBottom: "24px" }}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <ShimmerBlock key={i} width="100px" height="32px" borderRadius="6px" />
+        ))}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <ShimmerBlock key={i} width="100%" height="72px" borderRadius="10px" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ClientBillingSkeleton() {
+  const { t } = useTheme();
+  return (
+    <div style={{ padding: "40px 48px", maxWidth: "1100px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+        <ShimmerBlock width="100px" height="24px" />
+        <ShimmerBlock width="110px" height="36px" borderRadius="8px" />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "32px" }}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} style={{ padding: "20px 24px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
+            <ShimmerBlock width="40%" height="10px" />
+            <ShimmerBlock width="60%" height="24px" />
+          </div>
+        ))}
+      </div>
+      <ShimmerBlock width="180px" height="14px" style={{ marginBottom: "16px" }} />
+      <div style={{ background: t.bgCard, borderRadius: "10px", border: `1px solid ${t.border}`, padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <ShimmerBlock key={i} width="100%" height="40px" borderRadius="6px" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ClientVideoReviewSkeleton() {
+  const { t } = useTheme();
+  return (
+    <div style={{ padding: "32px 48px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <ShimmerBlock width="120px" height="10px" />
+          <ShimmerBlock width="180px" height="24px" />
+        </div>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <ShimmerBlock width="140px" height="40px" borderRadius="8px" />
+          <ShimmerBlock width="100px" height="40px" borderRadius="8px" />
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <ShimmerBlock key={i} width="140px" height="32px" borderRadius="6px" />
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: "24px" }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+            <ShimmerBlock width="220px" height="16px" />
+            <ShimmerBlock width="80px" height="18px" borderRadius="4px" />
+          </div>
+          <ShimmerBlock width="100%" height="420px" borderRadius="10px" />
+        </div>
+        <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "10px", padding: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+          <ShimmerBlock width="120px" height="14px" />
+          <SkeletonRow count={3} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ClientAccountSkeleton() {
+  const { t } = useTheme();
+  return (
+    <div style={{ padding: "48px 56px" }}>
+      <ShimmerBlock width="160px" height="28px" style={{ marginBottom: "40px" }} />
+      <div style={{ display: "flex", gap: "6px", marginBottom: "48px" }}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <ShimmerBlock key={i} width="110px" height="36px" borderRadius="6px" />
+        ))}
+      </div>
+      <div style={{ maxWidth: "560px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "48px" }}>
+          <ShimmerBlock width="72px" height="72px" borderRadius="50%" />
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1 }}>
+            <ShimmerBlock width="60%" height="18px" />
+            <ShimmerBlock width="40%" height="12px" />
+          </div>
+        </div>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} style={{ marginBottom: "24px" }}>
+            <ShimmerBlock width="80px" height="10px" style={{ marginBottom: "8px" }} />
+            <ShimmerBlock width="100%" height="42px" borderRadius="6px" />
+          </div>
+        ))}
+        <ShimmerBlock width="160px" height="40px" borderRadius="6px" style={{ marginTop: "16px" }} />
+      </div>
+    </div>
+  );
+}
+
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });

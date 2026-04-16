@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 import { api, type Contract } from "../lib/api";
+import { ClientContractsSkeleton, ErrorState } from "../components/TeamLoadingStates";
+import { useToast } from "../components/Toast";
 
 const typeLabels: Record<string, string> = {
   SOW: "SOW",
@@ -23,14 +25,25 @@ export default function ClientContracts() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const { toast } = useToast();
 
   useEffect(() => {
     api
       .getClientContracts()
-      .then(setContracts)
+      .then((c) => {
+        setContracts(c);
+        setError(null);
+      })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [reloadKey]);
+
+  const refetch = () => {
+    setLoading(true);
+    setError(null);
+    setReloadKey((k) => k + 1);
+  };
 
   const filtered = contracts.filter((c) => {
     if (filter === "pending") return c.status === "sent" || c.status === "draft";
@@ -53,20 +66,22 @@ export default function ClientContracts() {
           window.open(data.url, "_blank");
           return;
         }
-      } catch {}
+      } catch {
+        toast("Couldn't open the signing link. Opening the contract file instead.", "error");
+      }
     }
 
     if (contract.documentUrl) {
       window.open(contract.documentUrl, "_blank");
+    } else {
+      toast("No signing link or document is available yet.", "error");
     }
   };
 
   if (loading) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: t.textTertiary }}>Loading...</p>
-        </div>
+        <ClientContractsSkeleton />
       </ClientLayout>
     );
   }
@@ -74,8 +89,11 @@ export default function ClientContracts() {
   if (error) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: "rgba(255,100,100,0.8)" }}>{error}</p>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState
+            message="We couldn't load your contracts. Please check your connection and try again."
+            onRetry={refetch}
+          />
         </div>
       </ClientLayout>
     );

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 import { api, type Project, type TeamMember } from "../lib/api";
+import { ClientProjectsSkeleton, ErrorState } from "../components/TeamLoadingStates";
 
 export default function ClientProjects() {
   const { t } = useTheme();
@@ -10,6 +11,7 @@ export default function ClientProjects() {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     api
@@ -22,10 +24,17 @@ export default function ClientProjects() {
         if (activeProjects.length > 0) {
           setSelectedProject(activeProjects[0]);
         }
+        setError(null);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [reloadKey]);
+
+  const refetch = () => {
+    setLoading(true);
+    setError(null);
+    setReloadKey((k) => k + 1);
+  };
 
   useEffect(() => {
     if (!selectedProject) return;
@@ -46,9 +55,7 @@ export default function ClientProjects() {
   if (loading) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: t.textTertiary }}>Loading...</p>
-        </div>
+        <ClientProjectsSkeleton />
       </ClientLayout>
     );
   }
@@ -56,8 +63,11 @@ export default function ClientProjects() {
   if (error) {
     return (
       <ClientLayout>
-        <div style={{ padding: "40px 48px" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", color: "rgba(255,100,100,0.8)" }}>{error}</p>
+        <div style={{ padding: "80px 48px" }}>
+          <ErrorState
+            message="We couldn't load your projects. Please check your connection and try again."
+            onRetry={refetch}
+          />
         </div>
       </ClientLayout>
     );
