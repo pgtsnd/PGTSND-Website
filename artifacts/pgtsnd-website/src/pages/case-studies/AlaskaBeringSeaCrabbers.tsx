@@ -225,7 +225,7 @@ export default function AlaskaBeringSeaCrabbers() {
         </section>
 
         {/* Social Media Graphics */}
-        <section style={{ padding: "80px 0 100px", position: "relative", overflow: "hidden" }}>
+        <section style={{ padding: "100px 0 100px", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
             <img
               src={"/images/case-studies/absc/ABSC-200.jpg"}
