@@ -10,6 +10,21 @@ export type AuthTokenGetter = () => Promise<string | null> | string | null;
 
 const NO_BODY_STATUS = new Set([204, 205, 304]);
 const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
+const CSRF_COOKIE_NAME = "pgtsnd_csrf";
+const CSRF_HEADER_NAME = "X-CSRF-Token";
+const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined" || !document.cookie) return null;
+  const prefix = `${name}=`;
+  for (const part of document.cookie.split(";")) {
+    const trimmed = part.trim();
+    if (trimmed.startsWith(prefix)) {
+      return decodeURIComponent(trimmed.slice(prefix.length));
+    }
+  }
+  return null;
+}
 
 // ---------------------------------------------------------------------------
 // Module-level configuration
@@ -360,6 +375,13 @@ export async function customFetch<T = unknown>(
       if (!headers.has(key)) {
         headers.set(key, value);
       }
+    }
+  }
+
+  if (UNSAFE_METHODS.has(method) && !headers.has(CSRF_HEADER_NAME.toLowerCase())) {
+    const csrfToken = readCookie(CSRF_COOKIE_NAME);
+    if (csrfToken) {
+      headers.set(CSRF_HEADER_NAME, csrfToken);
     }
   }
 

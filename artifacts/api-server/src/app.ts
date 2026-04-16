@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { csrfMiddleware } from "./middleware/csrf";
 
 const app: Express = express();
 
@@ -35,6 +36,8 @@ app.use("/api/webhooks/stripe", express.raw({ type: "application/json" }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(csrfMiddleware);
 
 app.use("/api", router);
 

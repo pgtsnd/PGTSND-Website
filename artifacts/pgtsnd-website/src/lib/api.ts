@@ -1,3 +1,5 @@
+import { csrfHeaders } from "./csrf";
+
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "") + "/api";
 
 export interface Project {
@@ -235,11 +237,14 @@ class ApiError extends Error {
 }
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const method = (options?.method || "GET").toUpperCase();
+  const csrf = ["POST", "PUT", "PATCH", "DELETE"].includes(method) ? csrfHeaders() : {};
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...csrf,
       ...options?.headers,
     },
   });

@@ -1,11 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../lib/auth";
+import { csrfHeaders } from "../lib/csrf";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "") + "/api";
 
 async function apiFetch(path: string, options: RequestInit = {}) {
+  const method = (options.method || "GET").toUpperCase();
+  const csrf = ["POST", "PUT", "PATCH", "DELETE"].includes(method) ? csrfHeaders() : {};
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    ...csrf,
     ...(options.headers as Record<string, string> || {}),
   };
 

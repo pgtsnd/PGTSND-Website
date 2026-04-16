@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { csrfHeaders } from "./csrf";
 
 interface AuthUser {
   id: number;
@@ -50,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch(`${API_BASE}/auth/magic-link`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...csrfHeaders() },
         body: JSON.stringify({ email }),
         credentials: "include",
       });
@@ -101,7 +102,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch(`${API_BASE}/auth/logout`, { method: "POST", credentials: "include" });
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: csrfHeaders(),
+      });
     } catch {
       // ignore
     }

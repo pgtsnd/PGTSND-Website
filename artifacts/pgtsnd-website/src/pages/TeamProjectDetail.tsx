@@ -10,6 +10,7 @@ import VideoPlayer from "../components/VideoPlayer";
 import VideoReviewPanel from "../components/VideoReviewPanel";
 import type { VideoComment } from "../components/VideoReviewPanel";
 import { api, type VideoCommentWithReplies, type ReviewLinkData } from "../lib/api";
+import { csrfHeaders } from "../lib/csrf";
 import {
   useProjectWithDetails,
   formatPhase,
@@ -916,7 +917,7 @@ function DeliverablesTab({ deliverables, onRefresh }: { deliverables: Deliverabl
       const reqRes = await fetch("/api/storage/uploads/request-url", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...csrfHeaders() },
         body: JSON.stringify({ name: file.name, size: file.size, contentType }),
       });
       if (!reqRes.ok) {
