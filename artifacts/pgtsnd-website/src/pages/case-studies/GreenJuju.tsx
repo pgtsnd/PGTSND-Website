@@ -439,20 +439,6 @@ export default function GreenJuju() {
         {/* Veggie Horizontal Scroll Bar */}
         <VeggieScrollBar />
 
-        {/* Vitality Blend Flat Lay */}
-        <section style={{ padding: "0 40px 40px", position: "relative" }}>
-          <div style={{ width: "100%", overflow: "hidden" }}>
-            <img
-              src={"/images/case-studies/green-juju/green-juju-ingredients-pgt-snd-bri-dwyer.jpeg"}
-              alt="Green Juju Products"
-              style={{ width: "100%", height: "auto", display: "block" }}
-            />
-          </div>
-          <div style={{ position: "absolute", bottom: "60px", right: "60px" }}>
-            <ScrollBadge position="bottom-right" inline />
-          </div>
-        </section>
-
         {/* Partnership Results */}
         <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "start" }}>
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff" })}>
