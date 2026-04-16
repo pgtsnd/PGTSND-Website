@@ -210,7 +210,7 @@ export default function VallationOuterwear() {
                 </p>
               </div>
             </div>
-            <div style={{ position: "absolute", bottom: "390px", right: "60px" }}>
+            <div style={{ position: "absolute", bottom: "450px", right: "60px" }}>
               <ScrollBadge position="bottom-right" inline />
             </div>
           </div>
