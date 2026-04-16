@@ -397,7 +397,7 @@ export default function NWSablefish() {
         </section>
 
         {/* Website Mockup + The Solve */}
-        <section style={{ padding: "160px 80px 230px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "start" }}>
+        <section style={{ padding: "160px 40px 230px 80px", display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: "60px", alignItems: "start" }}>
           <div style={{ position: "relative" }}>
             <div
               style={{ position: "relative", cursor: "pointer" }}
