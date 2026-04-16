@@ -10,10 +10,11 @@ const f = (s: React.CSSProperties): React.CSSProperties => ({
 
 const services = ["Video Production", "Photography"];
 
+const heroImage = "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-2.jpeg";
+
 const galleryImages = [
-  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-1.jpeg",
-  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-2.jpeg",
   "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-3.jpeg",
+  "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-1.jpeg",
   "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-4.jpeg",
   "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-5.jpeg",
   "/images/case-studies/lodge-58-north/lodge-58-north-pgtsnd-photography-6.jpeg",
@@ -51,7 +52,7 @@ export default function Lodge58North() {
           <ScrollBadge position="bottom-right" bottomOffset={-58} />
           <div style={{ overflow: "hidden", aspectRatio: "21 / 9" }}>
             <img
-              src={galleryImages[0]}
+              src={heroImage}
               alt="Lodge @ 58 North - Aerial View"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
