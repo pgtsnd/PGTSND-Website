@@ -963,6 +963,25 @@ export const DeleteDeliverableResponse = zod.object({
 });
 
 /**
+ * @summary List version history for a deliverable
+ */
+export const ListDeliverableVersionsParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const ListDeliverableVersionsResponseItem = zod.object({
+  id: zod.string(),
+  deliverableId: zod.string(),
+  version: zod.string(),
+  fileUrl: zod.string(),
+  uploadedById: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListDeliverableVersionsResponse = zod.array(
+  ListDeliverableVersionsResponseItem,
+);
+
+/**
  * @summary List reviews for a deliverable
  */
 export const ListDeliverableReviewsParams = zod.object({

@@ -2,11 +2,13 @@ import { Router } from "express";
 import {
   db,
   deliverablesTable,
+  deliverableVersionsTable,
   insertDeliverableSchema,
   updateDeliverableSchema,
   selectDeliverableSchema,
+  selectDeliverableVersionSchema,
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { requireRole } from "../middleware/auth";
 import {
   requireProjectAccess,
@@ -17,6 +19,13 @@ import { validateAndSend, validateAndSendArray } from "../middleware/validate-re
 import { notifyDeliverableSubmittedForReview } from "../services/notifications";
 
 const router = Router();
+
+function bumpVersion(current: string | null | undefined): string {
+  if (!current) return "v2";
+  const m = /^v(\d+)$/i.exec(current.trim());
+  if (m) return `v${parseInt(m[1], 10) + 1}`;
+  return `${current}.next`;
+}
 
 router.get(
   "/projects/:projectId/deliverables",
@@ -49,6 +58,19 @@ router.get(
   },
 );
 
+router.get(
+  "/deliverables/:id/versions",
+  requireProjectAccessViaEntity(resolveProjectFromDeliverable, "id"),
+  async (req, res) => {
+    const versions = await db
+      .select()
+      .from(deliverableVersionsTable)
+      .where(eq(deliverableVersionsTable.deliverableId, req.params.id))
+      .orderBy(desc(deliverableVersionsTable.createdAt));
+    validateAndSendArray(res, selectDeliverableVersionSchema, versions);
+  },
+);
+
 router.post(
   "/projects/:projectId/deliverables",
   requireRole("owner", "partner", "crew"),
@@ -72,6 +94,16 @@ router.post(
       .insert(deliverablesTable)
       .values(values)
       .returning();
+
+    if (deliverable.fileUrl) {
+      await db.insert(deliverableVersionsTable).values({
+        deliverableId: deliverable.id,
+        version: deliverable.version || "v1",
+        fileUrl: deliverable.fileUrl,
+        uploadedById: req.user?.id ?? null,
+      });
+    }
+
     validateAndSend(res, selectDeliverableSchema, deliverable, 201);
   },
 );
@@ -92,27 +124,62 @@ router.patch(
       return;
     }
 
-    let updates: typeof parsed.data & { uploadedBy?: string | null } = parsed.data;
-    if (parsed.data.fileUrl !== undefined) {
-      const [existing] = await db
-        .select({ fileUrl: deliverablesTable.fileUrl })
-        .from(deliverablesTable)
-        .where(eq(deliverablesTable.id, req.params.id))
-        .limit(1);
-      if (existing && parsed.data.fileUrl && parsed.data.fileUrl !== existing.fileUrl) {
-        updates = { ...parsed.data, uploadedBy: req.user!.id };
+    const [existing] = await db
+      .select()
+      .from(deliverablesTable)
+      .where(eq(deliverablesTable.id, req.params.id))
+      .limit(1);
+
+    if (!existing) {
+      res.status(404).json({ error: "Deliverable not found" });
+      return;
+    }
+
+    const updateData: typeof parsed.data & { uploadedBy?: string | null } = {
+      ...parsed.data,
+    };
+    let createNewVersionRow: { version: string; fileUrl: string } | null = null;
+
+    const newFileUrl = parsed.data.fileUrl;
+    if (
+      typeof newFileUrl === "string" &&
+      newFileUrl.length > 0 &&
+      newFileUrl !== existing.fileUrl
+    ) {
+      const existingVersions = await db
+        .select()
+        .from(deliverableVersionsTable)
+        .where(eq(deliverableVersionsTable.deliverableId, existing.id))
+        .orderBy(desc(deliverableVersionsTable.createdAt));
+
+      if (existingVersions.length === 0 && existing.fileUrl) {
+        await db.insert(deliverableVersionsTable).values({
+          deliverableId: existing.id,
+          version: existing.version || "v1",
+          fileUrl: existing.fileUrl,
+          uploadedById: existing.uploadedBy ?? req.user?.id ?? null,
+        });
       }
+
+      const nextVersion = bumpVersion(existing.version);
+      updateData.version = nextVersion;
+      updateData.uploadedBy = req.user!.id;
+      createNewVersionRow = { version: nextVersion, fileUrl: newFileUrl };
     }
 
     const [deliverable] = await db
       .update(deliverablesTable)
-      .set(updates)
+      .set(updateData)
       .where(eq(deliverablesTable.id, req.params.id))
       .returning();
 
-    if (!deliverable) {
-      res.status(404).json({ error: "Deliverable not found" });
-      return;
+    if (createNewVersionRow) {
+      await db.insert(deliverableVersionsTable).values({
+        deliverableId: deliverable.id,
+        version: createNewVersionRow.version,
+        fileUrl: createNewVersionRow.fileUrl,
+        uploadedById: req.user?.id ?? null,
+      });
     }
 
     validateAndSend(res, selectDeliverableSchema, deliverable);

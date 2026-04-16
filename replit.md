@@ -1,114 +1,69 @@
-# Workspace
+# Overview
 
-## Overview
+This project is a pnpm workspace monorepo using TypeScript, designed to manage a full-stack application for PGTSND Productions. It includes a client-facing portal and a team/admin portal, aiming to streamline project management, client communication, asset delivery, and financial operations. The system supports various user roles with tailored access, integrates with external services for enhanced functionality, and provides a robust, real-time platform for production companies.
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+The business vision is to provide an all-encompassing digital platform for production companies to efficiently manage projects from lead to delivery, enhance client engagement through a dedicated portal, and optimize internal team workflows. The market potential lies in offering a specialized, integrated solution that addresses the unique needs of the media production industry, improving operational efficiency and client satisfaction.
 
-## Stack
+# User Preferences
 
-- **Monorepo tool**: pnpm workspaces
-- **Node.js version**: 24
-- **Package manager**: pnpm
-- **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+I want iterative development.
+Ask before making major changes.
+Do not make changes to folder `lib/api-spec`.
+Do not make changes to files with `test` in their name.
 
-## Key Commands
+# System Architecture
 
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/db run seed` — seed demo data into the database
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
+## Monorepo Structure
+The project is organized as a pnpm workspace monorepo, with each package managing its own dependencies. This structure facilitates code sharing and consistent tooling across the application.
 
-## Database Schema
+## Technology Stack
+- **Node.js**: Version 24
+- **Package Manager**: pnpm
+- **TypeScript**: Version 5.9
+- **API Framework**: Express 5
+- **Database**: PostgreSQL with Drizzle ORM
+- **Validation**: Zod (v4) integrated with `drizzle-zod`
+- **API Codegen**: Orval, generating types and hooks from OpenAPI specifications
+- **Build Tool**: esbuild (for CJS bundles)
 
-All tables use text UUIDs as primary keys (generated via `randomUUID()`).
-
-- **users** — All system users with roles: owner, partner, crew, client
-- **organizations** — Client companies/organizations
-- **projects** — Central entity with lifecycle: lead → active → in_progress → review → delivered → archived. Has phases: pre_production, production, post_production, review, delivered
-- **project_members** — Many-to-many join between projects and users (composite PK)
-- **phases** — Production phases within a project (Pre-Production, Production, Post-Production, Delivery). Has name, sortOrder, projectId FK
-- **tasks** — Belong to projects, track status (todo/in_progress/done/blocked), progress, assignee, dependencies. Optional phaseId FK to phases table
-- **task_items** — Checklist items within tasks
-- **deliverables** — Link to projects (and optionally tasks), with review states: draft, pending, in_review, approved, revision_requested
-- **reviews** — Review records for deliverables, linked to a reviewer
-- **messages** — Project-scoped messages with read status
-- **contracts** — Project contracts (SOW, amendments, etc.) with status: draft, sent, signed, expired. Includes DocuSign fields: `docusign_envelope_id`, `docusign_signing_url`
-- **review_reminders** — Tracks automated review reminders per deliverable (day 3, 5, 7+ daily), FK to deliverables
-- **invoices** — Billing invoices linked to projects with Stripe fields: `stripe_invoice_id`, `stripe_payment_intent_id`, `stripe_checkout_session_id`, `stripe_hosted_url`, `stripe_pdf_url`. Status: draft, sent, paid, overdue, void
-- **integration_settings** — External service configurations (Stripe, Google Drive, Slack, DocuSign) with encrypted config storage. Type enum: stripe, google_drive, slack, docusign
-- **video_comments** — Timestamped comments on deliverables: authorId, authorName, timestampSeconds, content. FK to deliverables and users
-- **video_comment_replies** — Threaded replies on video comments: authorId, authorName, content. FK to video_comments
-- **review_links** — Shareable review URLs with unique token, optional expiration. FK to deliverables and users
+## Database Schema Highlights
+The database utilizes text UUIDs for primary keys. Key entities include:
+- `users`: Stores system users with roles (owner, partner, crew, client).
+- `organizations`: Client companies.
+- `projects`: Central entity with a detailed lifecycle and phases (pre_production, production, post_production, review, delivered).
+- `tasks`: Project-scoped tasks with status, assignee, and dependencies.
+- `deliverables`: Project outputs with review states and linked to reviews.
+- `contracts`: Manages project contracts, including DocuSign integration fields.
+- `invoices`: Handles billing with Stripe integration fields and various statuses.
+- `integration_settings`: Stores encrypted configurations for external services (Stripe, Google Drive, Slack, DocuSign).
+- `video_comments` and `video_comment_replies`: Supports timestamped, threaded comments on video deliverables.
 
 ## API Architecture
+- All API routes are mounted under `/api` using Express.
+- Authentication uses session-based JWTs (`pgtsnd_session` cookie).
+- Role-based access control (RBAC) is enforced through middleware.
+- Zod validation is applied to all incoming request payloads using Drizzle-Zod generated schemas.
+- OpenAPI specification at `lib/api-spec/openapi.yaml` drives API documentation and code generation.
+- Automated review reminder jobs run hourly for deliverables.
 
-- All API routes mounted at `/api` via Express router
-- Health check at `/api/healthz` (unauthenticated)
-- Auth middleware verifies `pgtsnd_session` JWT cookie for session-based auth
-- Role-based access control middleware: owner/partner see everything, crew see assigned projects, clients see own projects
-- Client-specific routes under `/api/client/*`: dashboard aggregation, messages (with send), deliverables, contracts, profile (get/update), approve/request-revision workflow
-- Team workflow endpoint `POST /api/deliverables/:id/submit-for-review` transitions deliverables to `in_review` status with guards (owner/partner/crew only, prevents re-submission of already-reviewed items)
-- Automated review reminder job runs hourly, sends reminders at 3/5/7+ day intervals for unreviewed deliverables
-- Zod validation on all create/update inputs via Drizzle-Zod generated schemas
-- OpenAPI spec at `lib/api-spec/openapi.yaml` documents all endpoints
-- Codegen produces `@workspace/api-zod` (Zod schemas) and `@workspace/api-client-react` (React Query hooks)
+## UI/UX and Frontend Architecture
+The frontend consists of the PGTSND Productions Website, built with React and Vite. It features:
+- **Client Portal (`/client-hub/*`)**: Provides clients with a dashboard, messaging, project overview (without granular tasks), asset review, video review with timestamped comments, contract management, and billing. The client portal is fully wired to the API.
+  - **Client-specific features**: Dashboard with review queue, messages with real-time send, project progress views (Treatment, Storyboard, Shot List, Notes), asset management showing approved deliverables, and comprehensive video review system.
+- **Team Portal (`/team/*`)**: Designed for internal teams (admin, production) with a dashboard, project management (detailed workspace with milestones, deliverables, assets, review), CRM for clients, team messaging, schedule, asset library, crew management, and settings. All pages are connected to the API.
+  - **Team-specific features**: Owner dashboard with pipeline, crew status, revenue snapshot, production schedule (Gantt charts). Project workspace with 5 tabs (Overview, Milestones, Deliverables, Assets, Review). Full CRM, Crew management with detailed member profiles, rates, and tax info.
+- **Authentication**: Supports magic link email login, Google SSO, and a demo bypass. JWT sessions are stored in HTTP-only cookies. Role-based routing ensures appropriate access.
+- **Theming**: Implements a dark/light mode toggle with specific color palettes.
+- **Design Language**: Features a black background, white text, bold Montserrat headings, and pill-shaped CTA buttons.
 
-## Artifacts
+## Technical Implementations
+- API codegen produces `@workspace/api-zod` (Zod schemas) and `@workspace/api-client-react` (React Query hooks) for type-safe API interactions.
+- `useAuth()` and `useTeamData.ts` hooks manage user authentication state and data fetching for the Team Portal, ensuring data is fetched only when a user is authenticated.
+- Integration services use a `Vault` for encrypting sensitive credentials via AES-256-GCM, with a `VAULT_MASTER_KEY` environment variable.
 
-### PGTSND Productions Website (`artifacts/pgtsnd-website`)
-- **Type**: React + Vite (frontend-only, no backend)
-- **Preview path**: `/`
-- **Purpose**: Pixel-faithful clone of pgtsndproductions.com (originally built on Squarespace)
-- **Pages**: Home, Services, About, Case Studies, Contact, Client Hub (login/register with magic link + invite token)
-- **Client Portal** (`/client-hub/*`): Dashboard, Messages, Projects, Assets, Video Review, Contracts, Billing, Account — uses `ClientLayout.tsx` sidebar layout with dynamic user info, all pages wired to real API via fully-typed `src/lib/api.ts` (no `any` types)
-  - **Dashboard**: Welcome banner, review queue with reminder counts, recent messages feed, active project status cards with calculated progress
-  - **Messages** (`ClientMessages.tsx`): Full threaded chat with conversation sidebar, team/client bubble layout, unread badges, real-time send
-  - **Projects** (`ClientProjects.tsx`): Aggregate progress view with stats cards (Total Tasks, Complete, In Progress, Upcoming), progress bar, project description, due date, budget, and team roster — NO individual task rows visible to clients
-  - **Treatment** (`ProjectTreatment.tsx`): `/client-hub/projects/:id/treatment` — long-form written narrative (~1000 words), blog-post style, author + date, cross-links to storyboard/shotlist
-  - **Storyboard** (`ProjectStoryboard.tsx`): `/client-hub/projects/:id/storyboard` — visual mood board with gradient placeholder cards per scene, mood tags, camera notes
-  - **Shot List** (`ProjectShotList.tsx`): `/client-hub/projects/:id/shotlist` — detailed scene-grouped table of all planned shots with type (Hero/B-Roll/Aerial/Macro/Slo-Mo/Interview), lens, camera movement, captured checkmarks, scene/type filters, progress bar
-  - **Client Notes** (`ProjectNotes.tsx`): `/client-hub/projects/:id/notes` — pinned important notes + chronological timeline, client vs team attribution, tagged categories
-  - **Assets** (`ClientAssets.tsx`): Shows only approved deliverables as asset cards, filterable by project, with type labels and version info
-  - **Video Review** (`ClientVideoReview.tsx`): Full video review system with custom HTML5 video player, timestamped comments (markers on timeline, click-to-jump), threaded replies, version selector, approve/request-revision workflow
-  - **Contracts** (`ClientContracts.tsx`): DocuSign links for pending signatures; filterable (All/Pending/Signed); expandable details with project, type, amount, dates
-  - **Billing** (`ClientBilling.tsx`): Summary cards (Total Paid, Outstanding, Total Invoices), outstanding invoices with "Pay Now" button that creates a Stripe Checkout session and redirects to hosted payment page, payment success/canceled URL handling with toast banners, payment history showing real transaction data with payment method details, fallback modal for invoices without Stripe
-- **Theme System** (`ThemeContext.tsx`): Dark/light mode toggle in sidebar; dark mode uses `#111114` gray (not pure black), light mode uses `#f4f4f6`; all portal pages consume `useTheme()` with `t.*` token variables for backgrounds, text, borders, cards, modals
-  - Assets page has grid/list view toggle, thumbnail cards with colored gradient placeholders, "Send to Review" button on draft videos, breadcrumb navigation, and drag-drop upload zone
-  - Video Review links back to Assets via "View in Assets" source file row
-- **Team Portal** (`/team/*`): Admin/production team portal — uses `TeamLayout.tsx` sidebar layout, **all pages wired to real API data** via `@workspace/api-client-react`
-  - **Auth**: Uses the same JWT cookie-based session as Client Portal (magic link + Google SSO + demo bypass); `TeamAuthProvider` wraps entire app in `App.tsx` and derives team context from `useAuth()` session
-  - **Hooks**: `useTeamData.ts` exports hooks (`useProjects`, `useOrganizations`, `useUsers`, `useProjectWithDetails`, `useDashboardData`, etc.) — all gated with `enabled: !!userId` where userId is derived from the JWT cookie session via `useAuth()`; API calls include `credentials: "include"` for automatic cookie auth
-  - **Owner Dashboard** (`TeamDashboard.tsx`): Personalized welcome, Pipeline phase counts, Crew Status, Revenue Snapshot, Production Schedule (expandable per-project Gantt charts showing phase timelines with "Today" marker and progress fill) — all from real project/user data
-  - **Projects** (`TeamProjects.tsx`): Real project cards with status filters, progress bars, organization names
-  - **Project Workspace** (`TeamProjectDetail.tsx`): `/team/projects/:id` — 5-tab workspace: Overview (stats + contracts, no Team section), Milestones (3-level hierarchy: Phase → Milestone → Task with inline CRUD, progress bars per phase, collapsible sections; phases API at `/api/projects/:id/phases`), Deliverables (expandable cards with descriptions/metadata), Assets (drag-drop upload zone + project folder grid), Review (video player with timestamped comments, push-to-client, shareable review links)
-  - **Clients** (`TeamClients.tsx`): `/team/clients` — Full CRM hub with summary stats (Total Scope, Collected, Outstanding, Active Clients), expandable client rows with 3 tabs: Overview (contact details, financial summary with collection progress bar, active projects), Projects & Scope (per-project budget/paid/outstanding breakdown with invoice history), Invoices (create/send/mark-paid/void invoices, invoice table with status badges and actions)
-  - **Messages** (`TeamMessages.tsx`): `/team/messages` — Real messages grouped by project, send new messages via API
-  - **Schedule** (`TeamSchedule.tsx`): `/team/schedule` — Timeline and Upcoming views from real project dates
-  - **Asset Library** (`TeamAssets.tsx`): `/team/assets` — Deliverables from all projects
-  - **Crew** (`TeamCrew.tsx`): `/team/crew` — Full contractor management hub with summary stats (Total Crew, Available, On Project, W-9 Missing), expandable member rows with 3 tabs: Profile & Gear (contact info, portfolio, availability, specialties tags, equipment list, emergency contact, notes), Rates & Pay (day/half-day/hourly rate cards, payment method, rate notes), Tax & Address (W-9 status, tax classification, mailing address). Multi-step Add Member modal (Basics, Rates & Pay, Details). DB fields: dayRate, halfDayRate, hourlyRate, rateNotes, w9OnFile, taxClassification, address/city/state/zip, equipment, specialties, portfolio, availability, paymentMethod, emergencyContact*, notes
-  - **Settings** (`TeamSettings.tsx`): `/team/settings` — Profile update via `useUpdateProfile` mutation
-  - Sidebar: Dashboard, Projects, Clients, Messages (badge), Schedule, Asset Library, Crew, Settings — user info from `currentUser`
-  - Seed users: bri@pgtsnd.com (owner), marcus/jamie/alex/sam@pgtsnd.com (crew), testcrew@pgtsnd.com (crew/PA), kandice@pgtsnd.com (partner), nicole@netyourproblem.com, marcus@tranarch.com, lena@cascadecoffee.com, ryan@vallationouterwear.com (clients), testclient@pgtsnd.com (client, assigned to proj1+proj3)
-  - Seed data includes: projects, tasks, deliverables, contracts, invoices, messages, review reminders
-- **Design**: Black background, white text, bold Montserrat 900 weight headings, pill-shaped CTA buttons, hamburger nav overlay
-- **Images**: Served locally from `public/images/` (migrated from Squarespace CDN)
-- **Logo**: Uses src/assets/logo.webp via @assets alias
-- **Authentication**: Magic link email login + Google SSO + demo bypass (`demo@pgtsnd.com`), JWT sessions in httpOnly cookies, role-based routing (client → client hub, crew/partner/owner → team portal), protected route guards on all dashboard pages. In dev mode, any seeded user email auto-logs in (no magic link needed).
-  - **Test logins**: `test@pgtsnd.com` (owner → /team/dashboard, sees all 5 projects), `testcrew@pgtsnd.com` (crew → /team/dashboard, sees 3 assigned projects), `testclient@pgtsnd.com` (client → /client-hub/dashboard, sees 2 projects: Net Your Problem + Pacific NW Health)
-  - **Demo bypass**: `demo@pgtsnd.com` (owner role, works on both portals)
-- **External Integrations**: Backend service modules at `artifacts/api-server/src/services/` for Stripe (invoicing/payments), Google Drive (file storage), Slack (messaging bridge), DocuSign (contract signing). Each integration stores credentials encrypted at rest via AES-256-GCM in `integration_settings.config` JSONB column. Master key stored in `VAULT_MASTER_KEY` env secret. Vault service at `artifacts/api-server/src/services/vault.ts`. Manage connections via Team Settings → Integrations panel (shows vault status banner with encryption indicator per integration). API routes at `/api/integrations/*` for status, config, vault status, and service-specific operations. All integration operation routes protected by `requireRole` middleware.
-  - **Vault**: `VAULT_MASTER_KEY` env var enables AES-256-GCM encryption. Keys encrypted on save, decrypted only when service needs them internally. GET returns masked values (first 4 + last 4 chars). `GET /api/integrations/vault` returns encryption status. `POST /api/integrations/vault/encrypt-existing` migrates any unencrypted configs. Graceful fallback to plaintext if key not set.
-  - **Stripe**: Invoice creation, sending, Stripe Checkout payment flow (`POST /api/invoices/:id/checkout`), payment details retrieval (`GET /api/invoices/:id/payment`), webhook processing for `checkout.session.completed`, `payment_intent.succeeded`, `invoice.paid`, `invoice.payment_failed`, and `checkout.session.expired` events (`POST /api/webhooks/stripe`). Raw body parsing enabled for webhook signature verification.
-  - **Google Drive**: Folder-scoped file listing, download URLs (`/api/integrations/drive/files`)
-  - **Slack**: Send messages, list channels, get history (`/api/integrations/slack/*`)
-  - **DocuSign**: Send envelopes, get signing URLs, status tracking via webhooks (`/api/webhooks/docusign`)
-- **Backend**: Both Team Portal and Client Portal use API server for real data; public pages (Home, Services, etc.) are frontend-only. Client Portal pages (Billing, Messages, Assets, Contracts) now wired to real API data.
+# External Dependencies
 
-See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+- **Stripe**: For invoicing, payment processing via Stripe Checkout, and webhook handling (e.g., `checkout.session.completed`, `invoice.paid`).
+- **Google Drive**: For file storage, listing, and generating download URLs.
+- **Slack**: For sending messages, listing channels, and accessing message history.
+- **DocuSign**: For sending contract envelopes, retrieving signing URLs, and tracking status via webhooks.

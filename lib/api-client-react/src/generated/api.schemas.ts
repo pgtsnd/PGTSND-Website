@@ -514,6 +514,15 @@ export interface UpdateDeliverable {
   submittedAt?: string;
 }
 
+export interface DeliverableVersion {
+  id: string;
+  deliverableId: string;
+  version: string;
+  fileUrl: string;
+  uploadedById?: string | null;
+  createdAt: string;
+}
+
 export type ReviewStatus = (typeof ReviewStatus)[keyof typeof ReviewStatus];
 
 export const ReviewStatus = {

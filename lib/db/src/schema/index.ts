@@ -7,6 +7,7 @@ export * from "./phases";
 export * from "./tasks";
 export * from "./task-items";
 export * from "./deliverables";
+export * from "./deliverable-versions";
 export * from "./reviews";
 export * from "./messages";
 export * from "./contracts";

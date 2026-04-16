@@ -32,6 +32,7 @@ import type {
   CreateUser,
   DeleteSuccessResponse,
   Deliverable,
+  DeliverableVersion,
   Error,
   ForbiddenResponse,
   HealthStatus,
@@ -3291,6 +3292,95 @@ export const useDeleteDeliverable = <
 > => {
   return useMutation(getDeleteDeliverableMutationOptions(options));
 };
+
+/**
+ * @summary List version history for a deliverable
+ */
+export const getListDeliverableVersionsUrl = (id: string) => {
+  return `/api/deliverables/${id}/versions`;
+};
+
+export const listDeliverableVersions = async (
+  id: string,
+  options?: RequestInit,
+): Promise<DeliverableVersion[]> => {
+  return customFetch<DeliverableVersion[]>(getListDeliverableVersionsUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListDeliverableVersionsQueryKey = (id: string) => {
+  return [`/api/deliverables/${id}/versions`] as const;
+};
+
+export const getListDeliverableVersionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDeliverableVersions>>,
+  TError = ErrorType<NotFoundResponse>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDeliverableVersions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListDeliverableVersionsQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listDeliverableVersions>>
+  > = ({ signal }) =>
+    listDeliverableVersions(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDeliverableVersions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListDeliverableVersionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDeliverableVersions>>
+>;
+export type ListDeliverableVersionsQueryError = ErrorType<NotFoundResponse>;
+
+/**
+ * @summary List version history for a deliverable
+ */
+
+export function useListDeliverableVersions<
+  TData = Awaited<ReturnType<typeof listDeliverableVersions>>,
+  TError = ErrorType<NotFoundResponse>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listDeliverableVersions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListDeliverableVersionsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List reviews for a deliverable

@@ -33,6 +33,7 @@ export * from "./deleteSuccessResponse";
 export * from "./deliverable";
 export * from "./deliverableStatus";
 export * from "./deliverableType";
+export * from "./deliverableVersion";
 export * from "./error";
 export * from "./forbiddenResponse";
 export * from "./healthStatus";

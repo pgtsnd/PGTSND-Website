@@ -755,6 +755,25 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /deliverables/{id}/versions:
+    get:
+      operationId: listDeliverableVersions
+      tags: [deliverables]
+      summary: List version history for a deliverable
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: List of deliverable versions, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeliverableVersion"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /deliverables/{deliverableId}/reviews:
     get:
       operationId: listDeliverableReviews
@@ -1902,6 +1921,30 @@ components:
         submittedAt:
           type: string
           format: date-time
+
+    DeliverableVersion:
+      type: object
+      properties:
+        id:
+          type: string
+        deliverableId:
+          type: string
+        version:
+          type: string
+        fileUrl:
+          type: string
+        uploadedById:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - deliverableId
+        - version
+        - fileUrl
+        - createdAt
 
     Review:
       type: object

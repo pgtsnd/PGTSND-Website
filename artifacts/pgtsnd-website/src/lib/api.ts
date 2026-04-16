@@ -121,6 +121,15 @@ export interface Review {
   createdAt: string;
 }
 
+export interface DeliverableVersion {
+  id: string;
+  deliverableId: string;
+  version: string;
+  fileUrl: string;
+  uploadedById: string | null;
+  createdAt: string;
+}
+
 export interface Contract {
   id: string;
   projectId: string;
@@ -312,6 +321,9 @@ export const api = {
 
   getDeliverableReviews: (deliverableId: string) =>
     apiFetch<Review[]>(`/deliverables/${deliverableId}/reviews`),
+
+  getDeliverableVersions: (deliverableId: string) =>
+    apiFetch<DeliverableVersion[]>(`/deliverables/${deliverableId}/versions`),
 
   getClientMessages: () => apiFetch<Conversation[]>("/client/messages"),
 

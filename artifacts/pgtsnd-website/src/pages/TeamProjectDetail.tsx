@@ -9,7 +9,7 @@ import { useToast } from "../components/Toast";
 import VideoPlayer from "../components/VideoPlayer";
 import VideoReviewPanel from "../components/VideoReviewPanel";
 import type { VideoComment } from "../components/VideoReviewPanel";
-import { api, type VideoCommentWithReplies, type ReviewLinkData } from "../lib/api";
+import { api, type VideoCommentWithReplies, type ReviewLinkData, type DeliverableVersion } from "../lib/api";
 import { csrfHeaders } from "../lib/csrf";
 import {
   useProjectWithDetails,
@@ -1082,9 +1082,23 @@ function DeliverablesTab({ deliverables, onRefresh }: { deliverables: Deliverabl
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [versionsByDeliverable, setVersionsByDeliverable] = useState<Record<string, DeliverableVersion[]>>({});
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const updateDeliverable = useUpdateDeliverable();
   const { toast } = useToast();
+
+  const loadVersions = useCallback(async (deliverableId: string) => {
+    try {
+      const versions = await api.getDeliverableVersions(deliverableId);
+      setVersionsByDeliverable((prev) => ({ ...prev, [deliverableId]: versions }));
+    } catch {
+      setVersionsByDeliverable((prev) => ({ ...prev, [deliverableId]: [] }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (expandedId) loadVersions(expandedId);
+  }, [expandedId, loadVersions]);
 
   const validateVideoFile = (file: File): string | null => {
     const isAcceptedType = ACCEPTED_VIDEO_TYPES.includes(file.type);
@@ -1157,6 +1171,7 @@ function DeliverablesTab({ deliverables, onRefresh }: { deliverables: Deliverabl
       setUploadProgress(100);
       toast("Video uploaded.", "success");
       onRefresh();
+      void loadVersions(deliverableId);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Upload failed";
       setUploadError(msg);
@@ -1396,6 +1411,69 @@ function DeliverablesTab({ deliverables, onRefresh }: { deliverables: Deliverabl
                           </p>
                         )}
                       </div>
+
+                      {(() => {
+                        const versions = versionsByDeliverable[d.id] ?? [];
+                        const previousCuts = versions.filter((v) => v.fileUrl !== d.fileUrl);
+                        if (previousCuts.length === 0) return null;
+                        return (
+                          <div
+                            data-testid={`deliverable-previous-cuts-${d.id}`}
+                            style={{ marginTop: "20px", paddingTop: "16px", borderTop: `1px solid ${t.borderSubtle}` }}
+                          >
+                            <p style={f({
+                              fontWeight: 700, fontSize: "10px", color: t.textMuted,
+                              textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px",
+                            })}>
+                              Previous cuts ({previousCuts.length})
+                            </p>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                              {previousCuts.map((v) => (
+                                <div
+                                  key={v.id}
+                                  data-testid={`deliverable-previous-cut-${v.id}`}
+                                  style={{
+                                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                                    padding: "8px 12px",
+                                    background: t.hoverBg,
+                                    border: `1px solid ${t.borderSubtle}`,
+                                    borderRadius: "6px",
+                                  }}
+                                >
+                                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                    <span style={f({
+                                      fontWeight: 700, fontSize: "10px", color: t.text,
+                                      background: t.bgCard, border: `1px solid ${t.border}`,
+                                      borderRadius: "4px", padding: "2px 8px",
+                                    })}>
+                                      {v.version}
+                                    </span>
+                                    <span style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+                                      Uploaded {new Date(v.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                    </span>
+                                  </div>
+                                  <a
+                                    href={v.fileUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={f({
+                                      fontWeight: 600, fontSize: "11px", color: t.accent, textDecoration: "none",
+                                      display: "inline-flex", alignItems: "center", gap: "4px",
+                                    })}
+                                  >
+                                    View
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                                      <polyline points="15 3 21 3 21 9" />
+                                      <line x1="10" y1="14" x2="21" y2="3" />
+                                    </svg>
+                                  </a>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
@@ -1531,6 +1609,8 @@ function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[
   const [copiedLink, setCopiedLink] = useState(false);
   const [submittingAction, setSubmittingAction] = useState(false);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
+  const [versions, setVersions] = useState<DeliverableVersion[]>([]);
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
 
   const ff = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
@@ -1546,9 +1626,18 @@ function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[
 
   useEffect(() => {
     if (!selectedDeliverable) return;
+    setSelectedVersionId(null);
     api.getVideoComments(selectedDeliverable.id).then(setComments).catch(() => setComments([]));
     api.getReviewLinks(selectedDeliverable.id).then(setReviewLinks).catch(() => setReviewLinks([]));
+    api.getDeliverableVersions(selectedDeliverable.id).then(setVersions).catch(() => setVersions([]));
   }, [selectedDeliverable?.id]);
+
+  const activeVersion = selectedVersionId
+    ? versions.find((v) => v.id === selectedVersionId) ?? null
+    : null;
+  const activeFileUrl = activeVersion?.fileUrl ?? selectedDeliverable?.fileUrl ?? null;
+  const activeVersionLabel = activeVersion?.version ?? selectedDeliverable?.version ?? "v1";
+  const isViewingPreviousCut = !!activeVersion && activeVersion.fileUrl !== selectedDeliverable?.fileUrl;
 
   const handleAddComment = useCallback(
     async (timestampSeconds: number, content: string) => {
@@ -1801,15 +1890,63 @@ function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[
                   padding: "4px 12px", borderRadius: "4px",
                 })}>{statusLabel(selectedDeliverable.status)}</span>
               </div>
-              <span style={ff({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
-                {selectedDeliverable.version || "v1"} · {selectedDeliverable.type}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                {versions.length > 0 && (
+                  <select
+                    data-testid="review-version-select"
+                    value={selectedVersionId ?? ""}
+                    onChange={(e) => setSelectedVersionId(e.target.value || null)}
+                    style={ff({
+                      fontWeight: 500, fontSize: "11px", color: t.text,
+                      background: t.bgCard, border: `1px solid ${t.border}`,
+                      borderRadius: "6px", padding: "6px 10px", cursor: "pointer", outline: "none",
+                    })}
+                  >
+                    <option value="">
+                      Latest ({selectedDeliverable.version || "v1"})
+                    </option>
+                    {versions.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.version} · {new Date(v.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <span style={ff({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+                  {activeVersionLabel} · {selectedDeliverable.type}
+                </span>
+              </div>
             </div>
 
-            {selectedDeliverable.fileUrl ? (
+            {isViewingPreviousCut && (
+              <div
+                data-testid="review-previous-version-banner"
+                style={{
+                  padding: "8px 12px", marginBottom: "10px", borderRadius: "6px",
+                  background: "rgba(255,200,60,0.08)", border: "1px solid rgba(255,200,60,0.2)",
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                }}
+              >
+                <p style={ff({ fontWeight: 500, fontSize: "11px", color: "rgba(255,200,60,0.9)" })}>
+                  Viewing previous cut {activeVersionLabel} (latest is {selectedDeliverable.version || "v1"})
+                </p>
+                <button
+                  onClick={() => setSelectedVersionId(null)}
+                  style={ff({
+                    fontWeight: 600, fontSize: "10px", color: t.text,
+                    background: "transparent", border: `1px solid ${t.border}`,
+                    borderRadius: "4px", padding: "4px 8px", cursor: "pointer",
+                  })}
+                >
+                  Back to latest
+                </button>
+              </div>
+            )}
+
+            {activeFileUrl ? (
               <VideoPlayer
-                key={selectedDeliverable.fileUrl}
-                src={selectedDeliverable.fileUrl}
+                key={activeFileUrl}
+                src={activeFileUrl}
                 onTimeClick={(ts) => setActiveTimestamp(ts)}
                 seekTo={seekTo ?? undefined}
                 markers={comments.map((c) => ({
