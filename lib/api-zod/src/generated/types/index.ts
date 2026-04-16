@@ -62,6 +62,8 @@ export * from "./updateTask";
 export * from "./updateTaskItem";
 export * from "./updateTaskStatus";
 export * from "./updateUser";
+export * from "./uploadUrlRequest";
+export * from "./uploadUrlResponse";
 export * from "./user";
 export * from "./userRole";
 export * from "./validationError";

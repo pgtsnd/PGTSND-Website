@@ -235,7 +235,11 @@ export default function SharedReview() {
         <div>
           {deliverable.fileUrl ? (
             <VideoPlayer
-              src={deliverable.fileUrl}
+              src={
+                deliverable.fileUrl.startsWith("/api/storage/objects/")
+                  ? `${deliverable.fileUrl}?reviewToken=${encodeURIComponent(token)}`
+                  : deliverable.fileUrl
+              }
               markers={comments.map((c) => ({
                 id: c.id,
                 timestampSeconds: c.timestampSeconds,

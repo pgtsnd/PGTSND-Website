@@ -14,6 +14,7 @@ import clientRouter from "./client";
 import integrationsRouter from "./integrations";
 import videoReviewRouter from "./video-review";
 import publicReviewRouter from "./public-review";
+import storageRouter from "./storage";
 import { authMiddleware } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -21,6 +22,7 @@ const router: IRouter = Router();
 router.use(healthRouter);
 router.use(authRouter);
 router.use(publicReviewRouter);
+router.use(storageRouter);
 
 router.post("/webhooks/stripe", (req, res, next) => {
   req.url = "/webhooks/stripe";

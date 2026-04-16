@@ -21,6 +21,7 @@ import {
   useListTaskItems,
   useUpdateTaskItem,
   useUpdateProject,
+  useUpdateDeliverable,
 } from "@workspace/api-client-react";
 
 type Tab = "overview" | "milestones" | "deliverables" | "assets" | "review";
@@ -273,7 +274,7 @@ export default function TeamProjectDetail() {
         )}
 
         {activeTab === "deliverables" && (
-          <DeliverablesTab deliverables={deliverables} />
+          <DeliverablesTab deliverables={deliverables} onRefresh={refetch} />
         )}
 
         {activeTab === "assets" && (
@@ -872,10 +873,106 @@ function MilestonesTab({ tasks, doneTasks, inProgressTasks, projectId }: {
   );
 }
 
-function DeliverablesTab({ deliverables }: { deliverables: Deliverable[] }) {
+const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"];
+const ACCEPTED_VIDEO_EXTENSIONS = [".mp4", ".webm"];
+const MAX_VIDEO_SIZE_BYTES = 2 * 1024 * 1024 * 1024;
+
+function DeliverablesTab({ deliverables, onRefresh }: { deliverables: Deliverable[]; onRefresh: () => void }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+  const updateDeliverable = useUpdateDeliverable();
+  const { toast } = useToast();
+
+  const validateVideoFile = (file: File): string | null => {
+    const isAcceptedType = ACCEPTED_VIDEO_TYPES.includes(file.type);
+    const isAcceptedExt = ACCEPTED_VIDEO_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext));
+    if (!isAcceptedType && !isAcceptedExt) {
+      return "Please choose an MP4 or WebM video file.";
+    }
+    if (file.size > MAX_VIDEO_SIZE_BYTES) {
+      return "Video file must be under 2 GB.";
+    }
+    return null;
+  };
+
+  const handleVideoUpload = async (deliverableId: string, file: File) => {
+    const validationError = validateVideoFile(file);
+    if (validationError) {
+      setUploadError(validationError);
+      toast(validationError, "error");
+      return;
+    }
+    setUploadError(null);
+    setUploadingFor(deliverableId);
+    setUploadProgress(5);
+
+    try {
+      const contentType = file.type || (file.name.toLowerCase().endsWith(".webm") ? "video/webm" : "video/mp4");
+      const reqRes = await fetch("/api/storage/uploads/request-url", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: file.name, size: file.size, contentType }),
+      });
+      if (!reqRes.ok) {
+        const data = await reqRes.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to start upload");
+      }
+      const { uploadURL, objectPath } = (await reqRes.json()) as { uploadURL: string; objectPath: string };
+
+      setUploadProgress(15);
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", uploadURL);
+        xhr.setRequestHeader("Content-Type", contentType);
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const pct = 15 + Math.round((e.loaded / e.total) * 80);
+            setUploadProgress(pct);
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error(`Upload failed (${xhr.status})`));
+        };
+        xhr.onerror = () => reject(new Error("Network error during upload"));
+        xhr.send(file);
+      });
+
+      setUploadProgress(98);
+      const fileUrl = `/api/storage${objectPath}`;
+      await new Promise<void>((resolve, reject) => {
+        updateDeliverable.mutate(
+          { id: deliverableId, data: { fileUrl, type: "video" } },
+          {
+            onSuccess: () => resolve(),
+            onError: (err) => reject(err instanceof Error ? err : new Error("Failed to save deliverable")),
+          },
+        );
+      });
+
+      setUploadProgress(100);
+      toast("Video uploaded.", "success");
+      onRefresh();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Upload failed";
+      setUploadError(msg);
+      toast(msg, "error");
+    } finally {
+      setUploadingFor(null);
+      setTimeout(() => setUploadProgress(0), 600);
+    }
+  };
+
+  const triggerFilePicker = (deliverableId: string) => {
+    setUploadError(null);
+    fileInputs.current[deliverableId]?.click();
+  };
 
   const statusColors: Record<string, string> = {
     approved: t.accent,
@@ -983,8 +1080,8 @@ function DeliverablesTab({ deliverables }: { deliverables: Deliverable[] }) {
                         </div>
                       </div>
 
-                      {d.fileUrl && (
-                        <div style={{ marginTop: "16px" }}>
+                      <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {d.fileUrl && (
                           <a href={d.fileUrl} target="_blank" rel="noopener noreferrer" style={f({
                             fontWeight: 600, fontSize: "11px", color: t.accent, textDecoration: "none",
                             display: "inline-flex", alignItems: "center", gap: "6px",
@@ -996,8 +1093,91 @@ function DeliverablesTab({ deliverables }: { deliverables: Deliverable[] }) {
                             </svg>
                             Open file
                           </a>
+                        )}
+
+                        <div
+                          onDragOver={(e) => {
+                            if (uploadingFor) return;
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "copy";
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            if (uploadingFor) return;
+                            const file = e.dataTransfer.files?.[0];
+                            if (file) handleVideoUpload(d.id, file);
+                          }}
+                          style={{
+                            border: `2px dashed ${t.border}`, borderRadius: "8px",
+                            padding: "14px 16px", display: "flex", alignItems: "center",
+                            gap: "12px", justifyContent: "space-between",
+                            background: uploadingFor === d.id ? "rgba(255,255,255,0.02)" : "transparent",
+                          }}
+                          data-testid={`deliverable-upload-zone-${d.id}`}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5">
+                              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                              <polyline points="17 8 12 3 7 8" />
+                              <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            <p style={f({ fontWeight: 500, fontSize: "11px", color: t.textMuted })}>
+                              {d.fileUrl
+                                ? "Drag a new MP4/WebM video here or "
+                                : "Drag an MP4/WebM video here or "}
+                              <button
+                                type="button"
+                                onClick={() => triggerFilePicker(d.id)}
+                                disabled={uploadingFor !== null}
+                                data-testid={`deliverable-upload-button-${d.id}`}
+                                style={f({
+                                  fontWeight: 600, fontSize: "11px", color: t.accent,
+                                  background: "transparent", border: "none", padding: 0,
+                                  cursor: uploadingFor ? "not-allowed" : "pointer",
+                                  textDecoration: "underline",
+                                })}
+                              >
+                                {d.fileUrl ? "replace video" : "browse"}
+                              </button>
+                            </p>
+                          </div>
+                          <input
+                            ref={(el) => { fileInputs.current[d.id] = el; }}
+                            type="file"
+                            accept="video/mp4,video/webm,.mp4,.webm"
+                            data-testid={`deliverable-upload-input-${d.id}`}
+                            style={{ display: "none" }}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleVideoUpload(d.id, file);
+                              e.target.value = "";
+                            }}
+                          />
                         </div>
-                      )}
+
+                        {uploadingFor === d.id && (
+                          <div data-testid={`deliverable-upload-progress-${d.id}`}>
+                            <div style={{
+                              width: "100%", height: "4px", borderRadius: "2px",
+                              background: t.borderSubtle, overflow: "hidden",
+                            }}>
+                              <div style={{
+                                width: `${uploadProgress}%`, height: "100%",
+                                background: t.accent, transition: "width 0.2s",
+                              }} />
+                            </div>
+                            <p style={f({ fontWeight: 500, fontSize: "10px", color: t.textMuted, marginTop: "6px" })}>
+                              Uploading… {uploadProgress}%
+                            </p>
+                          </div>
+                        )}
+
+                        {uploadingFor !== d.id && uploadError && expandedId === d.id && (
+                          <p style={f({ fontWeight: 500, fontSize: "11px", color: "#ff6b6b" })}>
+                            {uploadError}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
