@@ -33,6 +33,7 @@ export default function AlaskaWhitefishTrawlers() {
             <div style={{
               overflow: "hidden",
               overflowY: "auto",
+              paddingBottom: "70px",
               borderRadius: "4px",
               border: "2px solid rgba(255,255,255,0.15)",
               aspectRatio: "21 / 9",
@@ -62,11 +63,9 @@ export default function AlaskaWhitefishTrawlers() {
                   <img
                     src={"/images/case-studies/awt/alaska-whitefish-web-design-sample-2.png"}
                     alt="Alaska Whitefish Trawlers Website on Laptop"
-                    style={{ width: "100%", display: "block" }}
+                    style={{ width: "100%", display: "block", transform: "translateY(-12px)" }}
                   />
                 </div>
-                <div style={{ background: "#1a1a1a", height: "10px", borderRadius: "0 0 2px 2px" }} />
-                <div style={{ background: "#2a2a2a", height: "6px", borderRadius: "0 0 3px 3px", width: "120%", marginLeft: "-10%" }} />
               </div>
             </div>
           </div>
