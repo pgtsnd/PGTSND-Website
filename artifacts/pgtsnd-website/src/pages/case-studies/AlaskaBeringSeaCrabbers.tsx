@@ -115,15 +115,20 @@ export default function AlaskaBeringSeaCrabbers() {
           </div>
         </section>
 
-        {/* Panoramic Hero Image */}
+        {/* Hero Video Placeholder */}
         <section style={{ padding: "0 80px", position: "relative" }}>
           <ScrollBadge position="bottom-left" bottomOffset={-58} />
-          <div style={{ width: "100%", height: "50vh", overflow: "hidden" }}>
+          <div style={{ width: "100%", aspectRatio: "16 / 9", overflow: "hidden", position: "relative", background: "#111" }}>
             <img
               src={"/images/case-studies/absc/pgtsnd-ABSC-photography-5.jpeg"}
               alt="Alaska Bering Sea"
-              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block" }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", opacity: 0.8 }}
             />
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "72px", height: "72px", borderRadius: "50%", background: "rgba(0,0,0,0.5)", border: "2px solid rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                <svg width="22" height="26" viewBox="0 0 18 22" fill="white"><polygon points="0,0 18,11 0,22" /></svg>
+              </div>
+            </div>
           </div>
         </section>
 
