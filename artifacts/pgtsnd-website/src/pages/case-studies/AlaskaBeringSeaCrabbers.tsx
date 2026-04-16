@@ -289,7 +289,7 @@ export default function AlaskaBeringSeaCrabbers() {
         </section>
 
         {/* Bottom CTA */}
-        <section style={{ padding: "80px 80px 120px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+        <section style={{ padding: "200px 80px 200px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
           <div style={{ maxWidth: "440px" }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
               <img
