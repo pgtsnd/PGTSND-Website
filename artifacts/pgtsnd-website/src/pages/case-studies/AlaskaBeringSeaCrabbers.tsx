@@ -118,7 +118,7 @@ export default function AlaskaBeringSeaCrabbers() {
       <Header />
       <div style={{ background: "#000000", minHeight: "100vh" }}>
         {/* Hero */}
-        <section style={{ padding: "160px 80px 80px" }}>
+        <section style={{ padding: "160px 80px 120px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "2fr 3fr", gap: "60px", alignItems: "end" }}>
             <h1 style={f({ fontWeight: 900, fontSize: "clamp(48px, 7vw, 84px)", textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 0.95, color: "#ffffff" })}>
               ABSC X<br />PGTSND
