@@ -184,13 +184,13 @@ export default function VallationOuterwear() {
           </div>
         </section>
 
-        <section style={{ padding: "0 40px 40px", position: "relative" }}>
+        <section style={{ padding: "0 0 40px", position: "relative" }}>
           <div ref={heroRef} style={{ position: "relative", overflow: "visible" }}>
             <div style={{ width: "100%", height: "clamp(340px, 40vw, 520px)", overflow: "hidden" }}>
               <img
                 src={heroImage}
                 alt="Vallation Outerwear - On the Water"
-                style={{ width: "140%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", marginLeft: "10%", transform: `translateX(${heroOffset - 5}%)`, willChange: "transform" }}
+                style={{ width: "120%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", marginLeft: "-10%", transform: `translateX(${heroOffset - 5}%)`, willChange: "transform" }}
               />
             </div>
             <div style={{ position: "absolute", bottom: "-60px", left: "60px", maxWidth: "420px", zIndex: 2 }}>
