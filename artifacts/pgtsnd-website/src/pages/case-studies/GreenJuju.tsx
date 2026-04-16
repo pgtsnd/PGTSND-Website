@@ -107,14 +107,17 @@ export default function GreenJuju() {
                 ))}
               </div>
             </div>
-            <div style={{ position: "relative", display: "flex", justifyContent: "center", alignItems: "flex-end", gap: "16px", minHeight: "400px" }}>
-              <PhoneMockup src={"/images/case-studies/green-juju/dog-facts-green-juju-pgtsnd-carousel-1.gif"} style={{ transform: "translateY(-20px)" }} />
+            <div style={{ position: "relative", display: "flex", justifyContent: "center", alignItems: "flex-end", gap: "24px", minHeight: "400px" }}>
               <img
-                src={"/images/case-studies/green-juju/dog-with-treats-green-juju-pgtsnd.png"}
-                alt="Dog with treats"
-                style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-70%)", width: "180px", height: "auto", zIndex: 2 }}
+                src={"/images/case-studies/green-juju/dog-facts-green-juju-pgtsnd-carousel-1.gif"}
+                alt="Green Juju dog facts Instagram post"
+                style={{ width: "240px", height: "auto", display: "block", transform: "translateY(-20px)", flexShrink: 0 }}
               />
-              <PhoneMockup src={"/images/case-studies/green-juju/seasons-green-juju-pgtsnd-carousel.gif"} style={{ transform: "translateY(-40px)" }} />
+              <img
+                src={"/images/case-studies/green-juju/seasons-green-juju-pgtsnd-carousel.gif"}
+                alt="Green Juju seasons Instagram post"
+                style={{ width: "240px", height: "auto", display: "block", transform: "translateY(-40px)", flexShrink: 0 }}
+              />
             </div>
           </div>
         </section>
@@ -128,11 +131,18 @@ export default function GreenJuju() {
             <PhoneMockup src={"/images/case-studies/green-juju/puppies-green-juju-pgtsnd.jpeg"} style={{ width: "220px" }} />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: "40px" }}>
-            <img
-              src={"/images/case-studies/green-juju/green-juju-snack-cutout-pgtsnd.png"}
-              alt="Green Juju product"
-              style={{ width: "140px", height: "auto" }}
-            />
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "12px" }}>
+              <img
+                src={"/images/case-studies/green-juju/green-juju-snack-cutout-pgtsnd.png"}
+                alt="Green Juju product"
+                style={{ width: "140px", height: "auto" }}
+              />
+              <img
+                src={"/images/case-studies/green-juju/dog-with-treats-green-juju-pgtsnd.png"}
+                alt="Dog with Green Juju treats"
+                style={{ width: "180px", height: "auto" }}
+              />
+            </div>
             <a
               href="https://www.instagram.com/greenjuju"
               target="_blank"
