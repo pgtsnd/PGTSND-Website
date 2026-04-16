@@ -55,8 +55,16 @@ router.post(
       return;
     }
 
-    const [user] = await db.insert(usersTable).values(parsed.data).returning();
-    validateAndSend(res, selectUserSchema, user, 201);
+    try {
+      const [user] = await db.insert(usersTable).values(parsed.data).returning();
+      validateAndSend(res, selectUserSchema, user, 201);
+    } catch (err: any) {
+      if (err?.message?.includes("duplicate") || err?.message?.includes("unique")) {
+        res.status(409).json({ error: "A user with this email already exists" });
+        return;
+      }
+      throw err;
+    }
   },
 );
 
