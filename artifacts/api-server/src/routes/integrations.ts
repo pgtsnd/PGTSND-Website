@@ -16,7 +16,17 @@ import * as stripeService from "../services/stripe";
 import * as driveService from "../services/google-drive";
 import * as slackService from "../services/slack";
 import * as docuSignService from "../services/docusign";
-import { encryptConfig, maskConfig, decryptConfig, isVaultReady } from "../services/vault";
+import {
+  encryptConfig,
+  maskConfig,
+  decryptConfig,
+  isVaultReady,
+  deriveKey,
+  encryptWithKey,
+  decryptWithKey,
+  isEncryptedValue,
+} from "../services/vault";
+import { logger } from "../lib/logger";
 
 const router = Router();
 
@@ -107,6 +117,98 @@ router.get(
       encryptedCount,
       unencryptedCount: total - encryptedCount,
     });
+  },
+);
+
+router.post(
+  "/integrations/vault/rotate",
+  requireRole("owner"),
+  async (req, res) => {
+    const { oldKey, newKey } = req.body ?? {};
+
+    if (typeof oldKey !== "string" || oldKey.length === 0) {
+      res.status(400).json({ error: "oldKey is required" });
+      return;
+    }
+    if (typeof newKey !== "string" || newKey.length === 0) {
+      res.status(400).json({ error: "newKey is required" });
+      return;
+    }
+    if (oldKey === newKey) {
+      res.status(400).json({ error: "newKey must differ from oldKey" });
+      return;
+    }
+
+    const currentMaster = process.env.VAULT_MASTER_KEY;
+    if (!currentMaster) {
+      res.status(400).json({ error: "VAULT_MASTER_KEY is not configured on the server" });
+      return;
+    }
+    if (oldKey !== currentMaster) {
+      res.status(400).json({ error: "oldKey does not match the active master key" });
+      return;
+    }
+
+    const oldDerived = deriveKey(oldKey);
+    const newDerived = deriveKey(newKey);
+
+    try {
+      const result = await db.transaction(async (tx) => {
+        const rows = await tx.select().from(integrationSettingsTable);
+
+        let rowsRotated = 0;
+        let valuesRotated = 0;
+        let valuesSkipped = 0;
+
+        for (const row of rows) {
+          if (!row.config || Object.keys(row.config).length === 0) continue;
+
+          const nextConfig: Record<string, string> = {};
+          let changed = false;
+
+          for (const [k, rawValue] of Object.entries(row.config)) {
+            const value = String(rawValue);
+            if (!isEncryptedValue(value)) {
+              nextConfig[k] = value;
+              valuesSkipped++;
+              continue;
+            }
+            const plaintext = decryptWithKey(value, oldDerived);
+            nextConfig[k] = encryptWithKey(plaintext, newDerived);
+            valuesRotated++;
+            changed = true;
+          }
+
+          if (changed) {
+            await tx
+              .update(integrationSettingsTable)
+              .set({ config: nextConfig })
+              .where(eq(integrationSettingsTable.id, row.id));
+            rowsRotated++;
+          }
+        }
+
+        return { rowsRotated, valuesRotated, valuesSkipped };
+      });
+
+      logger.info(
+        { rowsRotated: result.rowsRotated, valuesRotated: result.valuesRotated },
+        "Vault master key rotation committed",
+      );
+
+      res.json({
+        message:
+          "Rotation complete. Update VAULT_MASTER_KEY to the new value and restart the server.",
+        ...result,
+      });
+    } catch (err) {
+      logger.error({ err }, "Vault master key rotation failed; transaction rolled back");
+      const message =
+        err instanceof Error && /Unsupported state|auth|decrypt/i.test(err.message)
+          ? "Failed to decrypt existing values with oldKey; rotation aborted"
+          : "Rotation failed; no changes were committed";
+      res.status(500).json({ error: message });
+    }
   },
 );
 

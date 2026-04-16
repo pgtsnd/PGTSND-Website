@@ -1,21 +1,7 @@
 import { db, integrationSettingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { encryptConfig, isVaultReady } from "../services/vault";
+import { encryptConfig, isVaultReady, isEncryptedValue } from "../services/vault";
 import { logger } from "../lib/logger";
-
-const HEX = /^[0-9a-f]+$/i;
-const IV_HEX_LENGTH = 32;
-const AUTH_TAG_HEX_LENGTH = 32;
-
-function isEncryptedValue(value: unknown): boolean {
-  if (typeof value !== "string") return false;
-  const parts = value.split(":");
-  if (parts.length !== 3) return false;
-  const [iv, tag, ct] = parts;
-  if (iv.length !== IV_HEX_LENGTH || tag.length !== AUTH_TAG_HEX_LENGTH) return false;
-  if (ct.length === 0 || ct.length % 2 !== 0) return false;
-  return HEX.test(iv) && HEX.test(tag) && HEX.test(ct);
-}
 
 export async function migratePlaintextIntegrationConfigs(): Promise<void> {
   if (!isVaultReady()) {
