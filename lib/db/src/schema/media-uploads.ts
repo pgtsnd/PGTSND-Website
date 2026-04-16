@@ -21,6 +21,7 @@ export const mediaUploadsTable = pgTable(
     objectPath: text("object_path").notNull(),
     name: varchar("name", { length: 500 }).notNull(),
     label: varchar("label", { length: 500 }),
+    folder: varchar("folder", { length: 200 }).notNull().default("site"),
     contentType: varchar("content_type", { length: 100 }).notNull(),
     sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
     uploadedBy: text("uploaded_by").references(() => usersTable.id),

@@ -154,9 +154,12 @@ router.post(
       objectPath?: string;
       name?: string;
       label?: string | null;
+      folder?: string | null;
       contentType?: string;
       sizeBytes?: number;
     };
+    const folderRaw = (body.folder ?? "site").toString().trim();
+    const folder = (folderRaw || "site").slice(0, 200).replace(/[^a-zA-Z0-9 _\-./]/g, "");
     if (
       !body.objectPath ||
       typeof body.objectPath !== "string" ||
@@ -209,6 +212,7 @@ router.post(
           objectPath: body.objectPath,
           name: body.name.slice(0, 500),
           label: body.label?.slice(0, 500) || null,
+          folder: folder || "site",
           contentType: trueContentType,
           sizeBytes,
           uploadedBy: user?.id ?? null,
