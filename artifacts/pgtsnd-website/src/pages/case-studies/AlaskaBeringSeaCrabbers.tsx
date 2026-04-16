@@ -291,7 +291,7 @@ export default function AlaskaBeringSeaCrabbers() {
         {/* Bottom CTA */}
         <section style={{ padding: "200px 80px 200px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
           <div style={{ maxWidth: "440px" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", position: "relative", zIndex: 3, border: "3px solid #000" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", marginBottom: "-28px", marginLeft: "24px", position: "relative", zIndex: 3 }}>
               <img
                 src={"/images/case-studies/absc/Jamie-Goen-Alaska-Bering-Sea-Crabbers-pgt-snd.jpg"}
                 alt="Jamie Goen"
