@@ -247,7 +247,7 @@ export default function GreenJuju() {
               <img
                 src={"/images/case-studies/green-juju/dog-with-treats-green-juju-pgtsnd.png"}
                 alt="Dog with Green Juju treats"
-                style={{ width: "180px", height: "auto" }}
+                style={{ width: "180px", height: "auto", marginTop: "-140px", position: "relative", zIndex: 2 }}
               />
             </div>
             <a
