@@ -29,7 +29,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ### PGTSND Productions Website (`artifacts/pgtsnd-website`)
 - **Type**: React + Vite (frontend-only, no backend)
 - **Preview path**: `/`
-- **Purpose**: Pixel-faithful clone of pgtsndproductions.com migrated from Squarespace
+- **Purpose**: Pixel-faithful clone of pgtsndproductions.com (originally built on Squarespace)
 - **Pages**: Home, Services, About, Case Studies, Contact, Client Hub (login/register with magic link + invite token)
 - **Client Portal** (`/client-hub/*`): Dashboard, Messages, Projects, Assets, Video Review, Contracts, Billing, Account — uses `ClientLayout.tsx` sidebar layout, all mock data for now
   - **Dashboard**: Welcome banner, review queue with reminders, recent messages feed, active project status cards
@@ -65,7 +65,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
   - **Settings** (`TeamSettings.tsx`): `/team/settings` — Left nav with 4 sections: Company Profile (editable form), Notifications (toggle switches with aria-labels), Integrations (connect buttons), Billing & Plans (plan card with storage bar, payment method)
   - Sidebar: Dashboard, Projects, Clients, Messages (badge), Schedule, Asset Library, Crew, Settings
 - **Design**: Black background, white text, bold Montserrat 900 weight headings, pill-shaped CTA buttons, hamburger nav overlay
-- **Images**: Loaded directly from Squarespace CDN URLs
+- **Images**: Served locally from `public/images/` (migrated from Squarespace CDN)
 - **Logo**: Uses src/assets/logo.webp via @assets alias
 - **No backend required**: Pure frontend, contact form is client-side only
 
