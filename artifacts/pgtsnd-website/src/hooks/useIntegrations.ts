@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../lib/auth";
 import { csrfHeaders } from "../lib/csrf";
+import { isSessionExpiredResponse, notifySessionExpired } from "../lib/session-expired";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "") + "/api";
 
@@ -21,7 +22,12 @@ async function apiFetch(path: string, options: RequestInit = {}) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(err.error || "Request failed");
+    const message = err.error || "Request failed";
+    const expired = isSessionExpiredResponse(res.status, message);
+    if (expired) {
+      notifySessionExpired(expired);
+    }
+    throw new Error(message);
   }
 
   return res.json();

@@ -271,6 +271,52 @@ async function parseJsonBody(
   }
 }
 
+const SESSION_EXPIRED_EVENT = "pgtsnd:session-expired";
+const SESSION_EXPIRED_MESSAGE =
+  "Your session expired. Please sign in again to continue.";
+
+function extractErrorMessage(data: unknown): string | null {
+  if (typeof data === "string") return data;
+  return (
+    getStringField(data, "error") ??
+    getStringField(data, "detail") ??
+    getStringField(data, "message") ??
+    getStringField(data, "title") ??
+    null
+  );
+}
+
+function maybeNotifySessionExpired(response: Response, data: unknown): void {
+  const message = extractErrorMessage(data);
+  let reason: "unauthorized" | "csrf" | null = null;
+  if (response.status === 401) {
+    reason = "unauthorized";
+  } else if (response.status === 403 && message && /csrf/i.test(message)) {
+    reason = "csrf";
+  }
+  if (!reason) return;
+  const target: EventTarget | undefined =
+    typeof window !== "undefined"
+      ? window
+      : typeof globalThis !== "undefined" && typeof (globalThis as { dispatchEvent?: unknown }).dispatchEvent === "function"
+        ? (globalThis as unknown as EventTarget)
+        : undefined;
+  if (!target || typeof CustomEvent === "undefined") return;
+  try {
+    target.dispatchEvent(
+      new CustomEvent(SESSION_EXPIRED_EVENT, {
+        detail: {
+          message: SESSION_EXPIRED_MESSAGE,
+          status: response.status,
+          reason,
+        },
+      }),
+    );
+  } catch {
+    // ignore environments where dispatching is unavailable
+  }
+}
+
 async function parseErrorBody(response: Response, method: string): Promise<unknown> {
   if (hasNoBody(response, method)) {
     return null;
@@ -398,6 +444,7 @@ export async function customFetch<T = unknown>(
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);
+    maybeNotifySessionExpired(response, errorData);
     throw new ApiError(response, errorData, requestInfo);
   }
 

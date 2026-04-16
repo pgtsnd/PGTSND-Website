@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CTAButton from "../components/CTAButton";
 import { useAuth, getDashboardPath } from "../lib/auth";
+import { consumePostLoginRedirect, consumeSessionExpiredMessage } from "../lib/session-expired";
 
 export default function ClientHub() {
   const [mode, setMode] = useState<"login" | "register" | "check-email">("login");
@@ -16,9 +17,15 @@ export default function ClientHub() {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate("/client-hub/dashboard");
+      const saved = consumePostLoginRedirect();
+      navigate(saved || "/client-hub/dashboard");
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    const expiredMsg = consumeSessionExpiredMessage();
+    if (expiredMsg) setError(expiredMsg);
+  }, []);
 
   const inputStyle: React.CSSProperties = {
     fontFamily: "'Montserrat', sans-serif",

@@ -1,4 +1,5 @@
 import { csrfHeaders } from "./csrf";
+import { isSessionExpiredResponse, notifySessionExpired } from "./session-expired";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "") + "/api";
 
@@ -260,12 +261,15 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new ApiError(
+    const errorMessage =
       typeof body === "object" && body !== null && "error" in body
         ? String(body.error)
-        : `API error ${res.status}`,
-      res.status,
-    );
+        : `API error ${res.status}`;
+    const expired = isSessionExpiredResponse(res.status, errorMessage);
+    if (expired) {
+      notifySessionExpired(expired);
+    }
+    throw new ApiError(errorMessage, res.status);
   }
 
   return res.json();

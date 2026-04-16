@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CTAButton from "../components/CTAButton";
 import { useAuth, getDashboardPath } from "../lib/auth";
+import { consumePostLoginRedirect, consumeSessionExpiredMessage } from "../lib/session-expired";
 
 export default function TeamLogin() {
   const [email, setEmail] = useState("");
@@ -14,6 +15,11 @@ export default function TeamLogin() {
 
   useEffect(() => {
     if (!loading && user) {
+      const saved = consumePostLoginRedirect();
+      if (saved) {
+        navigate(saved);
+        return;
+      }
       const role = user.role;
       if (role === "owner" || role === "partner" || role === "crew") {
         navigate("/team/dashboard");
@@ -22,6 +28,11 @@ export default function TeamLogin() {
       }
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    const expiredMsg = consumeSessionExpiredMessage();
+    if (expiredMsg) setError(expiredMsg);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

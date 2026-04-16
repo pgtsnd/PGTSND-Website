@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useAuth, getDashboardPath } from "../lib/auth";
+import { consumePostLoginRedirect } from "../lib/session-expired";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -22,8 +23,9 @@ export default function AuthVerify() {
     }
 
     verifyMagicLink(token).then((result) => {
-      if (result.success && result.redirect) {
-        navigate(result.redirect);
+      if (result.success) {
+        const saved = consumePostLoginRedirect();
+        navigate(saved || result.redirect || "/");
       } else {
         setError(result.error || "Verification failed");
         setVerifying(false);
