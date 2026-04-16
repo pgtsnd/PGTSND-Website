@@ -88,13 +88,6 @@ export default function AlaskaWhitefishTrawlers() {
 
         {/* Inside Our Partnership */}
         <section style={{ padding: "200px 80px 120px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "start" }}>
-          <div style={{ background: "#ffffff", borderRadius: "4px", padding: "60px 40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img
-              src={"/images/case-studies/awt/aktrawlers-FINAL.png"}
-              alt="Alaska Whitefish Trawlers Logo - Original"
-              style={{ width: "260px", height: "auto" }}
-            />
-          </div>
           <div>
             <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff", marginBottom: "32px" })}>
               Inside Our Partnership
@@ -105,6 +98,13 @@ export default function AlaskaWhitefishTrawlers() {
             <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
               For the Alaska Whitefish Trawlers Association, PGTSND delivered a fresh, functional platform that kept education at the forefront, while bringing the brand into a new era.
             </p>
+          </div>
+          <div style={{ background: "#ffffff", borderRadius: "4px", padding: "60px 40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <img
+              src={"/images/case-studies/awt/aktrawlers-FINAL.png"}
+              alt="Alaska Whitefish Trawlers Logo - Original"
+              style={{ width: "260px", height: "auto" }}
+            />
           </div>
         </section>
 
