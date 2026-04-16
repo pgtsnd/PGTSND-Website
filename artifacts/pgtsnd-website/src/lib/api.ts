@@ -205,6 +205,10 @@ export interface VideoCommentWithReplies {
   timestampSeconds: number;
   content: string;
   createdAt: string;
+  resolvedAt: string | null;
+  resolvedBy: string | null;
+  resolvedByName: string | null;
+  resolvedNote: string | null;
   replies: VideoCommentReplyData[];
 }
 
@@ -369,6 +373,12 @@ export const api = {
     apiFetch<VideoCommentWithReplies>(`/deliverables/${deliverableId}/comments`, {
       method: "POST",
       body: JSON.stringify({ timestampSeconds, content }),
+    }),
+
+  resolveVideoComment: (commentId: string, resolved: boolean, note?: string) =>
+    apiFetch<Omit<VideoCommentWithReplies, "replies">>(`/comments/${commentId}/resolve`, {
+      method: "PATCH",
+      body: JSON.stringify({ resolved, note }),
     }),
 
   addVideoCommentReply: (commentId: string, content: string) =>

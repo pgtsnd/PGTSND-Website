@@ -19,6 +19,10 @@ export interface VideoComment {
   timestampSeconds: number;
   content: string;
   createdAt: string;
+  resolvedAt: string | null;
+  resolvedBy: string | null;
+  resolvedByName: string | null;
+  resolvedNote: string | null;
   replies: VideoCommentReply[];
 }
 
@@ -31,6 +35,7 @@ interface VideoReviewPanelProps {
   isPublic?: boolean;
   publicAuthorName?: string;
   onPublicAuthorNameChange?: (name: string) => void;
+  onResolveComment?: (commentId: string, resolved: boolean, note?: string) => Promise<void>;
 }
 
 function timeAgo(date: string | Date) {
@@ -53,12 +58,21 @@ export default function VideoReviewPanel({
   isPublic = false,
   publicAuthorName = "",
   onPublicAuthorNameChange,
+  onResolveComment,
 }: VideoReviewPanelProps) {
   const { t } = useTheme();
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [hideResolved, setHideResolved] = useState(false);
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [resolveNote, setResolveNote] = useState("");
+
+  const unresolvedCount = comments.filter((c) => !c.resolvedAt).length;
+  const visibleComments = hideResolved
+    ? comments.filter((c) => !c.resolvedAt)
+    : comments;
 
   const handleSubmitComment = async () => {
     if (!newComment.trim() || activeTimestamp === null) return;
@@ -85,16 +99,70 @@ export default function VideoReviewPanel({
     setSubmitting(false);
   };
 
+  const handleResolve = async (commentId: string) => {
+    if (!onResolveComment) return;
+    setSubmitting(true);
+    try {
+      await onResolveComment(commentId, true, resolveNote.trim() || undefined);
+      setResolvingId(null);
+      setResolveNote("");
+    } catch {
+    }
+    setSubmitting(false);
+  };
+
+  const handleReopen = async (commentId: string) => {
+    if (!onResolveComment) return;
+    setSubmitting(true);
+    try {
+      await onResolveComment(commentId, false);
+    } catch {
+    }
+    setSubmitting(false);
+  };
+
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <h3 style={f({
-        fontWeight: 700, fontSize: "11px", textTransform: "uppercase",
-        letterSpacing: "0.08em", color: t.textTertiary, marginBottom: "16px",
-      })}>
-        Comments ({comments.length})
-      </h3>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+        <h3 style={f({
+          fontWeight: 700, fontSize: "11px", textTransform: "uppercase",
+          letterSpacing: "0.08em", color: t.textTertiary,
+        })}>
+          Comments
+          <span style={f({
+            marginLeft: "8px", fontWeight: 600, fontSize: "10px",
+            color: unresolvedCount > 0 ? "rgba(255,200,60,0.9)" : t.textMuted,
+            background: unresolvedCount > 0 ? "rgba(255,200,60,0.1)" : "transparent",
+            border: unresolvedCount > 0 ? "none" : `1px solid ${t.borderSubtle}`,
+            padding: "2px 8px", borderRadius: "10px",
+            textTransform: "none", letterSpacing: 0,
+          })}>
+            {unresolvedCount} unresolved
+          </span>
+          <span style={f({
+            marginLeft: "6px", fontWeight: 400, fontSize: "10px",
+            color: t.textMuted, textTransform: "none", letterSpacing: 0,
+          })}>
+            of {comments.length}
+          </span>
+        </h3>
+        {comments.some((c) => c.resolvedAt) && (
+          <button
+            onClick={() => setHideResolved((v) => !v)}
+            style={f({
+              fontWeight: 500, fontSize: "10px",
+              color: hideResolved ? "rgba(255,200,60,0.9)" : t.textMuted,
+              background: "none",
+              border: `1px solid ${hideResolved ? "rgba(255,200,60,0.5)" : t.border}`,
+              borderRadius: "4px", padding: "3px 8px", cursor: "pointer",
+            })}
+          >
+            {hideResolved ? "Showing unresolved" : "Hide resolved"}
+          </button>
+        )}
+      </div>
 
       {activeTimestamp !== null && (
         <div style={{
@@ -160,30 +228,35 @@ export default function VideoReviewPanel({
       )}
 
       <div style={{ flex: 1, overflowY: "auto" }}>
-        {comments.length === 0 && (
+        {visibleComments.length === 0 && (
           <div style={{ textAlign: "center", padding: "32px 0" }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.5" style={{ marginBottom: "8px" }}>
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
             <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>
-              No comments yet. Click the Comment button on the video player to add one.
+              {comments.length === 0
+                ? "No comments yet. Click the Comment button on the video player to add one."
+                : "All comments are resolved."}
             </p>
           </div>
         )}
 
-        {comments.map((comment) => (
+        {visibleComments.map((comment) => {
+          const isResolved = !!comment.resolvedAt;
+          return (
           <div
             key={comment.id}
             style={{
               padding: "12px 0",
               borderBottom: `1px solid ${t.borderSubtle}`,
+              opacity: isResolved ? 0.55 : 1,
             }}
           >
             <div
               onClick={() => onCommentClick(comment)}
               style={{ cursor: "pointer" }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", flexWrap: "wrap" }}>
                 <button
                   style={f({
                     fontWeight: 600, fontSize: "10px", color: "rgba(255,200,60,0.9)",
@@ -201,14 +274,45 @@ export default function VideoReviewPanel({
                 <span style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>
                   {timeAgo(comment.createdAt)}
                 </span>
+                {isResolved && (
+                  <span style={f({
+                    fontWeight: 600, fontSize: "9px", color: "#0a0",
+                    background: "rgba(0,170,0,0.12)", padding: "2px 6px",
+                    borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.05em",
+                  })}>
+                    Resolved
+                  </span>
+                )}
               </div>
               <p style={f({
                 fontWeight: 400, fontSize: "12px", color: t.textSecondary,
                 lineHeight: 1.5, marginLeft: "2px",
+                textDecoration: isResolved ? "line-through" : "none",
               })}>
                 {comment.content}
               </p>
             </div>
+
+            {isResolved && (
+              <div style={{
+                marginTop: "6px", marginLeft: "2px",
+                padding: "6px 8px", background: "rgba(0,170,0,0.06)",
+                border: "1px solid rgba(0,170,0,0.15)", borderRadius: "4px",
+              }}>
+                <div style={f({ fontWeight: 500, fontSize: "10px", color: t.textMuted })}>
+                  Resolved by {comment.resolvedByName ?? "team"}
+                  {comment.resolvedAt && ` · ${timeAgo(comment.resolvedAt)}`}
+                </div>
+                {comment.resolvedNote && (
+                  <div style={f({
+                    fontWeight: 400, fontSize: "11px", color: t.textSecondary,
+                    marginTop: "4px", lineHeight: 1.4,
+                  })}>
+                    {comment.resolvedNote}
+                  </div>
+                )}
+              </div>
+            )}
 
             {comment.replies.length > 0 && (
               <div style={{ marginLeft: "16px", marginTop: "8px", borderLeft: `2px solid ${t.borderSubtle}`, paddingLeft: "12px" }}>
@@ -230,9 +334,9 @@ export default function VideoReviewPanel({
               </div>
             )}
 
-            <div style={{ marginTop: "6px" }}>
+            <div style={{ marginTop: "6px", display: "flex", alignItems: "flex-start", gap: "8px", flexWrap: "wrap" }}>
               {replyingTo === comment.id ? (
-                <div style={{ marginLeft: "16px" }}>
+                <div style={{ marginLeft: "16px", flex: 1 }}>
                   {isPublic && (
                     <input
                       value={publicAuthorName}
@@ -287,21 +391,90 @@ export default function VideoReviewPanel({
                     </button>
                   </div>
                 </div>
+              ) : resolvingId === comment.id ? (
+                <div style={{ marginLeft: "16px", flex: 1 }}>
+                  <textarea
+                    value={resolveNote}
+                    onChange={(e) => setResolveNote(e.target.value)}
+                    placeholder="Optional note about how this was addressed..."
+                    autoFocus
+                    style={f({
+                      fontWeight: 400, fontSize: "11px", color: t.text,
+                      background: t.bgInput, border: `1px solid ${t.border}`,
+                      borderRadius: "6px", padding: "6px 8px", width: "100%",
+                      minHeight: "40px", resize: "none", outline: "none",
+                      boxSizing: "border-box",
+                    })}
+                  />
+                  <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
+                    <button
+                      onClick={() => handleResolve(comment.id)}
+                      disabled={submitting}
+                      style={f({
+                        fontWeight: 600, fontSize: "10px", color: "#fff",
+                        background: "#0a0", border: "none",
+                        borderRadius: "4px", padding: "4px 10px", cursor: "pointer",
+                        opacity: submitting ? 0.5 : 1,
+                      })}
+                    >
+                      Mark resolved
+                    </button>
+                    <button
+                      onClick={() => { setResolvingId(null); setResolveNote(""); }}
+                      style={f({
+                        fontWeight: 500, fontSize: "10px", color: t.textMuted,
+                        background: "none", border: `1px solid ${t.border}`,
+                        borderRadius: "4px", padding: "4px 10px", cursor: "pointer",
+                      })}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
               ) : (
-                <button
-                  onClick={() => setReplyingTo(comment.id)}
-                  style={f({
-                    fontWeight: 500, fontSize: "10px", color: t.textMuted,
-                    background: "none", border: "none", cursor: "pointer",
-                    padding: "2px 0",
-                  })}
-                >
-                  Reply
-                </button>
+                <>
+                  <button
+                    onClick={() => setReplyingTo(comment.id)}
+                    style={f({
+                      fontWeight: 500, fontSize: "10px", color: t.textMuted,
+                      background: "none", border: "none", cursor: "pointer",
+                      padding: "2px 0",
+                    })}
+                  >
+                    Reply
+                  </button>
+                  {onResolveComment && (
+                    isResolved ? (
+                      <button
+                        onClick={() => handleReopen(comment.id)}
+                        disabled={submitting}
+                        style={f({
+                          fontWeight: 500, fontSize: "10px", color: t.textMuted,
+                          background: "none", border: "none", cursor: "pointer",
+                          padding: "2px 0",
+                        })}
+                      >
+                        Reopen
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => { setResolvingId(comment.id); setResolveNote(""); }}
+                        style={f({
+                          fontWeight: 500, fontSize: "10px", color: "#0a0",
+                          background: "none", border: "none", cursor: "pointer",
+                          padding: "2px 0",
+                        })}
+                      >
+                        Resolve
+                      </button>
+                    )
+                  )}
+                </>
               )}
             </div>
           </div>
-        ))}
+        );
+        })}
       </div>
     </div>
   );

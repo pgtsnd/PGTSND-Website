@@ -26,6 +26,10 @@ export const videoCommentsTable = pgTable(
     timestampSeconds: real("timestamp_seconds").notNull(),
     content: text("content").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
+    resolvedAt: timestamp("resolved_at"),
+    resolvedBy: text("resolved_by").references(() => usersTable.id),
+    resolvedByName: text("resolved_by_name"),
+    resolvedNote: text("resolved_note"),
   },
   (table) => [
     index("video_comments_deliverable_idx").on(table.deliverableId),

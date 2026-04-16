@@ -1352,6 +1352,16 @@ function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[
     [],
   );
 
+  const handleResolveComment = useCallback(
+    async (commentId: string, resolved: boolean, note?: string) => {
+      const updated = await api.resolveVideoComment(commentId, resolved, note);
+      setComments((prev) =>
+        prev.map((c) => (c.id === commentId ? { ...c, ...updated } : c)),
+      );
+    },
+    [],
+  );
+
   const handleCommentClick = useCallback((comment: VideoComment) => {
     setSeekTo(comment.timestampSeconds);
     setTimeout(() => setSeekTo(null), 100);
@@ -1608,6 +1618,7 @@ function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[
             onAddReply={handleAddReply}
             onCommentClick={handleCommentClick}
             activeTimestamp={activeTimestamp}
+            onResolveComment={handleResolveComment}
           />
         </div>
       )}

@@ -11,6 +11,7 @@ import {
   messagesTable,
   contractsTable,
   invoicesTable,
+  videoCommentsTable,
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 
@@ -159,6 +160,18 @@ export async function resolveProjectFromInvoice(
     .where(eq(invoicesTable.id, invoiceId))
     .limit(1);
   return invoice?.projectId ?? null;
+}
+
+export async function resolveProjectFromVideoComment(
+  commentId: string,
+): Promise<string | null> {
+  const [comment] = await db
+    .select({ deliverableId: videoCommentsTable.deliverableId })
+    .from(videoCommentsTable)
+    .where(eq(videoCommentsTable.id, commentId))
+    .limit(1);
+  if (!comment) return null;
+  return resolveProjectFromDeliverable(comment.deliverableId);
 }
 
 export function requireProjectAccessViaEntity(

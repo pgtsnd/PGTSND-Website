@@ -15,6 +15,7 @@ import { requireRole } from "../middleware/auth";
 import {
   requireProjectAccessViaEntity,
   resolveProjectFromDeliverable,
+  resolveProjectFromVideoComment,
 } from "../middleware/project-access";
 import { notifyNewVideoComment } from "../services/notifications";
 
@@ -76,6 +77,47 @@ router.post(
     });
 
     res.status(201).json({ ...comment, replies: [] });
+  },
+);
+
+router.patch(
+  "/comments/:commentId/resolve",
+  requireRole("owner", "partner", "crew"),
+  requireProjectAccessViaEntity(resolveProjectFromVideoComment, "commentId"),
+  async (req, res) => {
+    const { resolved, note } = req.body;
+
+    if (typeof resolved !== "boolean") {
+      res.status(400).json({ error: "resolved must be a boolean" });
+      return;
+    }
+
+    if (note !== undefined && note !== null && typeof note !== "string") {
+      res.status(400).json({ error: "note must be a string" });
+      return;
+    }
+
+    const [updated] = await db
+      .update(videoCommentsTable)
+      .set(
+        resolved
+          ? {
+              resolvedAt: new Date(),
+              resolvedBy: req.user!.id,
+              resolvedByName: req.user!.name,
+              resolvedNote: typeof note === "string" && note.trim() ? note.trim() : null,
+            }
+          : {
+              resolvedAt: null,
+              resolvedBy: null,
+              resolvedByName: null,
+              resolvedNote: null,
+            },
+      )
+      .where(eq(videoCommentsTable.id, req.params.commentId))
+      .returning();
+
+    res.json(updated);
   },
 );
 
