@@ -210,7 +210,7 @@ export default function NetYourProblem() {
               <img
                 src={heroImage}
                 alt="Net Your Problem - Aerial View"
-                style={{ width: "115%", height: "100%", objectFit: "cover", objectPosition: "center center", display: "block", transform: `translateX(${-7.5 + heroOffset}%)`, willChange: "transform" }}
+                style={{ width: "115%", height: "100%", objectFit: "cover", objectPosition: "center 20%", display: "block", transform: `translateX(${-7.5 + heroOffset}%)`, willChange: "transform" }}
               />
             </div>
             <div style={{ position: "absolute", bottom: "-60px", left: "60px", maxWidth: "420px", zIndex: 2 }}>
