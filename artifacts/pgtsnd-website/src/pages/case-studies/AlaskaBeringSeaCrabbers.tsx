@@ -174,15 +174,15 @@ export default function AlaskaBeringSeaCrabbers() {
         </section>
 
         {/* The Big Picture */}
-        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "2fr 3fr", gap: "40px", alignItems: "start" }}>
+        <section style={{ padding: "220px 80px 240px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "80px", alignItems: "start" }}>
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff" })}>
             The Big Picture
           </h2>
-          <div>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, marginBottom: "20px" })}>
+          <div style={{ maxWidth: "560px", marginLeft: "auto" }}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
               Strategy, storytelling, and execution across every channel. This project marked one of our first full-suite campaigns and proved the power of pairing strong, world-building visuals with strategic communication.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 1.8 })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
               When crab fisheries in the Bering Sea faced closures, the Alaska Bering Sea Crabbers needed vision and a voice to connect with their community. PGTSND supported the association in securing grant funding to build a comprehensive platform that would communicate area closures and amplify the human stories impacted by them.
             </p>
           </div>
