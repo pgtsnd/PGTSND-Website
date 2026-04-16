@@ -11,7 +11,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
 - **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM (tables: `users`, `magic_link_tokens`)
+- **Database**: PostgreSQL + Drizzle ORM
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
@@ -39,13 +39,17 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
 - **reviews** — Review records for deliverables, linked to a reviewer
 - **messages** — Project-scoped messages with read status
 - **contracts** — Project contracts (SOW, amendments, etc.) with status: draft, sent, signed, expired
+- **review_reminders** — Tracks automated review reminders per deliverable (day 3, 5, 7+ daily), FK to deliverables
 
 ## API Architecture
 
 - All API routes mounted at `/api` via Express router
 - Health check at `/api/healthz` (unauthenticated)
-- All other routes require `x-user-id` header for auth (placeholder for real auth)
+- Auth middleware reads `x-user-id` header first, then falls back to `pgtsnd_session` JWT cookie for cookie-based auth
 - Role-based access control middleware: owner/partner see everything, crew see assigned projects, clients see own projects
+- Client-specific routes under `/api/client/*`: dashboard aggregation, messages (with send), deliverables, contracts, profile (get/update), approve/request-revision workflow
+- Team workflow endpoint `POST /api/deliverables/:id/submit-for-review` transitions deliverables to `in_review` status with guards (owner/partner/crew only, prevents re-submission of already-reviewed items)
+- Automated review reminder job runs hourly, sends reminders at 3/5/7+ day intervals for unreviewed deliverables
 - Zod validation on all create/update inputs via Drizzle-Zod generated schemas
 - OpenAPI spec at `lib/api-spec/openapi.yaml` documents all endpoints
 - Codegen produces `@workspace/api-zod` (Zod schemas) and `@workspace/api-client-react` (React Query hooks)
@@ -57,18 +61,18 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
 - **Preview path**: `/`
 - **Purpose**: Pixel-faithful clone of pgtsndproductions.com (originally built on Squarespace)
 - **Pages**: Home, Services, About, Case Studies, Contact, Client Hub (login/register with magic link + invite token)
-- **Client Portal** (`/client-hub/*`): Dashboard, Messages, Projects, Assets, Video Review, Contracts, Billing, Account — uses `ClientLayout.tsx` sidebar layout, all mock data for now
-  - **Dashboard**: Welcome banner, review queue with reminders, recent messages feed, active project status cards
-  - **Messages** (`ClientMessages.tsx`): Full threaded chat with conversation sidebar, team/client bubble layout, file attachments, unread badges
-  - **Projects** (`ClientProjects.tsx`): Gantt-style schedule with 29 tasks across 5 phases, collapsible phase rows, assignee column, weekly timeline grid, "TODAY" marker; Project Documents section links to dedicated subpages, team roster
+- **Client Portal** (`/client-hub/*`): Dashboard, Messages, Projects, Assets, Video Review, Contracts, Billing, Account — uses `ClientLayout.tsx` sidebar layout with dynamic user info, all pages wired to real API via fully-typed `src/lib/api.ts` (no `any` types)
+  - **Dashboard**: Welcome banner, review queue with reminder counts, recent messages feed, active project status cards with calculated progress
+  - **Messages** (`ClientMessages.tsx`): Full threaded chat with conversation sidebar, team/client bubble layout, unread badges, real-time send
+  - **Projects** (`ClientProjects.tsx`): Aggregate progress view with stats cards (Total Tasks, Complete, In Progress, Upcoming), progress bar, project description, due date, budget, and team roster — NO individual task rows visible to clients
   - **Treatment** (`ProjectTreatment.tsx`): `/client-hub/projects/:id/treatment` — long-form written narrative (~1000 words), blog-post style, author + date, cross-links to storyboard/shotlist
   - **Storyboard** (`ProjectStoryboard.tsx`): `/client-hub/projects/:id/storyboard` — visual mood board with gradient placeholder cards per scene, mood tags, camera notes
   - **Shot List** (`ProjectShotList.tsx`): `/client-hub/projects/:id/shotlist` — detailed scene-grouped table of all planned shots with type (Hero/B-Roll/Aerial/Macro/Slo-Mo/Interview), lens, camera movement, captured checkmarks, scene/type filters, progress bar
   - **Client Notes** (`ProjectNotes.tsx`): `/client-hub/projects/:id/notes` — pinned important notes + chronological timeline, client vs team attribution, tagged categories
-  - **Assets** (`ClientAssets.tsx`): Finder-style folder browser with breadcrumbs, folder grid → file list view, drag-drop upload zone, download icons
-  - **Video Review** (`ClientVideoReview.tsx`): Video player with colored timeline dots per comment, clickable dots to highlight comment, threaded replies, "Approve This Draft" / "Request Changes" buttons, version selector
-  - **Contracts** (`ClientContracts.tsx`): DocuSign links and signed copies; MSA, SOW, NDA, Release, Amendment types; pending signature alerts with "Sign in DocuSign" CTA; expandable signer status and details; Download PDF for signed copies
-  - **Billing** (`ClientBilling.tsx`): Invoice table with Pay Now buttons, subscriptions & recurring section, payment history with CSV export, payment method cards (Visa/ACH), Pay modal with payment method selector and Confirm Payment button
+  - **Assets** (`ClientAssets.tsx`): Shows only approved deliverables as asset cards, filterable by project, with type labels and version info
+  - **Video Review** (`ClientVideoReview.tsx`): Review interface with deliverable selector, approve/request-revision workflow buttons, feedback history, status labels
+  - **Contracts** (`ClientContracts.tsx`): DocuSign links for pending signatures; filterable (All/Pending/Signed); expandable details with project, type, amount, dates
+  - **Billing** (`ClientBilling.tsx`): Derived from contract data — summary cards (Total Paid, Outstanding, Total Contracts), contract summary table, Stripe integration placeholder
 - **Theme System** (`ThemeContext.tsx`): Dark/light mode toggle in sidebar; dark mode uses `#111114` gray (not pure black), light mode uses `#f4f4f6`; all portal pages consume `useTheme()` with `t.*` token variables for backgrounds, text, borders, cards, modals
   - Assets page has grid/list view toggle, thumbnail cards with colored gradient placeholders, "Send to Review" button on draft videos, breadcrumb navigation, and drag-drop upload zone
   - Video Review links back to Assets via "View in Assets" source file row
@@ -90,6 +94,6 @@ All tables use text UUIDs as primary keys (generated via `randomUUID()`).
 - **Images**: Served locally from `public/images/` (migrated from Squarespace CDN)
 - **Logo**: Uses src/assets/logo.webp via @assets alias
 - **Authentication**: Magic link email login + Google SSO + demo bypass (`demo@pgtsnd.com`), JWT sessions in httpOnly cookies, role-based routing (client → client hub, crew/partner/owner → team portal), protected route guards on all dashboard pages
-- **Backend**: Team Portal uses API server; public pages (Home, Services, etc.) and Client Portal are frontend-only with mock data
+- **Backend**: Both Team Portal and Client Portal use API server for real data; public pages (Home, Services, etc.) are frontend-only
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.

@@ -101,6 +101,42 @@ router.patch(
   },
 );
 
+router.post(
+  "/deliverables/:id/submit-for-review",
+  requireRole("owner", "partner", "crew"),
+  requireProjectAccessViaEntity(resolveProjectFromDeliverable, "id"),
+  async (req, res) => {
+    const [deliverable] = await db
+      .select()
+      .from(deliverablesTable)
+      .where(eq(deliverablesTable.id, req.params.id))
+      .limit(1);
+
+    if (!deliverable) {
+      res.status(404).json({ error: "Deliverable not found" });
+      return;
+    }
+
+    if (deliverable.status === "approved") {
+      res.status(400).json({ error: "Deliverable is already approved" });
+      return;
+    }
+
+    if (deliverable.status === "in_review") {
+      res.status(400).json({ error: "Deliverable is already in review" });
+      return;
+    }
+
+    const [updated] = await db
+      .update(deliverablesTable)
+      .set({ status: "in_review", submittedAt: new Date() })
+      .where(eq(deliverablesTable.id, req.params.id))
+      .returning();
+
+    validateAndSend(res, selectDeliverableSchema, updated);
+  },
+);
+
 router.delete(
   "/deliverables/:id",
   requireRole("owner", "partner"),

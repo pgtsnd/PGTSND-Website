@@ -1,44 +1,78 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
+import { api, type DashboardData, type Project, type PendingReview, type Message } from "../lib/api";
 
-const pendingReviews = [
-  {
-    title: "Spring Campaign Film — v3",
-    type: "Video Draft",
-    submitted: "2 hours ago",
-    reminder: null,
-    project: "Spring Campaign",
-  },
-  {
-    title: "Social Media Graphics — Batch 2",
-    type: "Graphics",
-    submitted: "1 day ago",
-    reminder: "Reminder sent",
-    project: "Spring Campaign",
-  },
-  {
-    title: "Blog Post — Behind the Scenes",
-    type: "Blog Post",
-    submitted: "3 days ago",
-    reminder: "2nd reminder sent",
-    project: "Product Launch",
-  },
-];
+function timeAgo(date: string | Date) {
+  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "Yesterday";
+  return `${days} days ago`;
+}
 
-const recentMessages = [
-  { author: "Bri Dwyer", text: "Let me know when you've reviewed the latest cut", project: "Spring Campaign", time: "2 min ago", unread: true },
-  { author: "Sam Reeves", text: "Macro lens reveal idea for the product launch", project: "Product Launch Teaser", time: "1 hour ago", unread: false },
-  { author: "Kandice M.", text: "Rough cut targeting Friday — I'll send the review link", project: "Spring Campaign", time: "Yesterday", unread: false },
-];
-
-const projectStatus = [
-  { name: "Spring Campaign Film", phase: "Post-Production", progress: 75, nextMilestone: "Review — May 2" },
-  { name: "Product Launch Teaser", phase: "Production", progress: 40, nextMilestone: "Filming — Apr 28" },
-];
+function reminderLabel(count: number, lastDay: number | null) {
+  if (count === 0 || !lastDay) return null;
+  if (count === 1) return "Reminder sent";
+  return `${count} reminders sent`;
+}
 
 export default function ClientDashboard() {
   const { t } = useTheme();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .getClientDashboard()
+      .then(setData)
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <ClientLayout>
+        <div style={{ padding: "40px 48px" }}>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", color: t.textTertiary }}>Loading...</p>
+        </div>
+      </ClientLayout>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <ClientLayout>
+        <div style={{ padding: "40px 48px" }}>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", color: "rgba(255,100,100,0.8)" }}>
+            {error || "Failed to load dashboard"}
+          </p>
+        </div>
+      </ClientLayout>
+    );
+  }
+
+  const { projects, pendingReviews, recentMessages } = data;
+  const activeProjects = projects.filter((p) =>
+    ["active", "in_progress", "review"].includes(p.status),
+  );
+
+  const phaseLabel = (phase: string) => {
+    const labels: Record<string, string> = {
+      pre_production: "Pre-Production",
+      production: "Production",
+      post_production: "Post-Production",
+      review: "Review",
+      delivered: "Delivered",
+    };
+    return labels[phase] || phase;
+  };
 
   return (
     <ClientLayout>
@@ -48,57 +82,59 @@ export default function ClientDashboard() {
             Welcome back,
           </p>
           <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "28px", color: t.text }}>
-            Nicole
+            Dashboard
           </h1>
         </div>
 
-        <div
-          style={{
-            background: "rgba(255,200,60,0.04)",
-            border: "1px solid rgba(255,200,60,0.12)",
-            borderRadius: "10px",
-            padding: "20px 24px",
-            marginBottom: "36px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-            <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,200,60,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,200,60,0.8)" strokeWidth="1.5">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-            </div>
-            <div>
-              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: "rgba(255,200,60,0.9)" }}>
-                3 items need your review
-              </p>
-              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary }}>
-                Your team is waiting on your feedback to keep things moving
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/client-hub/review"
+        {pendingReviews.length > 0 && (
+          <div
             style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 600,
-              fontSize: "11px",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              color: "#000000",
-              background: "rgba(255,200,60,0.9)",
-              padding: "8px 20px",
-              borderRadius: "6px",
-              textDecoration: "none",
+              background: "rgba(255,200,60,0.04)",
+              border: "1px solid rgba(255,200,60,0.12)",
+              borderRadius: "10px",
+              padding: "20px 24px",
+              marginBottom: "36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            Review Now
-          </Link>
-        </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,200,60,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,200,60,0.8)" strokeWidth="1.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <div>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: "rgba(255,200,60,0.9)" }}>
+                  {pendingReviews.length} item{pendingReviews.length > 1 ? "s" : ""} need{pendingReviews.length === 1 ? "s" : ""} your review
+                </p>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary }}>
+                  Your team is waiting on your feedback to keep things moving
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/client-hub/review"
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 600,
+                fontSize: "11px",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "#000000",
+                background: "rgba(255,200,60,0.9)",
+                padding: "8px 20px",
+                borderRadius: "6px",
+                textDecoration: "none",
+              }}
+            >
+              Review Now
+            </Link>
+          </div>
+        )}
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", marginBottom: "36px" }}>
           <div>
@@ -110,32 +146,39 @@ export default function ClientDashboard() {
                 View All →
               </Link>
             </div>
-            {recentMessages.map((msg, i) => (
-              <Link key={i} href="/client-hub/messages" style={{ textDecoration: "none", display: "block" }}>
+            {recentMessages.length === 0 && (
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textMuted, padding: "16px 0" }}>
+                No messages yet
+              </p>
+            )}
+            {recentMessages.slice(0, 5).map((msg: Message) => (
+              <Link key={msg.id} href="/client-hub/messages" style={{ textDecoration: "none", display: "block" }}>
                 <div
                   style={{
                     padding: "14px 16px",
                     borderRadius: "8px",
-                    background: msg.unread ? t.hoverBg : "transparent",
-                    borderLeft: msg.unread ? `2px solid ${t.accent}` : "2px solid transparent",
+                    background: !msg.read ? t.hoverBg : "transparent",
+                    borderLeft: !msg.read ? `2px solid ${t.accent}` : "2px solid transparent",
                     marginBottom: "2px",
                     cursor: "pointer",
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: msg.unread ? 600 : 500, fontSize: "13px", color: t.text }}>
-                      {msg.author}
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: !msg.read ? 600 : 500, fontSize: "13px", color: t.text }}>
+                      {msg.senderName}
                     </span>
                     <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>
-                      {msg.time}
+                      {timeAgo(msg.createdAt)}
                     </span>
                   </div>
                   <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary, marginBottom: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {msg.text}
+                    {msg.content}
                   </p>
-                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.tagText, background: t.tagBg, padding: "2px 8px", borderRadius: "4px" }}>
-                    {msg.project}
-                  </span>
+                  {msg.projectName && (
+                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.tagText, background: t.tagBg, padding: "2px 8px", borderRadius: "4px" }}>
+                      {msg.projectName}
+                    </span>
+                  )}
                 </div>
               </Link>
             ))}
@@ -147,52 +190,80 @@ export default function ClientDashboard() {
                 Content to Review
               </h2>
             </div>
-            {pendingReviews.map((review, i) => (
-              <div
-                key={i}
-                style={{
-                  padding: "14px 16px",
-                  borderRadius: "8px",
-                  background: t.bgCard,
-                  border: `1px solid ${t.border}`,
-                  marginBottom: "8px",
-                  cursor: "pointer",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
-                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text }}>
-                    {review.title}
-                  </p>
-                  <span
+            {pendingReviews.length === 0 && (
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textMuted, padding: "16px 0" }}>
+                No pending reviews
+              </p>
+            )}
+            {pendingReviews.map((review: PendingReview) => {
+              const typeColor =
+                review.type === "video"
+                  ? "rgba(120,180,255,0.8)"
+                  : review.type === "graphics"
+                    ? "rgba(200,140,255,0.8)"
+                    : "rgba(120,220,160,0.8)";
+              const typeBg =
+                review.type === "video"
+                  ? "rgba(120,180,255,0.08)"
+                  : review.type === "graphics"
+                    ? "rgba(200,140,255,0.08)"
+                    : "rgba(120,220,160,0.08)";
+              const typeLabel =
+                review.type === "video"
+                  ? "Video Draft"
+                  : review.type === "graphics"
+                    ? "Graphics"
+                    : review.type.charAt(0).toUpperCase() + review.type.slice(1);
+              const reminder = reminderLabel(review.reminderCount, review.lastReminderDay);
+
+              return (
+                <Link key={review.id} href="/client-hub/review" style={{ textDecoration: "none", display: "block" }}>
+                  <div
                     style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 600,
-                      fontSize: "9px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      color: review.type === "Video Draft" ? "rgba(120,180,255,0.8)" : review.type === "Graphics" ? "rgba(200,140,255,0.8)" : "rgba(120,220,160,0.8)",
-                      background: review.type === "Video Draft" ? "rgba(120,180,255,0.08)" : review.type === "Graphics" ? "rgba(200,140,255,0.08)" : "rgba(120,220,160,0.08)",
-                      padding: "3px 10px",
-                      borderRadius: "4px",
-                      flexShrink: 0,
-                      marginLeft: "8px",
+                      padding: "14px 16px",
+                      borderRadius: "8px",
+                      background: t.bgCard,
+                      border: `1px solid ${t.border}`,
+                      marginBottom: "8px",
+                      cursor: "pointer",
                     }}
                   >
-                    {review.type}
-                  </span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>
-                    Submitted {review.submitted}
-                  </span>
-                  {review.reminder && (
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: "rgba(255,180,60,0.7)" }}>
-                      {review.reminder}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
+                      <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text }}>
+                        {review.title}
+                      </p>
+                      <span
+                        style={{
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: 600,
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          color: typeColor,
+                          background: typeBg,
+                          padding: "3px 10px",
+                          borderRadius: "4px",
+                          flexShrink: 0,
+                          marginLeft: "8px",
+                        }}
+                      >
+                        {typeLabel}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>
+                        Submitted {review.submittedAt ? timeAgo(review.submittedAt) : "—"}
+                      </span>
+                      {reminder && (
+                        <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: "rgba(255,180,60,0.7)" }}>
+                          {reminder}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
 
@@ -200,9 +271,14 @@ export default function ClientDashboard() {
           <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.textTertiary, marginBottom: "16px" }}>
             Active Projects
           </h2>
+          {activeProjects.length === 0 && (
+            <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textMuted }}>
+              No active projects
+            </p>
+          )}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-            {projectStatus.map((project) => (
-              <Link key={project.name} href="/client-hub/projects" style={{ textDecoration: "none" }}>
+            {activeProjects.map((project: Project) => (
+              <Link key={project.id} href="/client-hub/projects" style={{ textDecoration: "none" }}>
                 <div
                   style={{
                     background: t.bgCard,
@@ -218,19 +294,21 @@ export default function ClientDashboard() {
                       {project.name}
                     </p>
                     <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary }}>
-                      {project.progress}%
+                      {project.calculatedProgress}%
                     </span>
                   </div>
                   <div style={{ height: "3px", background: t.border, borderRadius: "2px", overflow: "hidden", marginBottom: "12px" }}>
-                    <div style={{ height: "100%", width: `${project.progress}%`, background: t.accent, borderRadius: "2px" }} />
+                    <div style={{ height: "100%", width: `${project.calculatedProgress}%`, background: t.accent, borderRadius: "2px" }} />
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "12px", color: t.textTertiary }}>
-                      {project.phase}
+                      {phaseLabel(project.phase)}
                     </span>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>
-                      Next: {project.nextMilestone}
-                    </span>
+                    {project.dueDate && (
+                      <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>
+                        Due: {new Date(project.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </span>
+                    )}
                   </div>
                 </div>
               </Link>

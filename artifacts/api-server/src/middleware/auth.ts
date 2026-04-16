@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { verifyToken } from "../lib/auth";
+
+const COOKIE_NAME = "pgtsnd_session";
 
 declare global {
   namespace Express {
@@ -20,7 +23,22 @@ export async function authMiddleware(
   res: Response,
   next: NextFunction,
 ) {
-  const userId = req.headers["x-user-id"] as string;
+  let userId: string | undefined;
+
+  const token = req.cookies?.[COOKIE_NAME];
+  if (token) {
+    const payload = verifyToken(token);
+    if (payload) {
+      userId = payload.userId;
+    }
+  }
+
+  if (!userId && process.env.NODE_ENV === "development") {
+    const headerUserId = req.headers["x-user-id"] as string;
+    if (headerUserId) {
+      userId = headerUserId;
+    }
+  }
 
   if (!userId) {
     res.status(401).json({ error: "Authentication required" });

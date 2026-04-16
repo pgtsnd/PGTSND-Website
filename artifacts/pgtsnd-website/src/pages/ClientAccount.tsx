@@ -1,10 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
+import { api, type UserProfile } from "../lib/api";
 
 export default function ClientAccount() {
   const { t } = useTheme();
   const [activeTab, setActiveTab] = useState<"profile" | "notifications" | "support">("profile");
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [formData, setFormData] = useState({ name: "", phone: "", title: "" });
+
+  useEffect(() => {
+    api
+      .getClientProfile()
+      .then((data) => {
+        setProfile(data);
+        setFormData({
+          name: data.name || "",
+          phone: data.phone || "",
+          title: data.title || "",
+        });
+      })
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveMessage(null);
+    try {
+      const updated = await api.updateClientProfile(formData);
+      setProfile(updated);
+      setSaveMessage("Changes saved!");
+    } catch (err: unknown) {
+      setSaveMessage(`Error: ${err instanceof Error ? err.message : "Failed to save"}`);
+    }
+    setSaving(false);
+  };
 
   const inputStyle: React.CSSProperties = {
     fontFamily: "'Montserrat', sans-serif",
@@ -36,6 +71,31 @@ export default function ClientAccount() {
     { key: "notifications" as const, label: "Notifications" },
     { key: "support" as const, label: "Support" },
   ];
+
+  if (loading) {
+    return (
+      <ClientLayout>
+        <div style={{ padding: "48px 56px" }}>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", color: t.textTertiary }}>Loading...</p>
+        </div>
+      </ClientLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ClientLayout>
+        <div style={{ padding: "48px 56px" }}>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", color: "rgba(255,100,100,0.8)" }}>{error}</p>
+        </div>
+      </ClientLayout>
+    );
+  }
+
+  const nameParts = (profile?.name || "").split(" ");
+  const initials = nameParts.length >= 2
+    ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
+    : (profile?.initials || "??");
 
   return (
     <ClientLayout>
@@ -70,21 +130,64 @@ export default function ClientAccount() {
         {activeTab === "profile" && (
           <div style={{ maxWidth: "560px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "48px" }}>
-              <div style={{ width: "72px", height: "72px", borderRadius: "50%", background: t.activeNav, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "22px", color: t.textTertiary }}>NB</div>
+              <div style={{ width: "72px", height: "72px", borderRadius: "50%", background: t.activeNav, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "22px", color: t.textTertiary }}>
+                {initials}
+              </div>
               <div>
-                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "2px" }}>Nicole Baker</p>
-                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textTertiary }}>Net Your Problem</p>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "2px" }}>
+                  {profile?.name || "—"}
+                </p>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textTertiary }}>
+                  {profile?.organizationName || "—"}
+                </p>
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>
-              <div><label style={labelStyle}>First Name</label><input type="text" defaultValue="Nicole" style={inputStyle} /></div>
-              <div><label style={labelStyle}>Last Name</label><input type="text" defaultValue="Baker" style={inputStyle} /></div>
+            {saveMessage && (
+              <div style={{ padding: "12px 16px", background: saveMessage.startsWith("Error") ? "rgba(255,100,100,0.08)" : "rgba(96,208,96,0.08)", borderRadius: "8px", marginBottom: "24px" }}>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "13px", color: saveMessage.startsWith("Error") ? "rgba(255,100,100,0.8)" : "rgba(96,208,96,0.8)" }}>{saveMessage}</p>
+              </div>
+            )}
+
+            <div style={{ marginBottom: "24px" }}>
+              <label style={labelStyle}>Full Name</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                style={inputStyle}
+              />
             </div>
-            <div style={{ marginBottom: "24px" }}><label style={labelStyle}>Email</label><input type="email" defaultValue="nicole@netyourproblem.com" style={inputStyle} /></div>
-            <div style={{ marginBottom: "24px" }}><label style={labelStyle}>Company</label><input type="text" defaultValue="Net Your Problem" style={inputStyle} /></div>
-            <div style={{ marginBottom: "40px" }}><label style={labelStyle}>Phone</label><input type="tel" defaultValue="(206) 555-0142" style={inputStyle} /></div>
-            <button style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.accentText, background: t.accent, border: "none", borderRadius: "6px", padding: "12px 32px", cursor: "pointer" }}>Save Changes</button>
+            <div style={{ marginBottom: "24px" }}>
+              <label style={labelStyle}>Email</label>
+              <input type="email" value={profile?.email || ""} disabled style={{ ...inputStyle, opacity: 0.6, cursor: "not-allowed" }} />
+            </div>
+            <div style={{ marginBottom: "24px" }}>
+              <label style={labelStyle}>Title</label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="e.g., CEO, Marketing Director"
+                style={inputStyle}
+              />
+            </div>
+            <div style={{ marginBottom: "40px" }}>
+              <label style={labelStyle}>Phone</label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                style={inputStyle}
+              />
+            </div>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.accentText, background: t.accent, border: "none", borderRadius: "6px", padding: "12px 32px", cursor: "pointer", opacity: saving ? 0.5 : 1 }}
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
           </div>
         )}
 

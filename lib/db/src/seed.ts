@@ -10,11 +10,14 @@ import {
   reviewsTable,
   messagesTable,
   contractsTable,
+  reviewRemindersTable,
+  magicLinkTokensTable,
 } from "./schema";
 
 async function seed() {
   console.log("Seeding database...");
 
+  await db.delete(reviewRemindersTable);
   await db.delete(reviewsTable);
   await db.delete(messagesTable);
   await db.delete(contractsTable);
@@ -24,6 +27,7 @@ async function seed() {
   await db.delete(projectMembersTable);
   await db.delete(projectsTable);
   await db.delete(organizationsTable);
+  await db.delete(magicLinkTokensTable);
   await db.delete(usersTable);
 
   const [bri, marcus, jamie, alex, sam, kandice] = await db

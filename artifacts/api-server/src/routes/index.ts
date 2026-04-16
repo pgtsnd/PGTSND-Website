@@ -9,6 +9,7 @@ import deliverablesRouter from "./deliverables";
 import reviewsRouter from "./reviews";
 import messagesRouter from "./messages";
 import contractsRouter from "./contracts";
+import clientRouter from "./client";
 import { authMiddleware } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -25,5 +26,6 @@ router.use(deliverablesRouter);
 router.use(reviewsRouter);
 router.use(messagesRouter);
 router.use(contractsRouter);
+router.use(clientRouter);
 
 export default router;
