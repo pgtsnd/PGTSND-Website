@@ -69,7 +69,7 @@ export default function AlaskaWhitefishTrawlers() {
               </div>
             </div>
           </div>
-          <div style={{ position: "absolute", left: "0px", bottom: "20px" }}>
+          <div style={{ position: "absolute", left: "15px", bottom: "-30px" }}>
             <ScrollBadge position="bottom-right" inline />
           </div>
         </section>
