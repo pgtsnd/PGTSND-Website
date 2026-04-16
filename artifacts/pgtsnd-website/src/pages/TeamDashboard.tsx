@@ -11,16 +11,15 @@ import {
   daysUntil,
   type Project,
 } from "../hooks/useTeamData";
+import { pickHeaderImage } from "../lib/projectImages";
 import {
   useListInvoices,
   useUpdateInvoice,
   useSendInvoice,
-  useListProjectDeliverables,
-  useListProjectTasks,
   getListInvoicesQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Invoice, Deliverable, Task } from "@workspace/api-client-react";
+import type { Invoice } from "@workspace/api-client-react";
 import { api, type Phase } from "../lib/api";
 
 const PHASE_COLORS = [
@@ -781,6 +780,61 @@ function InvoiceRow({
   );
 }
 
+function InvoiceGroupCard({
+  title,
+  accentColor,
+  invoices,
+  projectMap,
+  expandedId,
+  setExpandedId,
+}: {
+  title: string;
+  accentColor: string;
+  invoices: Invoice[];
+  projectMap: Map<string, Project>;
+  expandedId: string | null;
+  setExpandedId: (id: string | null) => void;
+}) {
+  const { t } = useTheme();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  if (invoices.length === 0) return null;
+  const total = invoices.reduce((sum, i) => sum + Number(i.amount ?? 0), 0);
+  return (
+    <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", overflow: "hidden" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "12px 18px",
+          background: t.bg,
+          borderBottom: `1px solid ${t.borderSubtle}`,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: accentColor }} />
+          <span style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", color: t.text })}>
+            {title} · {invoices.length}
+          </span>
+        </div>
+        <span style={f({ fontWeight: 800, fontSize: "13px", color: t.text })}>
+          {fmtUsd(total)}
+        </span>
+      </div>
+      {invoices.map((inv, i) => (
+        <InvoiceRow
+          key={inv.id}
+          inv={inv}
+          project={projectMap.get(inv.projectId)}
+          isLast={i === invoices.length - 1}
+          expanded={expandedId === inv.id}
+          onToggle={() => setExpandedId(expandedId === inv.id ? null : inv.id)}
+        />
+      ))}
+    </div>
+  );
+}
+
 function PlannedInvoicesPanel({
   rev,
   projectMap,
@@ -792,264 +846,162 @@ function PlannedInvoicesPanel({
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const all = [...rev.overdueInvoices, ...rev.upcomingDue]
-    .filter((inv, idx, arr) => arr.findIndex((x) => x.id === inv.id) === idx)
-    .sort((a, b) => {
-      const da = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-      const db_ = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-      return da - db_;
-    })
-    .slice(0, 6);
+  const sortByDue = (a: Invoice, b: Invoice) => {
+    const da = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+    const db_ = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+    return da - db_;
+  };
 
-  if (all.length === 0) return null;
+  const overdueIds = new Set(rev.overdueInvoices.map((i) => i.id));
+  const overdue = [...rev.overdueInvoices].sort(sortByDue).slice(0, 5);
+  const upcoming = rev.upcomingDue
+    .filter((i) => !overdueIds.has(i.id))
+    .sort(sortByDue)
+    .slice(0, 5);
+
+  if (overdue.length === 0 && upcoming.length === 0) return null;
 
   return (
-    <div style={{ marginBottom: "32px" }}>
-      <h2 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "14px" })}>
-        Planned & overdue invoices
+    <div style={{ marginBottom: "40px" }}>
+      <h2 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "16px" })}>
+        Invoices needing follow-up
       </h2>
-      <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", overflow: "hidden" }}>
-        {all.map((inv, i) => (
-          <InvoiceRow
-            key={inv.id}
-            inv={inv}
-            project={projectMap.get(inv.projectId)}
-            isLast={i === all.length - 1}
-            expanded={expandedId === inv.id}
-            onToggle={() => setExpandedId(expandedId === inv.id ? null : inv.id)}
-          />
-        ))}
+      <div style={{ display: "grid", gap: "16px" }}>
+        <InvoiceGroupCard
+          title="Overdue"
+          accentColor="#ff6b6b"
+          invoices={overdue}
+          projectMap={projectMap}
+          expandedId={expandedId}
+          setExpandedId={setExpandedId}
+        />
+        <InvoiceGroupCard
+          title="Upcoming"
+          accentColor="rgba(120,180,255,0.85)"
+          invoices={upcoming}
+          projectMap={projectMap}
+          expandedId={expandedId}
+          setExpandedId={setExpandedId}
+        />
       </div>
     </div>
   );
 }
 
-function ActionItemRow({
-  href,
-  icon,
-  title,
-  subtitle,
-  badge,
-}: {
-  href: string;
-  icon: string;
-  title: string;
-  subtitle: string;
-  badge?: { label: string; color: string };
-}) {
-  const { t } = useTheme();
-  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
-  return (
-    <Link href={href} style={{ textDecoration: "none" }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "auto 1fr auto",
-          gap: "12px",
-          alignItems: "center",
-          padding: "10px 14px",
-          borderRadius: "6px",
-          cursor: "pointer",
-          background: t.hoverBg,
-          marginBottom: "6px",
-        }}
-      >
-        <span style={f({ fontSize: "14px" })}>{icon}</span>
-        <div style={{ minWidth: 0 }}>
-          <p style={f({ fontWeight: 600, fontSize: "12px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" })}>
-            {title}
-          </p>
-          <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textTertiary, marginTop: "1px" })}>
-            {subtitle}
-          </p>
-        </div>
-        {badge && (
-          <span style={f({ fontWeight: 600, fontSize: "9px", color: badge.color, background: "rgba(255,255,255,0.05)", padding: "3px 8px", borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.05em" })}>
-            {badge.label}
-          </span>
-        )}
-      </div>
-    </Link>
-  );
-}
-
-function ProjectActionItems({ projectId }: { projectId: string }) {
-  const { t } = useTheme();
-  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
-
-  const { data: deliverables, isLoading: dLoading } = useListProjectDeliverables(projectId);
-  const { data: tasks, isLoading: tLoading } = useListProjectTasks(projectId);
-
-  const reviewDeliverables: Deliverable[] = useMemo(
-    () => (deliverables ?? []).filter((d) => d.status === "in_review"),
-    [deliverables],
-  );
-  const openTasks: Task[] = useMemo(
-    () =>
-      (tasks ?? [])
-        .filter((tk) => tk.status === "in_progress" || tk.status === "blocked")
-        .sort((a, b) => {
-          const da = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-          const db_ = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-          return da - db_;
-        })
-        .slice(0, 6),
-    [tasks],
-  );
-
-  if (dLoading || tLoading) {
-    return (
-      <p style={f({ fontSize: "11px", color: t.textTertiary, padding: "8px 14px" })}>
-        Loading action items…
-      </p>
-    );
-  }
-
-  if (reviewDeliverables.length === 0 && openTasks.length === 0) {
-    return (
-      <p style={f({ fontSize: "11px", color: t.textTertiary, padding: "8px 14px" })}>
-        Nothing flagged on this project right now.
-      </p>
-    );
-  }
-
-  return (
-    <div>
-      {reviewDeliverables.length > 0 && (
-        <>
-          <p style={f({ fontWeight: 700, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", padding: "4px 14px 6px" })}>
-            Awaiting review · {reviewDeliverables.length}
-          </p>
-          {reviewDeliverables.map((d) => (
-            <ActionItemRow
-              key={d.id}
-              href={`/team/projects/${projectId}`}
-              icon="🎬"
-              title={d.title}
-              subtitle={`${d.type ?? "deliverable"} · sent for review`}
-              badge={{ label: "Review", color: "rgba(255,200,80,1)" }}
-            />
-          ))}
-        </>
-      )}
-      {openTasks.length > 0 && (
-        <>
-          <p style={f({ fontWeight: 700, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", padding: "10px 14px 6px" })}>
-            Open tasks · {openTasks.length}
-          </p>
-          {openTasks.map((tk) => {
-            const due = tk.dueDate ? daysUntil(tk.dueDate) : null;
-            const dueLabel = due === null
-              ? "no due date"
-              : due < 0
-              ? `${Math.abs(due)}d overdue`
-              : due === 0
-              ? "due today"
-              : `${due}d left`;
-            return (
-              <ActionItemRow
-                key={tk.id}
-                href={`/team/projects/${projectId}`}
-                icon={tk.status === "blocked" ? "🚫" : "▶"}
-                title={tk.title}
-                subtitle={`${tk.status === "blocked" ? "blocked" : "in progress"} · ${dueLabel}`}
-                badge={
-                  due !== null && due < 0
-                    ? { label: "Late", color: "#ff6b6b" }
-                    : due !== null && due <= 3
-                    ? { label: "Soon", color: "rgba(255,200,80,1)" }
-                    : undefined
-                }
-              />
-            );
-          })}
-        </>
-      )}
-    </div>
-  );
-}
-
-function NeedsAttentionRow({
+function NeedsAttentionCard({
   p,
   dleft,
-  expanded,
-  onToggle,
-  isLast,
+  urgencyTone,
 }: {
   p: Project;
   dleft: number | null;
-  expanded: boolean;
-  onToggle: () => void;
-  isLast: boolean;
+  urgencyTone: "critical" | "soon" | "later" | "none";
 }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const img = pickHeaderImage({ id: p.id, name: p.name });
+
   const isOverdue = dleft !== null && dleft < 0;
   const isSoon = dleft !== null && dleft >= 0 && dleft <= 7;
+  const dateColor = isOverdue ? "#ff6b6b" : isSoon ? "rgba(255,200,80,1)" : t.textTertiary;
+  const dateLabel =
+    dleft === null
+      ? "No due date"
+      : isOverdue
+      ? `${Math.abs(dleft)}d overdue`
+      : dleft === 0
+      ? "Due today"
+      : `${dleft}d left`;
+
+  const urgencyAccent: Record<typeof urgencyTone, string> = {
+    critical: "rgba(255,90,90,0.85)",
+    soon: "rgba(255,200,80,0.85)",
+    later: "rgba(120,180,255,0.7)",
+    none: "rgba(150,150,150,0.5)",
+  };
 
   return (
-    <div style={{ borderBottom: !isLast ? `1px solid ${t.borderSubtle}` : "none" }}>
+    <Link href={`/team/projects/${p.id}`} style={{ textDecoration: "none" }}>
       <div
-        onClick={onToggle}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "auto 1fr auto auto auto",
-          gap: "14px",
-          alignItems: "center",
-          padding: "14px 18px",
-          cursor: "pointer",
-        }}
         data-testid={`attn-${p.id}`}
+        style={{
+          background: t.bgCard,
+          border: `1px solid ${t.border}`,
+          borderRadius: "12px",
+          overflow: "hidden",
+          cursor: "pointer",
+          transition: "transform 0.15s, border-color 0.15s",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.borderColor = t.textMuted;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "none";
+          e.currentTarget.style.borderColor = t.border;
+        }}
       >
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2.5"
-          style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-        <div style={{ minWidth: 0 }}>
-          <p style={f({ fontWeight: 700, fontSize: "13px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" })}>
-            {p.name}
-          </p>
-          <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textTertiary, marginTop: "2px" })}>
-            {(p as Project & { organizationName?: string }).organizationName || "—"} · {formatPhase(p.phase)}
-          </p>
-        </div>
-        <div style={{ width: "120px", display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ flex: 1, height: "4px", background: t.borderSubtle, borderRadius: "2px", overflow: "hidden" }}>
-            <div style={{ width: `${p.progress}%`, height: "100%", background: t.accent, borderRadius: "2px", transition: "width 0.3s" }} />
+        <div style={{ position: "relative", aspectRatio: "16 / 9", overflow: "hidden" }}>
+          <img
+            src={img}
+            alt=""
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            loading="lazy"
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.85) 100%)",
+            }}
+          />
+          <div style={{ position: "absolute", top: "10px", left: "10px", right: "10px", display: "flex", justifyContent: "space-between", gap: "8px" }}>
+            <span style={f({ fontWeight: 600, fontSize: "9px", color: "#fff", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", padding: "4px 9px", borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.06em" })}>
+              {formatPhase(p.phase)}
+            </span>
+            <span style={f({ fontWeight: 700, fontSize: "9px", color: "#fff", background: urgencyAccent[urgencyTone], padding: "4px 9px", borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" })}>
+              {urgencyTone === "critical" ? "Critical" : urgencyTone === "soon" ? "This week" : urgencyTone === "later" ? "Tracking" : "No date"}
+            </span>
           </div>
-          <span style={f({ fontWeight: 700, fontSize: "11px", color: t.text, minWidth: "32px", textAlign: "right" as const })}>
-            {p.progress}%
-          </span>
+          <div style={{ position: "absolute", bottom: "12px", left: "14px", right: "14px" }}>
+            <p style={f({ fontWeight: 800, fontSize: "15px", color: "#fff", margin: 0, lineHeight: 1.2, textShadow: "0 2px 8px rgba(0,0,0,0.5)" })}>
+              {p.name}
+            </p>
+            <p style={f({ fontWeight: 500, fontSize: "11px", color: "rgba(255,255,255,0.85)", marginTop: "3px" })}>
+              {(p as Project & { organizationName?: string }).organizationName || "—"}
+            </p>
+          </div>
         </div>
-        <span style={f({ fontWeight: 600, fontSize: "11px", color: isOverdue ? "#ff6b6b" : isSoon ? "rgba(255,200,80,1)" : t.textTertiary, minWidth: "90px", textAlign: "right" as const })}>
-          {dleft === null
-            ? "No due date"
-            : isOverdue
-            ? `${Math.abs(dleft)}d overdue`
-            : dleft === 0
-            ? "Due today"
-            : `${dleft}d left`}
-        </span>
-        <Link href={`/team/projects/${p.id}`} onClick={(e) => e.stopPropagation()} style={{ textDecoration: "none" }}>
-          <span style={f({ fontWeight: 600, fontSize: "11px", color: t.textTertiary })}>
-            Open →
-          </span>
-        </Link>
-      </div>
 
-      {expanded && (
-        <div style={{ padding: "8px 18px 14px 41px", background: t.bg, borderTop: `1px solid ${t.borderSubtle}` }}>
-          <ProjectActionItems projectId={p.id} />
+        <div style={{ padding: "14px 16px 16px", display: "flex", flexDirection: "column", gap: "10px", flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ flex: 1, height: "5px", background: t.borderSubtle, borderRadius: "3px", overflow: "hidden" }}>
+              <div style={{ width: `${p.progress}%`, height: "100%", background: t.accent, borderRadius: "3px", transition: "width 0.3s" }} />
+            </div>
+            <span style={f({ fontWeight: 700, fontSize: "12px", color: t.text, minWidth: "36px", textAlign: "right" as const })}>
+              {p.progress}%
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+            <span style={f({ fontWeight: 600, fontSize: "11px", color: dateColor })}>
+              {dateLabel}
+            </span>
+            <span style={f({ fontWeight: 700, fontSize: "11px", color: t.textTertiary })}>
+              Open →
+            </span>
+          </div>
         </div>
-      )}
-    </div>
+      </div>
+    </Link>
   );
 }
 
 function NeedsAttentionPanel({ projects }: { projects: Project[] }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const scored = projects
     .filter((p) => p.status !== "archived" && p.status !== "delivered")
@@ -1065,7 +1017,12 @@ function NeedsAttentionPanel({ projects }: { projects: Project[] }) {
       if (p.status === "review") urgency += 80;
       if (p.status === "lead") urgency += 30;
       urgency += Math.max(0, 100 - p.progress) * 0.3;
-      return { p, urgency, dleft };
+      let urgencyTone: "critical" | "soon" | "later" | "none";
+      if (dleft === null) urgencyTone = "none";
+      else if (dleft < 0 || dleft <= 3) urgencyTone = "critical";
+      else if (dleft <= 14) urgencyTone = "soon";
+      else urgencyTone = "later";
+      return { p, urgency, dleft, urgencyTone };
     })
     .sort((a, b) => b.urgency - a.urgency)
     .slice(0, 6);
@@ -1081,23 +1038,26 @@ function NeedsAttentionPanel({ projects }: { projects: Project[] }) {
   }
 
   return (
-    <div style={{ marginBottom: "32px" }}>
-      <h2 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted, marginBottom: "14px" })}>
-        Needs attention · top {scored.length}
-      </h2>
-      <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textTertiary, marginBottom: "10px", marginTop: "-8px" })}>
-        Click a project to see deliverables awaiting review and tasks in flight.
-      </p>
-      <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px", overflow: "hidden" }}>
-        {scored.map(({ p, dleft }, i) => (
-          <NeedsAttentionRow
-            key={p.id}
-            p={p}
-            dleft={dleft}
-            expanded={expandedId === p.id}
-            onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
-            isLast={i === scored.length - 1}
-          />
+    <div style={{ marginBottom: "40px" }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "16px" }}>
+        <h2 style={f({ fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted })}>
+          Needs attention · top {scored.length}
+        </h2>
+        <Link href="/team/projects" style={{ textDecoration: "none" }}>
+          <span style={f({ fontWeight: 600, fontSize: "11px", color: t.textTertiary })}>
+            All projects →
+          </span>
+        </Link>
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+          gap: "16px",
+        }}
+      >
+        {scored.map(({ p, dleft, urgencyTone }) => (
+          <NeedsAttentionCard key={p.id} p={p} dleft={dleft} urgencyTone={urgencyTone} />
         ))}
       </div>
     </div>
