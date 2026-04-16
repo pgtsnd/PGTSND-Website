@@ -199,7 +199,7 @@ export default function AlaskaBeringSeaCrabbers() {
               thumbnail={"/images/case-studies/absc/pgtsnd-ABSC-photography-2.jpeg"}
               duration="05:02"
             />
-            <div style={{ position: "absolute", top: "16px", right: "16px", zIndex: 2 }}>
+            <div style={{ position: "absolute", top: "-34px", right: "16px", zIndex: 2 }}>
               <ScrollBadge position="bottom-right" inline />
             </div>
           </div>
