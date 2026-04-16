@@ -312,6 +312,7 @@ export default function NWSablefish() {
                 overflowX: "hidden",
                 background: "#ffffff",
                 boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
+                scrollbarGutter: "stable",
               }}
             >
               <img
