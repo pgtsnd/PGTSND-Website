@@ -102,11 +102,11 @@ export default function Home() {
       </section>
 
       {/* ===== VIDEO / IMAGE SECTION WITH OVERLAPPING TESTIMONIAL ===== */}
-      <section style={{ paddingTop: "100px", padding: "100px 80px 0", maxWidth: "1400px", margin: "0 auto" }}>
+      <section style={{ paddingTop: "100px", padding: "100px 0 0" }}>
         <div style={{ position: "relative" }}>
           <VideoPlaceholder
-            imageSrc={`${import.meta.env.BASE_URL}images/nicole-baker-pgtsnd.jpg`}
-            imageAlt="PGTSND video production reel"
+            imageSrc={`${import.meta.env.BASE_URL}images/boats-aerial-drone-pgtsnd.png`}
+            imageAlt="PGTSND aerial drone shot of fishing vessels"
           />
           <div
             style={{
