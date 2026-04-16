@@ -28,7 +28,6 @@ const galleryImages = [
   "/images/case-studies/green-juju/green-juju-ingredientspgtsnd-photography.jpeg",
   "/images/case-studies/green-juju/pets-green-juju-pgtsnd-bri-dwyer.jpeg",
   "/images/case-studies/green-juju/green-juju-supplements-close-pgtsnd.jpeg",
-  "/images/case-studies/green-juju/founder-farm-green-juju-pgtsnd-bri-dwyer.jpg",
   "/images/case-studies/green-juju/puppies-green-juju-pgtsnd.jpeg",
   "/images/case-studies/green-juju/green-juju-vitality-blend-pgtsnd.jpeg",
 ];
