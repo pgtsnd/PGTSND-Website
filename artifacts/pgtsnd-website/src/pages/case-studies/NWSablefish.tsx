@@ -256,14 +256,14 @@ export default function NWSablefish() {
               style={{ position: "absolute", bottom: "-20px", right: "-10px", width: "50px", height: "auto", transform: "rotate(15deg)", pointerEvents: "none", zIndex: 2 }}
             />
           </div>
-          <div style={{ maxWidth: "560px", marginLeft: "auto" }}>
-            <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff", marginBottom: "32px" })}>
+          <div style={{ maxWidth: "440px", marginLeft: "auto", padding: "60px 0 60px" }}>
+            <h2 style={f({ fontWeight: 900, fontSize: "clamp(32px, 4vw, 48px)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1, color: "#ffffff", marginBottom: "44px" })}>
               The Big Picture
             </h2>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2, marginBottom: "28px" })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2.2, marginBottom: "36px" })}>
               North West Sablefish came to PGTSND with a goal to set their product apart in a crowded market and give it the premium presence it deserved.
             </p>
-            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2 })}>
+            <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", lineHeight: 2.2 })}>
               Our team built the brand from the ground up, creating a logo, brand guide, and an aligned suite of digital platforms that framed their sablefish as both distinctive and versatile.
             </p>
           </div>
