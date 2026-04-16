@@ -126,14 +126,30 @@ export default function TermsOfService() {
           </p>
 
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(24px, 3vw, 36px)", textTransform: "uppercase", letterSpacing: "-0.01em", lineHeight: 1.1, color: "#ffffff", marginBottom: "24px" })}>
-            8. Indemnification
+            8. SMS Terms of Service
+          </h2>
+          <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
+            By contacting PGTSND Productions via phone or submitting your phone number through our website, you agree to receive text messages related to your inquiry and services, including follow-ups if your call is not answered.
+          </p>
+          <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
+            Message frequency may vary. Message and data rates may apply.
+          </p>
+          <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
+            You may opt out at any time by replying STOP. For assistance, reply HELP.
+          </p>
+          <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "48px" })}>
+            Consent to receive text messages is not a condition of purchase.
+          </p>
+
+          <h2 style={f({ fontWeight: 900, fontSize: "clamp(24px, 3vw, 36px)", textTransform: "uppercase", letterSpacing: "-0.01em", lineHeight: 1.1, color: "#ffffff", marginBottom: "24px" })}>
+            9. Indemnification
           </h2>
           <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "48px" })}>
             You agree to indemnify, defend, and hold harmless PGTSND Productions, its employees, contractors, and affiliates from and against any claims, damages, liabilities, or expenses arising out of your use of this Site or violation of these Terms.
           </p>
 
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(24px, 3vw, 36px)", textTransform: "uppercase", letterSpacing: "-0.01em", lineHeight: 1.1, color: "#ffffff", marginBottom: "24px" })}>
-            9. Governing Law
+            10. Governing Law
           </h2>
           <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "16px" })}>
             These Terms are governed by and construed in accordance with the laws of the State of Washington, without regard to conflict of law provisions.
@@ -143,14 +159,14 @@ export default function TermsOfService() {
           </p>
 
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(24px, 3vw, 36px)", textTransform: "uppercase", letterSpacing: "-0.01em", lineHeight: 1.1, color: "#ffffff", marginBottom: "24px" })}>
-            10. Changes to These Terms
+            11. Changes to These Terms
           </h2>
           <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "48px" })}>
             We may update these Terms from time to time. The updated version will be posted on this page with a revised &ldquo;last updated&rdquo; date. Continued use of the Site after changes are made constitutes your acceptance of the new Terms.
           </p>
 
           <h2 style={f({ fontWeight: 900, fontSize: "clamp(24px, 3vw, 36px)", textTransform: "uppercase", letterSpacing: "-0.01em", lineHeight: 1.1, color: "#ffffff", marginBottom: "24px" })}>
-            11. Contact Information
+            12. Contact Information
           </h2>
           <p style={f({ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.8, marginBottom: "8px" })}>
             For any questions about these Terms and Conditions, please contact us:
