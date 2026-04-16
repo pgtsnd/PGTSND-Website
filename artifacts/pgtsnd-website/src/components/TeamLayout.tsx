@@ -167,7 +167,21 @@ export default function TeamLayout({ children }: { children: React.ReactNode }) 
       </aside>
 
       <main style={{ flex: 1, overflowY: "auto", minHeight: "100vh" }}>
-        {children}
+        <style>{`
+          @keyframes teamPageFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .team-page-transition {
+            animation: teamPageFadeIn 220ms ease-out both;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .team-page-transition { animation: none; }
+          }
+        `}</style>
+        <div key={location} className="team-page-transition">
+          {children}
+        </div>
       </main>
     </div>
   );
