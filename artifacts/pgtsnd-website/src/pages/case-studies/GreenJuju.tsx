@@ -319,11 +319,21 @@ export default function GreenJuju() {
               onMouseEnter={() => setWebHovered(true)}
               onMouseLeave={() => setWebHovered(false)}
             >
-              <img
-                src={"/images/case-studies/green-juju/green-juju-web-design-pgtsnd-screen-capture.jpeg"}
-                alt="Green Juju Website"
-                style={{ width: "100%", height: "auto", display: "block", borderRadius: "4px" }}
-              />
+              <div
+                style={{
+                  height: "420px",
+                  overflowY: "auto",
+                  borderRadius: "4px",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  background: "#000",
+                }}
+              >
+                <img
+                  src={"/images/case-studies/green-juju/green-juju-web-design-pgtsnd-screen-capture.jpeg"}
+                  alt="Green Juju Website"
+                  style={{ width: "100%", height: "auto", display: "block" }}
+                />
+              </div>
               <img
                 src={"/images/case-studies/green-juju/juju-cursor-case-study.png"}
                 alt=""
@@ -388,7 +398,16 @@ export default function GreenJuju() {
             </p>
           </div>
           <div>
-            <div style={{ borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
+            <div
+              style={{
+                height: "560px",
+                overflowY: "auto",
+                borderRadius: "4px",
+                border: "1px solid rgba(255,255,255,0.15)",
+                background: "#000",
+                marginBottom: "16px",
+              }}
+            >
               <img
                 src={"/images/case-studies/green-juju/green-juju-blog-post-pgtsnd-productions.jpg"}
                 alt="Green Juju Blog Post"
