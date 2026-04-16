@@ -16,6 +16,7 @@ import { eq, and, inArray, desc, type SQL } from "drizzle-orm";
 import { requireRole } from "../middleware/auth";
 import * as driveService from "../services/google-drive";
 import * as slackService from "../services/slack";
+import { notifyDeliverableApproved } from "../services/notifications";
 
 const router = Router();
 
@@ -518,6 +519,13 @@ router.post(
       .update(deliverablesTable)
       .set({ status: "approved" })
       .where(eq(deliverablesTable.id, deliverableId));
+
+    void notifyDeliverableApproved({
+      deliverableId,
+      approverUserId: userId,
+      approverName: req.user!.name ?? "The client",
+      comment: comment || null,
+    });
 
     res.json(review);
   },

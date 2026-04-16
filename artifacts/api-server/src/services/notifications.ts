@@ -300,6 +300,73 @@ export async function notifyPublicReviewComment(opts: {
   }
 }
 
+/**
+ * Sent when a client approves a deliverable.
+ * Notifies the project's team members (owner/partner/crew) — i.e. non-client
+ * project members — respecting their `emailNotifyReviews` preference.
+ */
+export async function notifyDeliverableApproved(opts: {
+  deliverableId: string;
+  approverUserId: string | null;
+  approverName: string;
+  comment?: string | null;
+}): Promise<void> {
+  try {
+    const ctx = await loadDeliverableContext(opts.deliverableId);
+    if (!ctx) return;
+    const { deliverable, project } = ctx;
+
+    const recipientIds = new Set<string>();
+    const teamMembers = await db
+      .select({ userId: projectMembersTable.userId, role: usersTable.role })
+      .from(projectMembersTable)
+      .innerJoin(usersTable, eq(usersTable.id, projectMembersTable.userId))
+      .where(
+        and(
+          eq(projectMembersTable.projectId, project.id),
+          ne(usersTable.role, "client"),
+        ),
+      );
+    for (const m of teamMembers) {
+      if (m.userId !== opts.approverUserId) recipientIds.add(m.userId);
+    }
+
+    if (recipientIds.size === 0) {
+      logger.info(
+        { deliverableId: opts.deliverableId, projectId: project.id },
+        "No team recipients for approval notification",
+      );
+      return;
+    }
+
+    const recipients = await loadUsersByIds([...recipientIds]);
+    const link = teamReviewLink(project.id, deliverable.id);
+    const trimmedComment = opts.comment?.trim();
+
+    await Promise.all(
+      recipients
+        .filter((u) => u.emailNotifyReviews && u.email)
+        .map((u) =>
+          sendEmail({
+            to: u.email,
+            subject: `Approved: "${deliverable.title}" (${project.name})`,
+            text:
+              `Hi ${u.name ?? "there"},\n\n` +
+              `${opts.approverName} approved "${deliverable.title}" on ${project.name}.\n\n` +
+              (trimmedComment ? `Comment:\n"${trimmedComment}"\n\n` : "") +
+              `View the deliverable: ${link}\n\n` +
+              `— PGTSND Productions`,
+          }),
+        ),
+    );
+  } catch (err) {
+    logger.error(
+      { err, deliverableId: opts.deliverableId },
+      "notifyDeliverableApproved failed",
+    );
+  }
+}
+
 function formatTimestamp(seconds: number): string {
   const total = Math.max(0, Math.floor(seconds));
   const m = Math.floor(total / 60);
