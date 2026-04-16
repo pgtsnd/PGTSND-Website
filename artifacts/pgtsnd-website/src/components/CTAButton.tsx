@@ -53,6 +53,7 @@ export default function CTAButton(props: CTAButtonProps) {
     textDecoration: "none",
     whiteSpace: "nowrap",
     minWidth: "300px",
+    width: "type" in props && props.type === "submit" ? "100%" : undefined,
     opacity: isDisabled ? 0.6 : 1,
   };
 
