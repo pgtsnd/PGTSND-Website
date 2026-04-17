@@ -96,7 +96,7 @@ function signSession(): string {
 
 interface ProtectedCase {
   name: string;
-  method: "post" | "patch" | "delete";
+  method: "post" | "patch" | "delete" | "put";
   path: string;
   body?: unknown;
 }
@@ -124,6 +124,77 @@ const protectedCases: ProtectedCase[] = [
   { name: "create message", method: "post", path: "/api/projects/p1/messages", body: { content: "hi" } },
   { name: "mark message read", method: "patch", path: "/api/messages/m1/read", body: {} },
   { name: "delete message", method: "delete", path: "/api/messages/m1" },
+
+  // users
+  { name: "update my notification prefs", method: "patch", path: "/api/users/me/notifications", body: { emailNotifyReviews: true } },
+  { name: "update my bookkeeper email", method: "patch", path: "/api/users/me/bookkeeper-email", body: { bookkeeperEmail: "b@x.com" } },
+  { name: "create user", method: "post", path: "/api/users", body: { email: "x@y.com", name: "x", role: "client" } },
+  { name: "update user", method: "patch", path: "/api/users/u1", body: { name: "y" } },
+  { name: "delete user", method: "delete", path: "/api/users/u1" },
+
+  // organizations
+  { name: "create organization", method: "post", path: "/api/organizations", body: { name: "Org" } },
+  { name: "update organization", method: "patch", path: "/api/organizations/o1", body: { name: "Org2" } },
+  { name: "delete organization", method: "delete", path: "/api/organizations/o1" },
+
+  // phases
+  { name: "create phase", method: "post", path: "/api/projects/p1/phases", body: { name: "Phase 1" } },
+  { name: "update phase", method: "patch", path: "/api/phases/ph1", body: { name: "x" } },
+  { name: "delete phase", method: "delete", path: "/api/phases/ph1" },
+
+  // tasks
+  { name: "create task", method: "post", path: "/api/projects/p1/tasks", body: { title: "T" } },
+  { name: "update task", method: "patch", path: "/api/tasks/t1", body: { title: "U" } },
+  { name: "delete task", method: "delete", path: "/api/tasks/t1" },
+  { name: "create task item", method: "post", path: "/api/tasks/t1/items", body: { content: "x" } },
+  { name: "update task item", method: "patch", path: "/api/task-items/ti1", body: { content: "y" } },
+  { name: "delete task item", method: "delete", path: "/api/task-items/ti1" },
+
+  // dm
+  { name: "send DM", method: "post", path: "/api/dm/threads/u2", body: { content: "hi" } },
+  { name: "mark DM thread read", method: "patch", path: "/api/dm/threads/u2/read", body: {} },
+
+  // contracts
+  { name: "create contract", method: "post", path: "/api/projects/p1/contracts", body: { title: "C" } },
+  { name: "update contract", method: "patch", path: "/api/contracts/c1", body: { title: "C2" } },
+  { name: "delete contract", method: "delete", path: "/api/contracts/c1" },
+
+  // client
+  { name: "client send message", method: "post", path: "/api/client/messages", body: { projectId: "p1", content: "hi" } },
+  { name: "client approve deliverable", method: "post", path: "/api/client/deliverables/d1/approve", body: {} },
+  { name: "client request revision", method: "post", path: "/api/client/deliverables/d1/request-revision", body: { comment: "fix" } },
+  { name: "client update profile", method: "patch", path: "/api/client/profile", body: { name: "C" } },
+
+  // integrations (note: /api/webhooks/* are intentionally CSRF-exempt and unauthenticated)
+  { name: "rotate vault key", method: "post", path: "/api/integrations/vault/rotate", body: { oldKey: "a", newKey: "b" } },
+  { name: "encrypt existing integrations", method: "post", path: "/api/integrations/vault/encrypt-existing", body: {} },
+  { name: "upsert integration settings", method: "put", path: "/api/integrations/stripe", body: { enabled: true, config: {} } },
+  { name: "delete integration settings", method: "delete", path: "/api/integrations/stripe" },
+  { name: "upsert scheduled invoice export", method: "put", path: "/api/scheduled-invoice-exports", body: { enabled: true, filters: {} } },
+  { name: "delete scheduled invoice export", method: "delete", path: "/api/scheduled-invoice-exports" },
+  { name: "run scheduled invoice export now", method: "post", path: "/api/scheduled-invoice-exports/run-now", body: {} },
+  { name: "create invoice", method: "post", path: "/api/projects/p1/invoices", body: { amount: 100 } },
+  { name: "update invoice", method: "patch", path: "/api/invoices/i1", body: { status: "paid" } },
+  { name: "delete invoice", method: "delete", path: "/api/invoices/i1" },
+  { name: "send invoice via stripe", method: "post", path: "/api/invoices/i1/send", body: {} },
+  { name: "create invoice checkout", method: "post", path: "/api/invoices/i1/checkout", body: { successUrl: "https://x", cancelUrl: "https://x" } },
+  { name: "email invoice export", method: "post", path: "/api/integrations/invoices/email-export", body: { recipient: "a@b.com", csv: "x" } },
+  { name: "email invoice payment link", method: "post", path: "/api/invoices/i1/email-payment-link", body: {} },
+  { name: "send slack message", method: "post", path: "/api/integrations/slack/messages", body: { channelId: "C", text: "hi" } },
+  { name: "send docusign envelope", method: "post", path: "/api/integrations/docusign/send", body: { contractId: "c1", signerEmail: "a@b.com", signerName: "A" } },
+
+  // video-review
+  { name: "create video comment", method: "post", path: "/api/deliverables/d1/comments", body: { timestampSeconds: 1, content: "hi" } },
+  { name: "resolve video comment", method: "patch", path: "/api/comments/vc1/resolve", body: { resolved: true } },
+  { name: "reopen video comment", method: "post", path: "/api/comments/vc1/reopen", body: {} },
+  { name: "reply to video comment", method: "post", path: "/api/comments/vc1/replies", body: { content: "hi" } },
+  { name: "create review link", method: "post", path: "/api/deliverables/d1/review-links", body: {} },
+
+  // project-mutes
+  { name: "mute project", method: "put", path: "/api/users/me/project-mutes/p1", body: {} },
+  { name: "unmute project", method: "delete", path: "/api/users/me/project-mutes/p1" },
+  { name: "bulk mute projects", method: "put", path: "/api/users/me/project-mutes", body: { projectIds: ["p1"] } },
+  { name: "bulk unmute projects", method: "delete", path: "/api/users/me/project-mutes", body: { projectIds: ["p1"] } },
 ];
 
 describe("protected API endpoints: auth + CSRF gating", () => {
@@ -185,6 +256,19 @@ describe("protected API endpoints: auth + CSRF gating", () => {
 
     it("GET /api/projects/p1/messages returns 401 when not logged in", async () => {
       const res = await request(app).get("/api/projects/p1/messages");
+      expect(res.status).toBe(401);
+    });
+
+    it("GET /api/admin/email-previews returns 401 when not logged in", async () => {
+      // admin-email-previews has no mutating endpoints, but its read paths
+      // still sit behind authMiddleware and should reject anonymous callers.
+      const res = await request(app).get("/api/admin/email-previews");
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ error: "Authentication required" });
+    });
+
+    it("GET /api/admin/email-previews/review-ready returns 401 when not logged in", async () => {
+      const res = await request(app).get("/api/admin/email-previews/review-ready");
       expect(res.status).toBe(401);
     });
   });
