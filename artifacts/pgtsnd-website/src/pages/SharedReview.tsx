@@ -19,6 +19,11 @@ export default function SharedReview() {
   const [seekTo, setSeekTo] = useState<number | null>(null);
   const [authorName, setAuthorName] = useState("");
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+  const [showAllVersionComments, setShowAllVersionComments] = useState(false);
+
+  useEffect(() => {
+    setShowAllVersionComments(false);
+  }, [selectedVersionId]);
 
   useEffect(() => {
     if (!token) return;
@@ -180,6 +185,12 @@ export default function SharedReview() {
   const activeFileUrl = activeVersion?.fileUrl ?? deliverable.fileUrl;
   const activeVersionLabel = activeVersion?.version ?? deliverable.version ?? "v1";
   const isViewingPreviousCut = !!activeVersion && activeVersion.fileUrl !== deliverable.fileUrl;
+  const versionLabelById: Record<string, string> = {};
+  for (const v of versions) versionLabelById[v.id] = v.version;
+  const visibleComments =
+    isViewingPreviousCut && !showAllVersionComments && activeVersion
+      ? comments.filter((c) => c.deliverableVersionId === activeVersion.id)
+      : comments;
   const buildSrc = (url: string) =>
     url.startsWith("/api/storage/objects/")
       ? `${url}?reviewToken=${encodeURIComponent(token)}`
@@ -326,37 +337,56 @@ export default function SharedReview() {
               >
                 Viewing previous cut {activeVersionLabel} (latest is{" "}
                 {deliverable.version || "v1"})
+                {" · "}
+                {showAllVersionComments
+                  ? "showing comments from all versions"
+                  : `showing comments left on ${activeVersionLabel}`}
               </span>
-              <button
-                onClick={() => setSelectedVersionId(null)}
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "11px",
-                  color: t.text,
-                  background: "transparent",
-                  border: `1px solid ${t.border}`,
-                  borderRadius: "6px",
-                  padding: "5px 10px",
-                  cursor: "pointer",
-                }}
-              >
-                Back to latest
-              </button>
+              <div style={{ display: "flex", gap: "6px" }}>
+                <button
+                  data-testid="shared-review-toggle-all-version-comments"
+                  onClick={() => setShowAllVersionComments((v) => !v)}
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "11px",
+                    color: t.text,
+                    background: "transparent",
+                    border: `1px solid ${t.border}`,
+                    borderRadius: "6px",
+                    padding: "5px 10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {showAllVersionComments ? `Only ${activeVersionLabel}` : "Show all"}
+                </button>
+                <button
+                  onClick={() => setSelectedVersionId(null)}
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "11px",
+                    color: t.text,
+                    background: "transparent",
+                    border: `1px solid ${t.border}`,
+                    borderRadius: "6px",
+                    padding: "5px 10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Back to latest
+                </button>
+              </div>
             </div>
           )}
 
           {activeFileUrl ? (
             <VideoPlayer
               src={buildSrc(activeFileUrl)}
-              markers={
-                isViewingPreviousCut
-                  ? []
-                  : comments.map((c) => ({
-                      id: c.id,
-                      timestampSeconds: c.timestampSeconds,
-                    }))
-              }
+              markers={visibleComments.map((c) => ({
+                id: c.id,
+                timestampSeconds: c.timestampSeconds,
+              }))}
               onTimeClick={(seconds) => setActiveTimestamp(seconds)}
               onMarkerClick={handleMarkerClick}
               seekTo={seekTo}
@@ -577,7 +607,7 @@ export default function SharedReview() {
           }}
         >
           <VideoReviewPanel
-            comments={comments}
+            comments={visibleComments}
             onAddComment={handleAddComment}
             onAddReply={handleAddReply}
             onCommentClick={handleCommentClick}
@@ -585,6 +615,7 @@ export default function SharedReview() {
             isPublic={true}
             publicAuthorName={authorName}
             onPublicAuthorNameChange={setAuthorName}
+            versionLabelById={versionLabelById}
           />
         </div>
       </div>
