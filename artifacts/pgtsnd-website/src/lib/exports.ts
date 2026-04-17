@@ -2,6 +2,14 @@ import { jsPDF } from "jspdf";
 import type { Invoice } from "./api";
 import logoUrl from "@assets/logo.webp";
 
+function readStudioEnv(key: string): string | undefined {
+  const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env;
+  const raw = env?.[key];
+  if (typeof raw !== "string") return undefined;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 const STUDIO_INFO: {
   name: string;
   addressLines: string[];
@@ -16,6 +24,8 @@ const STUDIO_INFO: {
   email: "hello@pgtsndproductions.com",
   website: "pgtsndproductions.com",
   instagram: "@pgtsndproductions",
+  taxId: readStudioEnv("VITE_STUDIO_TAX_ID"),
+  registrationId: readStudioEnv("VITE_STUDIO_REGISTRATION_ID"),
 };
 
 async function loadLogoPng(): Promise<{ dataUrl: string; width: number; height: number } | null> {
