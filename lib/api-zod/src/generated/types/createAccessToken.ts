@@ -12,4 +12,6 @@ export interface CreateAccessToken {
   label: string;
   userId?: string;
   newUser?: CreateUser;
+  /** Optional ISO timestamp when the token should automatically expire. */
+  expiresAt?: Date | null;
 }

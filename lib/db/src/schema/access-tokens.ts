@@ -21,6 +21,7 @@ export const accessTokensTable = pgTable("access_tokens", {
     onDelete: "set null",
   }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  expiresAt: timestamp("expires_at"),
   lastUsedAt: timestamp("last_used_at"),
   revokedAt: timestamp("revoked_at"),
   revokedBy: text("revoked_by").references(() => usersTable.id, {

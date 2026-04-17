@@ -153,6 +153,7 @@ export interface AccessToken {
   label: string;
   status: AccessTokenStatus;
   createdAt: string;
+  expiresAt?: string | null;
   lastUsedAt?: string | null;
   revokedAt?: string | null;
   createdBy?: string | null;
@@ -167,6 +168,8 @@ export interface CreateAccessToken {
   label: string;
   userId?: string;
   newUser?: CreateUser;
+  /** Optional ISO timestamp when the token should automatically expire. */
+  expiresAt?: string | null;
 }
 
 export interface AccessTokenIssueResult {

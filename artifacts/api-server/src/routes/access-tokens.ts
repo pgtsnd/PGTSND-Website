@@ -19,6 +19,7 @@ router.get(
         label: accessTokensTable.label,
         status: accessTokensTable.status,
         createdAt: accessTokensTable.createdAt,
+        expiresAt: accessTokensTable.expiresAt,
         lastUsedAt: accessTokensTable.lastUsedAt,
         revokedAt: accessTokensTable.revokedAt,
         createdBy: accessTokensTable.createdBy,
@@ -40,11 +41,29 @@ router.post(
   requireRole("owner", "partner"),
   async (req, res) => {
     try {
-      const { userId, label, newUser } = req.body ?? {};
+      const { userId, label, newUser, expiresAt } = req.body ?? {};
 
       if (!label || typeof label !== "string" || !label.trim()) {
         res.status(400).json({ error: "Label is required" });
         return;
+      }
+
+      let parsedExpiresAt: Date | null = null;
+      if (expiresAt !== undefined && expiresAt !== null && expiresAt !== "") {
+        if (typeof expiresAt !== "string") {
+          res.status(400).json({ error: "expiresAt must be an ISO date string" });
+          return;
+        }
+        const d = new Date(expiresAt);
+        if (Number.isNaN(d.getTime())) {
+          res.status(400).json({ error: "expiresAt is not a valid date" });
+          return;
+        }
+        if (d.getTime() <= Date.now()) {
+          res.status(400).json({ error: "Expiration date must be in the future" });
+          return;
+        }
+        parsedExpiresAt = d;
       }
 
       let targetUserId: string | undefined;
@@ -90,6 +109,7 @@ router.post(
         userId: targetUserId!,
         label: label.trim(),
         createdBy: req.user!.id,
+        expiresAt: parsedExpiresAt,
       });
 
       res.status(201).json({

@@ -1538,6 +1538,7 @@ export const ListAccessTokensResponseItem = zod.object({
   label: zod.string(),
   status: zod.enum(["active", "revoked"]),
   createdAt: zod.coerce.date(),
+  expiresAt: zod.coerce.date().nullish(),
   lastUsedAt: zod.coerce.date().nullish(),
   revokedAt: zod.coerce.date().nullish(),
   createdBy: zod.string().nullish(),
@@ -1590,6 +1591,12 @@ export const CreateAccessTokenBody = zod.object({
       notes: zod.string().optional(),
     })
     .optional(),
+  expiresAt: zod.coerce
+    .date()
+    .nullish()
+    .describe(
+      "Optional ISO timestamp when the token should automatically expire.",
+    ),
 });
 
 /**
@@ -1606,6 +1613,7 @@ export const RevokeAccessTokenResponse = zod.object({
   label: zod.string(),
   status: zod.enum(["active", "revoked"]),
   createdAt: zod.coerce.date(),
+  expiresAt: zod.coerce.date().nullish(),
   lastUsedAt: zod.coerce.date().nullish(),
   revokedAt: zod.coerce.date().nullish(),
   createdBy: zod.string().nullish(),

@@ -14,6 +14,32 @@ import {
 
 type Mode = "existing" | "new";
 type RoleOpt = "client" | "crew" | "partner";
+type ExpiresOpt = "never" | "7d" | "30d" | "90d" | "custom";
+
+function computeExpiresAt(opt: ExpiresOpt, customDate: string): string | null {
+  if (opt === "never") return null;
+  if (opt === "custom") {
+    if (!customDate) return null;
+    const d = new Date(customDate);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toISOString();
+  }
+  const days = opt === "7d" ? 7 : opt === "30d" ? 30 : 90;
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+}
+
+function tokenDisplayStatus(tk: { status: string; expiresAt?: string | null }): {
+  label: string;
+  tone: "active" | "revoked" | "expired";
+} {
+  if (tk.status === "revoked") return { label: "revoked", tone: "revoked" };
+  if (tk.expiresAt && new Date(tk.expiresAt).getTime() <= Date.now()) {
+    return { label: "expired", tone: "expired" };
+  }
+  return { label: "active", tone: "active" };
+}
 
 export default function TeamAccess() {
   const { t } = useTheme();
@@ -36,6 +62,8 @@ export default function TeamAccess() {
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<RoleOpt>("client");
+  const [expiresOpt, setExpiresOpt] = useState<ExpiresOpt>("never");
+  const [customExpires, setCustomExpires] = useState("");
   const [formError, setFormError] = useState("");
   const [issued, setIssued] = useState<{ token: string; record: AccessToken } | null>(null);
   const [copied, setCopied] = useState(false);
@@ -76,6 +104,8 @@ export default function TeamAccess() {
     setNewName("");
     setNewEmail("");
     setNewRole("client");
+    setExpiresOpt("never");
+    setCustomExpires("");
     setFormError("");
   };
 
@@ -93,13 +123,31 @@ export default function TeamAccess() {
       setFormError("Label is required");
       return;
     }
+    let expiresAtIso: string | null = null;
+    if (expiresOpt !== "never") {
+      if (expiresOpt === "custom" && !customExpires) {
+        setFormError("Pick an expiration date");
+        return;
+      }
+      expiresAtIso = computeExpiresAt(expiresOpt, customExpires);
+      if (!expiresAtIso) {
+        setFormError("Expiration date is invalid");
+        return;
+      }
+      if (new Date(expiresAtIso).getTime() <= Date.now()) {
+        setFormError("Expiration date must be in the future");
+        return;
+      }
+    }
     try {
       if (mode === "existing") {
         if (!userId) {
           setFormError("Pick a user");
           return;
         }
-        const res = await createToken.mutateAsync({ data: { label: label.trim(), userId } });
+        const res = await createToken.mutateAsync({
+          data: { label: label.trim(), userId, expiresAt: expiresAtIso },
+        });
         setIssued(res);
       } else {
         if (!newName.trim() || !newEmail.trim()) {
@@ -114,6 +162,7 @@ export default function TeamAccess() {
               email: newEmail.trim().toLowerCase(),
               role: newRole,
             },
+            expiresAt: expiresAtIso,
           },
         });
         setIssued(res);
@@ -243,7 +292,7 @@ export default function TeamAccess() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: t.bgSidebar, borderBottom: `1px solid ${t.border}` }}>
-                  {["User", "Label", "Status", "Created", "Last Used", ""].map((h) => (
+                  {["User", "Label", "Status", "Created", "Expires", "Last Used", ""].map((h) => (
                     <th
                       key={h}
                       style={f({
@@ -269,18 +318,33 @@ export default function TeamAccess() {
                     </td>
                     <td style={{ padding: "14px 16px", ...f({ fontSize: "13px", color: t.text }) }}>{tk.label}</td>
                     <td style={{ padding: "14px 16px" }}>
-                      <span
-                        style={f({
-                          fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em",
-                          padding: "4px 10px", borderRadius: "100px",
-                          color: tk.status === "active" ? "#1a1a1a" : t.textSecondary,
-                          background: tk.status === "active" ? "#60d060" : t.hoverBg,
-                        })}
-                      >
-                        {tk.status}
-                      </span>
+                      {(() => {
+                        const ds = tokenDisplayStatus(tk);
+                        const bg =
+                          ds.tone === "active" ? "#60d060" :
+                          ds.tone === "expired" ? "#e8b339" :
+                          t.hoverBg;
+                        const color =
+                          ds.tone === "active" || ds.tone === "expired"
+                            ? "#1a1a1a"
+                            : t.textSecondary;
+                        return (
+                          <span
+                            style={f({
+                              fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em",
+                              padding: "4px 10px", borderRadius: "100px",
+                              color, background: bg,
+                            })}
+                          >
+                            {ds.label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td style={{ padding: "14px 16px", ...f({ fontSize: "12px", color: t.textSecondary }) }}>{formatDate(tk.createdAt)}</td>
+                    <td style={{ padding: "14px 16px", ...f({ fontSize: "12px", color: t.textSecondary }) }}>
+                      {tk.expiresAt ? formatDate(tk.expiresAt) : "Never"}
+                    </td>
                     <td style={{ padding: "14px 16px" }}>
                       {tk.lastUsedAt ? (
                         <>
@@ -307,7 +371,7 @@ export default function TeamAccess() {
                       )}
                     </td>
                     <td style={{ padding: "14px 16px", textAlign: "right" }}>
-                      {tk.status === "active" && (
+                      {tokenDisplayStatus(tk).tone === "active" && (
                         <button
                           onClick={() => handleRevoke(tk)}
                           disabled={revokeToken.isPending}
@@ -469,6 +533,29 @@ export default function TeamAccess() {
                     placeholder="e.g. Onboarding token — Mar 2026"
                     style={inputCss(t)}
                   />
+                </Field>
+
+                <Field label="Expires" t={t} f={f}>
+                  <select
+                    value={expiresOpt}
+                    onChange={(e) => setExpiresOpt(e.target.value as ExpiresOpt)}
+                    style={inputCss(t)}
+                  >
+                    <option value="never">Never</option>
+                    <option value="7d">In 7 days</option>
+                    <option value="30d">In 30 days</option>
+                    <option value="90d">In 90 days</option>
+                    <option value="custom">Custom date…</option>
+                  </select>
+                  {expiresOpt === "custom" && (
+                    <input
+                      type="date"
+                      value={customExpires}
+                      onChange={(e) => setCustomExpires(e.target.value)}
+                      min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
+                      style={{ ...inputCss(t), marginTop: "8px" }}
+                    />
+                  )}
                 </Field>
 
                 {formError && (

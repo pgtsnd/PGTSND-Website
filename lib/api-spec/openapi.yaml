@@ -1677,6 +1677,10 @@ components:
         createdAt:
           type: string
           format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
         lastUsedAt:
           type: string
           format: date-time
@@ -1718,6 +1722,11 @@ components:
           type: string
         newUser:
           $ref: "#/components/schemas/CreateUser"
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Optional ISO timestamp when the token should automatically expire.
       required:
         - label
 

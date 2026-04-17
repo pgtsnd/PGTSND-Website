@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { db } from "@workspace/db";
 import { accessTokensTable, usersTable } from "@workspace/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt, isNull, or } from "drizzle-orm";
 
 const TOKEN_BYTE_LENGTH = 24;
 
@@ -39,6 +39,7 @@ export interface CreateAccessTokenInput {
   userId: string;
   label: string;
   createdBy?: string | null;
+  expiresAt?: Date | null;
 }
 
 export interface AccessTokenView {
@@ -47,6 +48,7 @@ export interface AccessTokenView {
   label: string;
   status: string;
   createdAt: Date;
+  expiresAt: Date | null;
   lastUsedAt: Date | null;
   revokedAt: Date | null;
   createdBy: string | null;
@@ -71,6 +73,7 @@ export async function getAccessTokenView(
       label: accessTokensTable.label,
       status: accessTokensTable.status,
       createdAt: accessTokensTable.createdAt,
+      expiresAt: accessTokensTable.expiresAt,
       lastUsedAt: accessTokensTable.lastUsedAt,
       revokedAt: accessTokensTable.revokedAt,
       createdBy: accessTokensTable.createdBy,
@@ -98,6 +101,7 @@ export async function createAccessToken(
       label: input.label,
       tokenHash,
       createdBy: input.createdBy ?? null,
+      expiresAt: input.expiresAt ?? null,
     })
     .returning({ id: accessTokensTable.id });
   const view = await getAccessTokenView(inserted.id);
@@ -130,6 +134,10 @@ export async function findActiveAccessTokenByPlaintext(
       and(
         eq(accessTokensTable.tokenHash, tokenHash),
         eq(accessTokensTable.status, "active"),
+        or(
+          isNull(accessTokensTable.expiresAt),
+          gt(accessTokensTable.expiresAt, new Date()),
+        ),
       ),
     )
     .limit(1);
@@ -148,11 +156,16 @@ export async function markAccessTokenUsed(tokenId: string) {
 
 export async function isAccessTokenActive(tokenId: string): Promise<boolean> {
   const [row] = await db
-    .select({ status: accessTokensTable.status })
+    .select({
+      status: accessTokensTable.status,
+      expiresAt: accessTokensTable.expiresAt,
+    })
     .from(accessTokensTable)
     .where(eq(accessTokensTable.id, tokenId))
     .limit(1);
-  return !!row && row.status === "active";
+  if (!row || row.status !== "active") return false;
+  if (row.expiresAt && row.expiresAt.getTime() <= Date.now()) return false;
+  return true;
 }
 
 export async function revokeAccessToken(

@@ -14,6 +14,7 @@ export interface AccessToken {
   label: string;
   status: AccessTokenStatus;
   createdAt: Date;
+  expiresAt?: Date | null;
   lastUsedAt?: Date | null;
   revokedAt?: Date | null;
   createdBy?: string | null;

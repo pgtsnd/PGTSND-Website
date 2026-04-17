@@ -85,6 +85,13 @@
       "when": 1776412208376,
       "tag": "0011_add_video_comment_reopen_history",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1776412300000,
+      "tag": "0012_add_access_token_expires_at",
+      "breakpoints": true
     }
   ]
 }
