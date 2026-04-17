@@ -254,6 +254,16 @@ router.get(
       ["active", "in_progress", "review"].includes(p.status),
     );
 
+    let slackChannelNameMap = new Map<string, string>();
+    if (slackEnabled && activeProjects.some((p) => p.slackChannelId)) {
+      try {
+        const channels = await slackService.listChannels();
+        slackChannelNameMap = new Map(channels.map((c) => [c.id, c.name]));
+      } catch {
+        // Fall back gracefully if channel listing fails
+      }
+    }
+
     const conversations = await Promise.all(
       activeProjects.map(async (project) => {
         const dbMessages = messages
@@ -272,9 +282,11 @@ router.get(
 
         let projectMessages = dbMessages;
         let slackBridged = false;
+        let slackChannelName: string | undefined;
 
         if (slackEnabled && project.slackChannelId) {
           slackBridged = true;
+          slackChannelName = slackChannelNameMap.get(project.slackChannelId);
           const slackHistory = await slackService.getChannelHistory(
             project.slackChannelId,
             50,
@@ -329,6 +341,7 @@ router.get(
             : "",
           lastMessageTime: lastMsg?.createdAt ?? project.createdAt,
           slackBridged,
+          slackChannelName,
         };
       }),
     );

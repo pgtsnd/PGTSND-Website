@@ -325,7 +325,13 @@ export default function ClientMessages() {
               <div style={{ padding: "20px 32px", borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <h3 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "16px", color: t.text, marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>{activeConvo.projectName}{activeConvo.slackBridged && (<span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "9px", color: "rgba(120,180,255,0.9)", background: "rgba(120,180,255,0.12)", padding: "2px 8px", borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Slack</span>)}</h3>
-                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary }}>Project conversation</p>
+                  <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary }}>
+                    {activeConvo.slackBridged ? (
+                      activeConvo.slackChannelName
+                        ? <>Project conversation · Also in <span style={{ color: "rgba(120,180,255,0.9)", fontWeight: 600 }}>#{activeConvo.slackChannelName}</span> on Slack</>
+                        : <>Project conversation · Also in Slack</>
+                    ) : "Project conversation"}
+                  </p>
                 </div>
               </div>
 

@@ -79,6 +79,7 @@ export interface Conversation {
   lastMessage: string;
   lastMessageTime: string;
   slackBridged?: boolean;
+  slackChannelName?: string;
 }
 
 export interface DriveFile {
