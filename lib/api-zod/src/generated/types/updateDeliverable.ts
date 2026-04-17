@@ -14,6 +14,7 @@ export interface UpdateDeliverable {
   type?: UpdateDeliverableType;
   status?: UpdateDeliverableStatus;
   fileUrl?: string;
+  fileSize?: bigint | null;
   version?: string;
   submittedAt?: Date;
 }

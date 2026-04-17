@@ -107,6 +107,7 @@ export interface Deliverable {
   type: string;
   status: string;
   fileUrl: string | null;
+  fileSize: number | null;
   version: string | null;
   submittedAt: string | null;
   createdAt: string;

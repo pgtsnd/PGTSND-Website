@@ -5,6 +5,7 @@ import {
   varchar,
   pgEnum,
   index,
+  bigint,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
@@ -44,6 +45,7 @@ export const deliverablesTable = pgTable(
     type: deliverableTypeEnum("type").notNull().default("other"),
     status: deliverableStatusEnum("status").notNull().default("draft"),
     fileUrl: text("file_url"),
+    fileSize: bigint("file_size", { mode: "number" }),
     uploadedBy: text("uploaded_by").references(() => usersTable.id),
     version: varchar("version", { length: 50 }).default("v1"),
     submittedAt: timestamp("submitted_at"),

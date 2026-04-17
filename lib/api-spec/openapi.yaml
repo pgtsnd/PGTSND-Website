@@ -2090,6 +2090,10 @@ components:
         fileUrl:
           type: string
           nullable: true
+        fileSize:
+          type: integer
+          format: int64
+          nullable: true
         version:
           type: string
           nullable: true
@@ -2129,6 +2133,10 @@ components:
           enum: [draft, pending, in_review, approved, revision_requested]
         fileUrl:
           type: string
+        fileSize:
+          type: integer
+          format: int64
+          nullable: true
         version:
           type: string
         submittedAt:
@@ -2152,6 +2160,10 @@ components:
           enum: [draft, pending, in_review, approved, revision_requested]
         fileUrl:
           type: string
+        fileSize:
+          type: integer
+          format: int64
+          nullable: true
         version:
           type: string
         submittedAt:

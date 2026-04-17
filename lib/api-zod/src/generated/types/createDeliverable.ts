@@ -15,6 +15,7 @@ export interface CreateDeliverable {
   type?: CreateDeliverableType;
   status?: CreateDeliverableStatus;
   fileUrl?: string;
+  fileSize?: bigint | null;
   version?: string;
   submittedAt?: Date;
 }

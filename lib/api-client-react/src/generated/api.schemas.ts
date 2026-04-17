@@ -463,6 +463,7 @@ export interface Deliverable {
   type: DeliverableType;
   status: DeliverableStatus;
   fileUrl?: string | null;
+  fileSize?: number | null;
   version?: string | null;
   submittedAt?: string | null;
   createdAt: string;
@@ -498,6 +499,7 @@ export interface CreateDeliverable {
   type?: CreateDeliverableType;
   status?: CreateDeliverableStatus;
   fileUrl?: string;
+  fileSize?: number | null;
   version?: string;
   submittedAt?: string;
 }
@@ -530,6 +532,7 @@ export interface UpdateDeliverable {
   type?: UpdateDeliverableType;
   status?: UpdateDeliverableStatus;
   fileUrl?: string;
+  fileSize?: number | null;
   version?: string;
   submittedAt?: string;
 }

@@ -870,6 +870,7 @@ export const ListProjectDeliverablesResponseItem = zod.object({
     "revision_requested",
   ]),
   fileUrl: zod.string().nullish(),
+  fileSize: zod.number().nullish(),
   version: zod.string().nullish(),
   submittedAt: zod.coerce.date().nullish(),
   createdAt: zod.coerce.date(),
@@ -897,6 +898,7 @@ export const CreateDeliverableBody = zod.object({
     .enum(["draft", "pending", "in_review", "approved", "revision_requested"])
     .optional(),
   fileUrl: zod.string().optional(),
+  fileSize: zod.number().nullish(),
   version: zod.string().optional(),
   submittedAt: zod.coerce.date().optional(),
 });
@@ -923,6 +925,7 @@ export const GetDeliverableResponse = zod.object({
     "revision_requested",
   ]),
   fileUrl: zod.string().nullish(),
+  fileSize: zod.number().nullish(),
   version: zod.string().nullish(),
   submittedAt: zod.coerce.date().nullish(),
   createdAt: zod.coerce.date(),
@@ -946,6 +949,7 @@ export const UpdateDeliverableBody = zod.object({
     .enum(["draft", "pending", "in_review", "approved", "revision_requested"])
     .optional(),
   fileUrl: zod.string().optional(),
+  fileSize: zod.number().nullish(),
   version: zod.string().optional(),
   submittedAt: zod.coerce.date().optional(),
 });
@@ -965,6 +969,7 @@ export const UpdateDeliverableResponse = zod.object({
     "revision_requested",
   ]),
   fileUrl: zod.string().nullish(),
+  fileSize: zod.number().nullish(),
   version: zod.string().nullish(),
   submittedAt: zod.coerce.date().nullish(),
   createdAt: zod.coerce.date(),

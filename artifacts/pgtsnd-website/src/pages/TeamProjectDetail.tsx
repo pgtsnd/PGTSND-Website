@@ -1245,6 +1245,27 @@ const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"];
 const ACCEPTED_VIDEO_EXTENSIONS = [".mp4", ".webm"];
 const MAX_VIDEO_SIZE_BYTES = 2 * 1024 * 1024 * 1024;
 
+function formatDuration(seconds: number): string {
+  const total = Math.round(seconds);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = bytes / 1024;
+  let i = 0;
+  while (value >= 1024 && i < units.length - 1) {
+    value /= 1024;
+    i += 1;
+  }
+  return `${value >= 10 ? Math.round(value) : value.toFixed(1)} ${units[i]}`;
+}
+
 function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverables: Deliverable[]; onRefresh: () => void; onOpenReview: (id: string) => void }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
@@ -1253,6 +1274,7 @@ function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverabl
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [versionsByDeliverable, setVersionsByDeliverable] = useState<Record<string, DeliverableVersion[]>>({});
+  const [durationsByDeliverable, setDurationsByDeliverable] = useState<Record<string, number>>({});
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const updateDeliverable = useUpdateDeliverable();
   const { toast } = useToast();
@@ -1330,7 +1352,7 @@ function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverabl
       const fileUrl = `/api/storage${objectPath}`;
       await new Promise<void>((resolve, reject) => {
         updateDeliverable.mutate(
-          { id: deliverableId, data: { fileUrl, type: "video" } },
+          { id: deliverableId, data: { fileUrl, fileSize: file.size, type: "video" } },
           {
             onSuccess: () => resolve(),
             onError: (err) => reject(err instanceof Error ? err : new Error("Failed to save deliverable")),
@@ -1436,6 +1458,14 @@ function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverabl
                         preload="metadata"
                         muted
                         playsInline
+                        onLoadedMetadata={(e) => {
+                          const dur = e.currentTarget.duration;
+                          if (Number.isFinite(dur) && dur > 0) {
+                            setDurationsByDeliverable((prev) =>
+                              prev[d.id] === dur ? prev : { ...prev, [d.id]: dur },
+                            );
+                          }
+                        }}
                         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                       />
                     </div>
@@ -1447,7 +1477,18 @@ function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverabl
                   <div style={{ flex: 1 }}>
                     <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text })}>{d.title}</p>
                     <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
-                      {d.type} {d.version ? `· ${d.version}` : ""}
+                      {[
+                        d.type,
+                        d.version || null,
+                        d.type === "video" && durationsByDeliverable[d.id]
+                          ? formatDuration(durationsByDeliverable[d.id])
+                          : null,
+                        typeof d.fileSize === "number" && d.fileSize > 0
+                          ? formatFileSize(d.fileSize)
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </p>
                   </div>
                   <span style={f({
