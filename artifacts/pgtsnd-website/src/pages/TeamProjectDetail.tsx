@@ -29,6 +29,7 @@ import {
 import {
   useIntegrationStatus,
   useDriveFolders,
+  useSearchDriveFolders,
   useSlackChannels,
 } from "../hooks/useIntegrations";
 
@@ -467,7 +468,20 @@ function ProjectIntegrationsCard({ project, projectId }: { project: any; project
 
   const [driveValue, setDriveValue] = useState<string>(project.driveFolderId || "");
   const [drivePasteMode, setDrivePasteMode] = useState<boolean>(false);
+  const [driveSearch, setDriveSearch] = useState<string>("");
+  const [driveSearchDebounced, setDriveSearchDebounced] = useState<string>("");
   const [slackValue, setSlackValue] = useState<string>(project.slackChannelId || "");
+
+  useEffect(() => {
+    const handle = setTimeout(() => setDriveSearchDebounced(driveSearch.trim()), 300);
+    return () => clearTimeout(handle);
+  }, [driveSearch]);
+
+  const {
+    data: driveSearchResults,
+    isLoading: driveSearchLoading,
+    isError: driveSearchError,
+  } = useSearchDriveFolders(driveSearchDebounced, driveConnected && !drivePasteMode);
 
   useEffect(() => {
     setDriveValue(project.driveFolderId || "");
@@ -480,6 +494,8 @@ function ProjectIntegrationsCard({ project, projectId }: { project: any; project
   useEffect(() => {
     setDrivePath([{ id: null, name: "My Drive" }]);
     setDrivePasteMode(false);
+    setDriveSearch("");
+    setDriveSearchDebounced("");
   }, [projectId]);
 
   useEffect(() => {
@@ -561,7 +577,102 @@ function ProjectIntegrationsCard({ project, projectId }: { project: any; project
               </p>
             ) : (
               <>
-                {!drivePasteMode ? (
+                {!drivePasteMode && (
+                  <div style={{ marginBottom: "10px" }}>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        value={driveSearch}
+                        onChange={(e) => setDriveSearch(e.target.value)}
+                        placeholder="Search all folders by name…"
+                        style={inputStyle}
+                      />
+                      {driveSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setDriveSearch("")}
+                          title="Clear search"
+                          style={{
+                            position: "absolute", right: "8px", top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "transparent", border: "none", cursor: "pointer",
+                            ...f({ fontWeight: 600, fontSize: "11px", color: t.textMuted }),
+                          }}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                    {driveSearchDebounced && (
+                      <div style={{
+                        marginTop: "6px",
+                        border: `1px solid ${t.border}`, borderRadius: "6px",
+                        background: t.hoverBg, overflow: "hidden",
+                      }}>
+                        <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+                          {driveSearchLoading ? (
+                            <div style={{ padding: "12px", ...f({ fontWeight: 400, fontSize: "12px", color: t.textMuted }) }}>
+                              Searching…
+                            </div>
+                          ) : driveSearchError ? (
+                            <div style={{ padding: "12px", ...f({ fontWeight: 400, fontSize: "12px", color: t.textMuted }) }}>
+                              Search failed — try again
+                            </div>
+                          ) : (driveSearchResults || []).length === 0 ? (
+                            <div style={{ padding: "12px", ...f({ fontWeight: 400, fontSize: "12px", color: t.textMuted }) }}>
+                              No folders match “{driveSearchDebounced}”.
+                            </div>
+                          ) : (
+                            (driveSearchResults || []).map((folder, idx) => {
+                              const selected = driveValue === folder.id;
+                              return (
+                                <button
+                                  key={folder.id}
+                                  type="button"
+                                  onClick={() => setDriveValue(folder.id)}
+                                  style={{
+                                    width: "100%", textAlign: "left",
+                                    display: "flex", alignItems: "flex-start", gap: "8px",
+                                    padding: "8px 10px",
+                                    border: "none",
+                                    borderTop: idx === 0 ? "none" : `1px solid ${t.border}`,
+                                    background: selected ? t.activeNav : "transparent",
+                                    cursor: "pointer",
+                                  }}
+                                  title="Select this folder"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={selected ? t.accent : t.textMuted} strokeWidth="1.5" style={{ marginTop: "2px", flexShrink: 0 }}>
+                                    <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+                                  </svg>
+                                  <span style={{ flex: 1, minWidth: 0 }}>
+                                    <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", ...f({ fontWeight: selected ? 600 : 500, fontSize: "12px", color: t.text }) }}>
+                                      {folder.name}
+                                    </span>
+                                    <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", ...f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, marginTop: "2px" }) }}>
+                                      {folder.parentPath}
+                                    </span>
+                                  </span>
+                                  {selected && (
+                                    <span style={f({ fontWeight: 600, fontSize: "9px", color: t.accent, textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "2px" })}>
+                                      Selected
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {drivePasteMode ? (
+                  <input
+                    value={driveValue}
+                    onChange={(e) => setDriveValue(e.target.value)}
+                    placeholder="Paste folder ID from Drive URL"
+                    style={inputStyle}
+                  />
+                ) : driveSearchDebounced ? null : (
                   <div style={{
                     border: `1px solid ${t.border}`, borderRadius: "6px",
                     background: t.hoverBg, overflow: "hidden",
@@ -707,13 +818,6 @@ function ProjectIntegrationsCard({ project, projectId }: { project: any; project
                       </div>
                     )}
                   </div>
-                ) : (
-                  <input
-                    value={driveValue}
-                    onChange={(e) => setDriveValue(e.target.value)}
-                    placeholder="Paste folder ID from Drive URL"
-                    style={inputStyle}
-                  />
                 )}
                 {driveValue && (
                   <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, marginTop: "8px", wordBreak: "break-all" })}>

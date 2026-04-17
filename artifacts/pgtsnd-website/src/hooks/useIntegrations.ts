@@ -176,6 +176,22 @@ export function useDriveFolders(enabled: boolean = true, parentId?: string) {
   });
 }
 
+export interface DriveFolderSearchResult extends DriveFolder {
+  parentPath: string;
+}
+
+export function useSearchDriveFolders(query: string, enabled: boolean = true) {
+  const { user } = useAuth();
+  const trimmed = query.trim();
+  return useQuery<DriveFolderSearchResult[]>({
+    queryKey: ["/api/integrations/drive/folders/search", trimmed],
+    queryFn: () =>
+      apiFetch(`/integrations/drive/folders/search?q=${encodeURIComponent(trimmed)}`),
+    enabled: !!user && enabled && trimmed.length > 0,
+    staleTime: 30000,
+  });
+}
+
 export interface SlackChannel {
   id: string;
   name: string;

@@ -83,6 +83,86 @@ export async function listFolders(parentId?: string): Promise<DriveFile[]> {
   }
 }
 
+export interface DriveFolderSearchResult extends DriveFile {
+  parentPath: string;
+}
+
+export async function searchFolders(
+  query: string,
+  pageSize: number = 25,
+): Promise<DriveFolderSearchResult[]> {
+  const config = await getDriveConfig();
+  if (!config) return [];
+
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+
+  try {
+    const escaped = trimmed.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    const q = `name contains '${escaped}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
+    const fields = "files(id,name,mimeType,modifiedTime,webViewLink,parents)";
+    const safePageSize = Math.min(Math.max(pageSize, 1), 50);
+    const res = await driveRequest(
+      `/files?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(fields)}&orderBy=name&pageSize=${safePageSize}`,
+    );
+
+    if (!res.ok) {
+      console.error("Drive API error:", await res.text());
+      return [];
+    }
+
+    const data = (await res.json()) as { files: DriveFile[] };
+    const folders = data.files || [];
+    if (folders.length === 0) return [];
+
+    const folderCache = new Map<string, DriveFile | null>();
+
+    async function fetchFolder(id: string): Promise<DriveFile | null> {
+      if (folderCache.has(id)) return folderCache.get(id) ?? null;
+      try {
+        const r = await driveRequest(
+          `/files/${id}?fields=${encodeURIComponent("id,name,parents")}`,
+        );
+        if (!r.ok) {
+          folderCache.set(id, null);
+          return null;
+        }
+        const f = (await r.json()) as DriveFile;
+        folderCache.set(id, f);
+        return f;
+      } catch {
+        folderCache.set(id, null);
+        return null;
+      }
+    }
+
+    async function buildPath(parentId: string | undefined): Promise<string> {
+      if (!parentId) return "My Drive";
+      const segments: string[] = [];
+      let current: string | undefined = parentId;
+      const guard = new Set<string>();
+      while (current && !guard.has(current) && segments.length < 8) {
+        guard.add(current);
+        const f = await fetchFolder(current);
+        if (!f) break;
+        segments.unshift(f.name);
+        current = f.parents?.[0];
+      }
+      return ["My Drive", ...segments].join(" / ");
+    }
+
+    const results: DriveFolderSearchResult[] = [];
+    for (const folder of folders) {
+      const parentPath = await buildPath(folder.parents?.[0]);
+      results.push({ ...folder, parentPath });
+    }
+    return results;
+  } catch (err) {
+    console.error("Drive search folders error:", err);
+    return [];
+  }
+}
+
 export async function listFiles(folderId: string): Promise<DriveFile[]> {
   const config = await getDriveConfig();
   if (!config) return [];

@@ -784,6 +784,20 @@ router.get(
 );
 
 router.get(
+  "/integrations/drive/folders/search",
+  requireRole("owner", "partner"),
+  async (req, res) => {
+    const q = (req.query.q as string) || "";
+    if (!q.trim()) {
+      res.json([]);
+      return;
+    }
+    const results = await driveService.searchFolders(q);
+    res.json(results);
+  },
+);
+
+router.get(
   "/integrations/drive/files",
   requireRole("owner", "partner", "crew"),
   async (req, res) => {
