@@ -42,7 +42,29 @@ export default function TeamAccess() {
 
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
-  const tokens = tokensQuery.data ?? [];
+  const [sortBy, setSortBy] = useState<"created" | "lastUsed" | "dormant">("dormant");
+
+  const rawTokens = tokensQuery.data ?? [];
+  const tokens = [...rawTokens].sort((a, b) => {
+    if (sortBy === "created") {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+    const aTime = a.lastUsedAt ? new Date(a.lastUsedAt).getTime() : null;
+    const bTime = b.lastUsedAt ? new Date(b.lastUsedAt).getTime() : null;
+    if (sortBy === "lastUsed") {
+      // Most recently used first; never-used go to the bottom
+      if (aTime === null && bTime === null) return 0;
+      if (aTime === null) return 1;
+      if (bTime === null) return -1;
+      return bTime - aTime;
+    }
+    // dormant: never-used first, then oldest-used, then most-recent at the bottom
+    if (aTime === null && bTime === null) return 0;
+    if (aTime === null) return -1;
+    if (bTime === null) return 1;
+    return aTime - bTime;
+  });
+
   const sortedUsers = [...allUsers].sort((a, b) =>
     (a.name || a.email).localeCompare(b.name || b.email),
   );
@@ -136,6 +158,25 @@ export default function TeamAccess() {
     });
   };
 
+  const formatRelative = (d?: string | null) => {
+    if (!d) return null;
+    const then = new Date(d).getTime();
+    const diffSec = Math.round((Date.now() - then) / 1000);
+    if (diffSec < 0) return "just now";
+    if (diffSec < 45) return "just now";
+    if (diffSec < 90) return "1 minute ago";
+    const diffMin = Math.round(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} minutes ago`;
+    const diffHr = Math.round(diffMin / 60);
+    if (diffHr < 24) return diffHr === 1 ? "1 hour ago" : `${diffHr} hours ago`;
+    const diffDay = Math.round(diffHr / 24);
+    if (diffDay < 30) return diffDay === 1 ? "1 day ago" : `${diffDay} days ago`;
+    const diffMo = Math.round(diffDay / 30);
+    if (diffMo < 12) return diffMo === 1 ? "1 month ago" : `${diffMo} months ago`;
+    const diffYr = Math.round(diffMo / 12);
+    return diffYr === 1 ? "1 year ago" : `${diffYr} years ago`;
+  };
+
   return (
     <TeamLayout>
       <div style={{ padding: "32px 40px", maxWidth: "1200px" }}>
@@ -174,7 +215,31 @@ export default function TeamAccess() {
             </p>
           </div>
         ) : (
-          <div style={{ border: `1px solid ${t.border}`, borderRadius: "8px", overflow: "hidden" }}>
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+              <label
+                style={f({
+                  fontSize: "10px", fontWeight: 700, textTransform: "uppercase",
+                  letterSpacing: "0.12em", color: t.textTertiary,
+                })}
+              >
+                Sort
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                style={f({
+                  fontSize: "12px", padding: "6px 10px",
+                  border: `1px solid ${t.border}`, borderRadius: "4px",
+                  background: t.bg, color: t.text, outline: "none",
+                })}
+              >
+                <option value="dormant">Dormant first (never used / oldest use)</option>
+                <option value="lastUsed">Most recently used</option>
+                <option value="created">Newest created</option>
+              </select>
+            </div>
+            <div style={{ border: `1px solid ${t.border}`, borderRadius: "8px", overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: t.bgSidebar, borderBottom: `1px solid ${t.border}` }}>
@@ -216,7 +281,31 @@ export default function TeamAccess() {
                       </span>
                     </td>
                     <td style={{ padding: "14px 16px", ...f({ fontSize: "12px", color: t.textSecondary }) }}>{formatDate(tk.createdAt)}</td>
-                    <td style={{ padding: "14px 16px", ...f({ fontSize: "12px", color: t.textSecondary }) }}>{formatDate(tk.lastUsedAt)}</td>
+                    <td style={{ padding: "14px 16px" }}>
+                      {tk.lastUsedAt ? (
+                        <>
+                          <div
+                            style={f({ fontSize: "12px", color: t.text })}
+                            title={formatDate(tk.lastUsedAt)}
+                          >
+                            {formatRelative(tk.lastUsedAt)}
+                          </div>
+                          <div style={f({ fontSize: "11px", color: t.textTertiary, marginTop: "2px" })}>
+                            {formatDate(tk.lastUsedAt)}
+                          </div>
+                        </>
+                      ) : (
+                        <span
+                          style={f({
+                            fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em",
+                            padding: "4px 10px", borderRadius: "100px",
+                            color: t.textSecondary, background: t.hoverBg,
+                          })}
+                        >
+                          Never used
+                        </span>
+                      )}
+                    </td>
                     <td style={{ padding: "14px 16px", textAlign: "right" }}>
                       {tk.status === "active" && (
                         <button
@@ -237,7 +326,8 @@ export default function TeamAccess() {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </div>
 
