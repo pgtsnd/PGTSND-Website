@@ -439,6 +439,30 @@ export const api = {
   getInvoiceExportRunDownloadUrl: (id: string) =>
     `${API_BASE}/invoice-export-runs/${id}/download`,
 
+  emailInvoiceExport: (data: {
+    recipient: string;
+    csv: string;
+    filename: string;
+    summary: {
+      count: number;
+      totalAmount?: number;
+      dateFrom?: string | null;
+      dateTo?: string | null;
+      statuses?: string[];
+      clientName?: string | null;
+    };
+  }) =>
+    apiFetch<{ message: string; recipient: string; filename: string; count: number }>(
+      "/integrations/invoices/email-export",
+      { method: "POST", body: JSON.stringify(data) },
+    ),
+
+  updateBookkeeperEmail: (bookkeeperEmail: string | null) =>
+    apiFetch<{ id: string; bookkeeperEmail: string | null }>(
+      "/users/me/bookkeeper-email",
+      { method: "PATCH", body: JSON.stringify({ bookkeeperEmail }) },
+    ),
+
 
   getDocuSignSigningUrl: (contractId: string) =>
     apiFetch<{ url: string }>(`/integrations/docusign/signing-url/${contractId}`),

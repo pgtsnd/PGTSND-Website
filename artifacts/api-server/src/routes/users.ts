@@ -60,6 +60,32 @@ router.patch("/users/me/notifications", async (req, res) => {
   validateAndSend(res, selectUserSchema, user);
 });
 
+router.patch("/users/me/bookkeeper-email", async (req, res) => {
+  const { bookkeeperEmail } = (req.body ?? {}) as { bookkeeperEmail?: unknown };
+  let value: string | null;
+  if (bookkeeperEmail === null || bookkeeperEmail === "" || bookkeeperEmail === undefined) {
+    value = null;
+  } else if (typeof bookkeeperEmail === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bookkeeperEmail)) {
+    value = bookkeeperEmail;
+  } else {
+    res.status(400).json({ error: "bookkeeperEmail must be a valid email address or empty" });
+    return;
+  }
+
+  const [user] = await db
+    .update(usersTable)
+    .set({ bookkeeperEmail: value })
+    .where(eq(usersTable.id, req.user!.id))
+    .returning();
+
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  validateAndSend(res, selectUserSchema, user);
+});
+
 router.get("/users/me", async (req, res) => {
   const [user] = await db
     .select()

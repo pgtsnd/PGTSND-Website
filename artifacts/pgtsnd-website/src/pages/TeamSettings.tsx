@@ -5,6 +5,7 @@ import { useTeamAuth } from "../contexts/TeamAuthContext";
 import { SettingsSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import { useToast } from "../components/Toast";
 import { useUpdateProfile } from "../hooks/useTeamData";
+import { api } from "../lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUpdateMyNotificationPreferences } from "@workspace/api-client-react";
 import {
@@ -25,6 +26,9 @@ export default function TeamSettings() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [title, setTitle] = useState("");
+  const [bookkeeperEmail, setBookkeeperEmail] = useState("");
+  const [bookkeeperSaving, setBookkeeperSaving] = useState(false);
+  const [bookkeeperStatus, setBookkeeperStatus] = useState<null | "saved" | "error" | "invalid">(null);
   const [saved, setSaved] = useState(false);
   const updateProfile = useUpdateProfile();
   const updateNotificationPrefs = useUpdateMyNotificationPreferences();
@@ -37,8 +41,32 @@ export default function TeamSettings() {
       setName(currentUser.name ?? "");
       setEmail(currentUser.email ?? "");
       setTitle(currentUser.title ?? "");
+      setBookkeeperEmail(currentUser.bookkeeperEmail ?? "");
     }
   }, [currentUser]);
+
+  const handleSaveBookkeeperEmail = async () => {
+    const trimmed = bookkeeperEmail.trim();
+    if (trimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setBookkeeperStatus("invalid");
+      setTimeout(() => setBookkeeperStatus(null), 2500);
+      return;
+    }
+    setBookkeeperSaving(true);
+    try {
+      await api.updateBookkeeperEmail(trimmed === "" ? null : trimmed);
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
+      setBookkeeperStatus("saved");
+      toast("Bookkeeper email saved", "success");
+      setTimeout(() => setBookkeeperStatus(null), 2500);
+    } catch {
+      setBookkeeperStatus("error");
+      toast("Failed to save bookkeeper email", "error");
+      setTimeout(() => setBookkeeperStatus(null), 2500);
+    } finally {
+      setBookkeeperSaving(false);
+    }
+  };
 
   const handleSave = () => {
     if (!currentUser) return;
@@ -121,6 +149,42 @@ export default function TeamSettings() {
                     <label style={f({ fontWeight: 500, fontSize: "11px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "6px" })}>Role</label>
                     <input value={currentUser?.role ?? ""} disabled style={f({ fontWeight: 400, fontSize: "13px", color: t.textMuted, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "6px", padding: "10px 14px", width: "100%", outline: "none", boxSizing: "border-box" as const, opacity: 0.6, textTransform: "capitalize" })} />
                   </div>
+                </div>
+
+                <div style={{ marginTop: "28px", paddingTop: "24px", borderTop: `1px solid ${t.border}` }}>
+                  <h3 style={f({ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" })}>Bookkeeper Email</h3>
+                  <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "12px" })}>
+                    Default recipient when emailing invoice CSV exports from the Clients page.
+                  </p>
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <input
+                      type="email"
+                      value={bookkeeperEmail}
+                      onChange={(e) => setBookkeeperEmail(e.target.value)}
+                      placeholder="bookkeeper@accounting.com"
+                      style={f({ fontWeight: 400, fontSize: "13px", color: t.text, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "6px", padding: "10px 14px", flex: 1, outline: "none", boxSizing: "border-box" as const })}
+                    />
+                    <button
+                      onClick={handleSaveBookkeeperEmail}
+                      disabled={bookkeeperSaving}
+                      style={f({
+                        fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent,
+                        border: "none", borderRadius: "6px", padding: "10px 16px", cursor: "pointer",
+                        opacity: bookkeeperSaving ? 0.7 : 1, whiteSpace: "nowrap" as const,
+                      })}
+                    >
+                      {bookkeeperSaving ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                  {bookkeeperStatus === "saved" && (
+                    <p style={f({ fontWeight: 500, fontSize: "11px", color: t.accent, marginTop: "8px" })}>Saved</p>
+                  )}
+                  {bookkeeperStatus === "invalid" && (
+                    <p style={f({ fontWeight: 500, fontSize: "11px", color: "#e26060", marginTop: "8px" })}>Enter a valid email address</p>
+                  )}
+                  {bookkeeperStatus === "error" && (
+                    <p style={f({ fontWeight: 500, fontSize: "11px", color: "#e26060", marginTop: "8px" })}>Couldn't save — try again</p>
+                  )}
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "24px" }}>

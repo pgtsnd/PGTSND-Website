@@ -51,6 +51,8 @@ export const usersTable = pgTable("users", {
   emailNotifyReviews: boolean("email_notify_reviews").notNull().default(true),
   emailNotifyComments: boolean("email_notify_comments").notNull().default(true),
 
+  bookkeeperEmail: varchar("bookkeeper_email", { length: 255 }),
+
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()

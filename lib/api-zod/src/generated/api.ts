@@ -89,6 +89,7 @@ export const ListUsersResponseItem = zod.object({
   notes: zod.string().nullish(),
   emailNotifyReviews: zod.boolean(),
   emailNotifyComments: zod.boolean(),
+  bookkeeperEmail: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -162,6 +163,7 @@ export const GetCurrentUserResponse = zod.object({
   notes: zod.string().nullish(),
   emailNotifyReviews: zod.boolean(),
   emailNotifyComments: zod.boolean(),
+  bookkeeperEmail: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -205,6 +207,7 @@ export const UpdateMyNotificationPreferencesResponse = zod.object({
   notes: zod.string().nullish(),
   emailNotifyReviews: zod.boolean(),
   emailNotifyComments: zod.boolean(),
+  bookkeeperEmail: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -248,6 +251,7 @@ export const GetUserResponse = zod.object({
   notes: zod.string().nullish(),
   emailNotifyReviews: zod.boolean(),
   emailNotifyComments: zod.boolean(),
+  bookkeeperEmail: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -318,6 +322,7 @@ export const UpdateUserResponse = zod.object({
   notes: zod.string().nullish(),
   emailNotifyReviews: zod.boolean(),
   emailNotifyComments: zod.boolean(),
+  bookkeeperEmail: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });

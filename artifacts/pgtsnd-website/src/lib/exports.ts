@@ -80,7 +80,7 @@ export interface TeamInvoiceExportRow {
   projectName: string;
 }
 
-export function exportTeamInvoicesToCsv(rows: TeamInvoiceExportRow[], filename = "invoices.csv"): void {
+export function buildTeamInvoicesCsv(rows: TeamInvoiceExportRow[]): string {
   const headers = [
     "Client",
     "Project",
@@ -107,10 +107,13 @@ export function exportTeamInvoicesToCsv(rows: TeamInvoiceExportRow[], filename =
     formatDateForExport(inv.createdAt),
   ]);
 
-  const csv = [headers, ...csvRows]
+  return [headers, ...csvRows]
     .map((row) => row.map(csvEscape).join(","))
     .join("\r\n");
+}
 
+export function exportTeamInvoicesToCsv(rows: TeamInvoiceExportRow[], filename = "invoices.csv"): void {
+  const csv = buildTeamInvoicesCsv(rows);
   const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
   downloadBlob(blob, filename);
 }

@@ -1481,6 +1481,9 @@ components:
           type: boolean
         emailNotifyComments:
           type: boolean
+        bookkeeperEmail:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time

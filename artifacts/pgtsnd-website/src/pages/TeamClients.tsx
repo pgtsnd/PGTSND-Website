@@ -29,7 +29,7 @@ import {
   type ScheduledInvoiceExport,
   type InvoiceExportRunSummary,
 } from "../lib/api";
-import { exportTeamInvoicesToCsv, type TeamInvoiceExportRow } from "../lib/exports";
+import { exportTeamInvoicesToCsv, buildTeamInvoicesCsv, type TeamInvoiceExportRow } from "../lib/exports";
 
 type ClientTab = "overview" | "invoices" | "scope";
 
@@ -77,7 +77,7 @@ function fmtUsd(amount: number) {
 
 export default function TeamClients() {
   const { t } = useTheme();
-  const { isLoading: authLoading, allUsers } = useTeamAuth();
+  const { isLoading: authLoading, allUsers, currentUser } = useTeamAuth();
   const { projects, organizations, isLoading, isError, refetch } = useDashboardData();
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
   const [clientTab, setClientTab] = useState<ClientTab>("overview");
@@ -213,6 +213,9 @@ export default function TeamClients() {
     fromDate: string;
     toDate: string;
   }>({ statuses: [...allStatuses], clientId: "", fromDate: "", toDate: "" });
+  const [exportSending, setExportSending] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exportEmailed, setExportEmailed] = useState<string | null>(null);
 
   const [schedule, setSchedule] = useState<ScheduledInvoiceExport | null>(null);
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
@@ -643,8 +646,16 @@ export default function TeamClients() {
           runNowLoading={runNowLoading}
           exportRuns={exportRuns}
           onDownloadRun={handleDownloadExportRun}
-          onClose={() => setShowExportModal(false)}
-          onExport={() => {
+          defaultBookkeeperEmail={currentUser?.bookkeeperEmail ?? ""}
+          sending={exportSending}
+          error={exportError}
+          emailed={exportEmailed}
+          onClose={() => {
+            setShowExportModal(false);
+            setExportError(null);
+            setExportEmailed(null);
+          }}
+          onExport={async (mode: "download" | "email", recipient: string) => {
             const rows: TeamInvoiceExportRow[] = [];
             const fromTs = exportFilters.fromDate ? new Date(exportFilters.fromDate).getTime() : null;
             const toTs = exportFilters.toDate ? new Date(exportFilters.toDate).getTime() + 24 * 60 * 60 * 1000 - 1 : null;
@@ -660,8 +671,46 @@ export default function TeamClients() {
               }
             }
             const stamp = new Date().toISOString().slice(0, 10);
-            exportTeamInvoicesToCsv(rows, `invoices-${stamp}.csv`);
-            setShowExportModal(false);
+            const filename = `invoices-${stamp}.csv`;
+
+            if (mode === "download") {
+              exportTeamInvoicesToCsv(rows, filename);
+              setShowExportModal(false);
+              return;
+            }
+
+            setExportError(null);
+            setExportEmailed(null);
+            setExportSending(true);
+            try {
+              const csv = buildTeamInvoicesCsv(rows);
+              const totalAmount = rows.reduce((sum, r) => sum + r.invoice.amount, 0);
+              const selectedClient = exportFilters.clientId
+                ? clientData.find((c: any) => c.id === exportFilters.clientId)?.company ?? null
+                : null;
+              await api.emailInvoiceExport({
+                recipient,
+                csv,
+                filename,
+                summary: {
+                  count: rows.length,
+                  totalAmount,
+                  dateFrom: exportFilters.fromDate || null,
+                  dateTo: exportFilters.toDate || null,
+                  statuses: exportFilters.statuses,
+                  clientName: selectedClient,
+                },
+              });
+              setExportEmailed(recipient);
+              setTimeout(() => {
+                setShowExportModal(false);
+                setExportEmailed(null);
+              }, 1500);
+            } catch (err: any) {
+              setExportError(err?.message || "Failed to email export");
+            } finally {
+              setExportSending(false);
+            }
           }}
         />
       )}
@@ -1304,8 +1353,14 @@ function ExportInvoicesModal({
   t, f, inputStyle, labelStyle, clients, filters, setFilters, allStatuses,
   schedule, scheduleEnabled, setScheduleEnabled, scheduleLookback, setScheduleLookback,
   scheduleSaving, onSaveSchedule, onRunScheduleNow, runNowLoading,
-  exportRuns, onDownloadRun, onClose, onExport,
+  exportRuns, onDownloadRun, defaultBookkeeperEmail, sending, error, emailed, onClose, onExport,
 }: any) {
+  const [mode, setMode] = useState<"download" | "email">("download");
+  const [recipient, setRecipient] = useState<string>(defaultBookkeeperEmail || "");
+  useEffect(() => {
+    setRecipient(defaultBookkeeperEmail || "");
+  }, [defaultBookkeeperEmail]);
+  const recipientValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient.trim());
   const matchingCount = (() => {
     const fromTs = filters.fromDate ? new Date(filters.fromDate).getTime() : null;
     const toTs = filters.toDate ? new Date(filters.toDate).getTime() + 24 * 60 * 60 * 1000 - 1 : null;
@@ -1407,11 +1462,60 @@ function ExportInvoicesModal({
           </div>
         </div>
 
-        <div style={{ padding: "12px 16px", background: t.hoverBg, borderRadius: "8px", marginBottom: "20px" }}>
+        <div style={{ marginBottom: "16px", display: "flex", gap: "8px" }}>
+          {(["download", "email"] as const).map((m) => {
+            const active = mode === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                style={f({
+                  fontWeight: 600, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em",
+                  color: active ? t.accentText : t.textMuted,
+                  background: active ? t.accent : "transparent",
+                  border: `1px solid ${active ? t.accent : t.border}`,
+                  borderRadius: "6px", padding: "8px 14px", cursor: "pointer", flex: 1,
+                })}
+              >
+                {m === "download" ? "Download CSV" : "Email instead"}
+              </button>
+            );
+          })}
+        </div>
+
+        {mode === "email" && (
+          <div style={{ marginBottom: "16px" }}>
+            <label style={labelStyle}>Send to</label>
+            <input
+              type="email"
+              value={recipient}
+              onChange={(e: any) => setRecipient(e.target.value)}
+              placeholder="bookkeeper@accounting.com"
+              style={inputStyle}
+            />
+            <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, marginTop: "6px" })}>
+              {defaultBookkeeperEmail
+                ? "Defaults to your saved bookkeeper email — change in Settings."
+                : "Tip: save a default in Settings → Profile → Bookkeeper email."}
+            </p>
+          </div>
+        )}
+
+        <div style={{ padding: "12px 16px", background: t.hoverBg, borderRadius: "8px", marginBottom: "16px" }}>
           <p style={f({ fontWeight: 500, fontSize: "12px", color: t.textTertiary })}>
-            {matchingCount} invoice{matchingCount === 1 ? "" : "s"} will be exported
+            {matchingCount} invoice{matchingCount === 1 ? "" : "s"} will be {mode === "email" ? "emailed" : "exported"}
           </p>
         </div>
+
+        {error && (
+          <p style={f({ fontWeight: 500, fontSize: "12px", color: "#e26060", marginBottom: "12px" })}>{error}</p>
+        )}
+        {emailed && (
+          <p style={f({ fontWeight: 500, fontSize: "12px", color: "rgba(96,208,96,0.9)", marginBottom: "12px" })}>
+            Sent to {emailed}
+          </p>
+        )}
 
         <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
           <button
@@ -1421,11 +1525,25 @@ function ExportInvoicesModal({
             Cancel
           </button>
           <button
-            onClick={onExport}
-            disabled={matchingCount === 0 || filters.statuses.length === 0}
-            style={f({ fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent, border: "none", borderRadius: "8px", padding: "10px 24px", cursor: matchingCount === 0 ? "not-allowed" : "pointer", opacity: matchingCount === 0 || filters.statuses.length === 0 ? 0.5 : 1 })}
+            onClick={() => onExport(mode, recipient.trim())}
+            disabled={
+              matchingCount === 0 ||
+              filters.statuses.length === 0 ||
+              (mode === "email" && (!recipientValid || sending))
+            }
+            style={f({
+              fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent,
+              border: "none", borderRadius: "8px", padding: "10px 24px",
+              cursor: matchingCount === 0 ? "not-allowed" : "pointer",
+              opacity:
+                matchingCount === 0 ||
+                filters.statuses.length === 0 ||
+                (mode === "email" && (!recipientValid || sending))
+                  ? 0.5
+                  : 1,
+            })}
           >
-            Download CSV
+            {mode === "email" ? (sending ? "Sending..." : "Email CSV") : "Download CSV"}
           </button>
         </div>
 

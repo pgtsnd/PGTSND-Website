@@ -608,6 +608,103 @@ router.post(
 );
 
 router.post(
+  "/integrations/invoices/email-export",
+  requireRole("owner", "partner"),
+  async (req, res) => {
+    const { recipient, csv, filename, summary } = req.body ?? {};
+
+    if (typeof recipient !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) {
+      res.status(400).json({ error: "A valid recipient email address is required" });
+      return;
+    }
+    if (typeof csv !== "string" || csv.length === 0) {
+      res.status(400).json({ error: "CSV content is required" });
+      return;
+    }
+    if (csv.length > 5_000_000) {
+      res.status(413).json({ error: "Export is too large to email (limit 5MB)" });
+      return;
+    }
+    const safeFilename =
+      typeof filename === "string" && /^[\w.\- ]{1,120}\.csv$/i.test(filename)
+        ? filename
+        : `invoices-${new Date().toISOString().slice(0, 10)}.csv`;
+
+    const count = Number.isFinite(summary?.count) ? Number(summary.count) : 0;
+    const totalAmount = Number.isFinite(summary?.totalAmount)
+      ? Number(summary.totalAmount)
+      : null;
+    const dateFrom = typeof summary?.dateFrom === "string" ? summary.dateFrom : null;
+    const dateTo = typeof summary?.dateTo === "string" ? summary.dateTo : null;
+    const statuses: string[] = Array.isArray(summary?.statuses)
+      ? summary.statuses.filter((s: unknown) => typeof s === "string")
+      : [];
+    const clientName = typeof summary?.clientName === "string" ? summary.clientName : null;
+
+    const senderName = req.user?.name ?? "the PGTSND team";
+    const totalLine =
+      totalAmount !== null
+        ? `Total billed: $${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : null;
+    const rangeLine =
+      dateFrom || dateTo ? `Created between ${dateFrom ?? "start"} and ${dateTo ?? "today"}` : "All time";
+    const filterLines = [
+      `Invoices included: ${count}`,
+      rangeLine,
+      `Statuses: ${statuses.length ? statuses.join(", ") : "all"}`,
+      clientName ? `Client: ${clientName}` : `Client: all`,
+      ...(totalLine ? [totalLine] : []),
+    ];
+
+    const text = [
+      `Hi,`,
+      ``,
+      `${senderName} sent you an invoice export from PGTSND Productions.`,
+      ``,
+      ...filterLines,
+      ``,
+      `The CSV is attached as ${safeFilename}.`,
+      ``,
+      `Thanks,`,
+      `PGTSND Productions`,
+    ].join("\n");
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; color: #1a1a1a; max-width: 560px;">
+        <p>Hi,</p>
+        <p>${senderName} sent you an invoice export from <strong>PGTSND Productions</strong>.</p>
+        <ul style="line-height:1.6;color:#333;">
+          ${filterLines.map((l) => `<li>${l.replace(/</g, "&lt;")}</li>`).join("")}
+        </ul>
+        <p>The CSV is attached as <code>${safeFilename}</code>.</p>
+        <p style="color:#666;">Thanks,<br/>PGTSND Productions</p>
+      </div>
+    `;
+
+    try {
+      await sendEmail({
+        to: recipient,
+        subject: `Invoice export (${count} invoice${count === 1 ? "" : "s"}) – PGTSND`,
+        text,
+        html,
+        attachments: [
+          {
+            filename: safeFilename,
+            content: Buffer.from(csv, "utf8").toString("base64"),
+            contentType: "text/csv",
+          },
+        ],
+      });
+
+      res.json({ message: "Export emailed", recipient, filename: safeFilename, count });
+    } catch (err) {
+      logger.error({ err }, "Invoice export email failed");
+      res.status(500).json({ error: "Failed to email export" });
+    }
+  },
+);
+
+router.post(
   "/invoices/:id/email-payment-link",
   requireProjectAccessViaEntity(resolveProjectFromInvoice, "id"),
   async (req, res) => {

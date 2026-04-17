@@ -1,10 +1,17 @@
 import { logger } from "../lib/logger";
 
+export interface EmailAttachment {
+  filename: string;
+  content: string;
+  contentType?: string;
+}
+
 export interface SendEmailParams {
   to: string;
   subject: string;
   text: string;
   html?: string;
+  attachments?: EmailAttachment[];
 }
 
 const RESEND_API_URL = "https://api.resend.com/emails";
@@ -37,6 +44,15 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
         subject: params.subject,
         text: params.text,
         html: params.html ?? params.text.replace(/\n/g, "<br/>"),
+        ...(params.attachments && params.attachments.length > 0
+          ? {
+              attachments: params.attachments.map((a) => ({
+                filename: a.filename,
+                content: a.content,
+                content_type: a.contentType,
+              })),
+            }
+          : {}),
       }),
     });
 

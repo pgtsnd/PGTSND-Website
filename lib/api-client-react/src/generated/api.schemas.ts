@@ -79,6 +79,7 @@ export interface User {
   notes?: string | null;
   emailNotifyReviews: boolean;
   emailNotifyComments: boolean;
+  bookkeeperEmail?: string | null;
   createdAt: string;
   updatedAt: string;
 }
