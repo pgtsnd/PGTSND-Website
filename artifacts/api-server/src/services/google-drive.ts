@@ -87,6 +87,72 @@ export interface DriveFolderSearchResult extends DriveFile {
   parentPath: string;
 }
 
+interface CachedFolder {
+  folder: DriveFile | null;
+  expires: number;
+}
+
+const FOLDER_CACHE_TTL_MS = 5 * 60 * 1000;
+const FOLDER_NEGATIVE_CACHE_TTL_MS = 30 * 1000;
+const FOLDER_CACHE_MAX = 5000;
+const folderCache = new Map<string, CachedFolder>();
+const inflightFolderLookups = new Map<string, Promise<DriveFile | null>>();
+
+function getCachedFolder(id: string): DriveFile | null | undefined {
+  const entry = folderCache.get(id);
+  if (!entry) return undefined;
+  if (entry.expires < Date.now()) {
+    folderCache.delete(id);
+    return undefined;
+  }
+  return entry.folder;
+}
+
+function setCachedFolder(id: string, folder: DriveFile | null): void {
+  if (folderCache.size >= FOLDER_CACHE_MAX) {
+    const firstKey = folderCache.keys().next().value;
+    if (firstKey !== undefined) folderCache.delete(firstKey);
+  }
+  const ttl = folder === null ? FOLDER_NEGATIVE_CACHE_TTL_MS : FOLDER_CACHE_TTL_MS;
+  folderCache.set(id, { folder, expires: Date.now() + ttl });
+}
+
+export function _clearDriveFolderCache(): void {
+  folderCache.clear();
+  inflightFolderLookups.clear();
+}
+
+async function fetchFolderMeta(id: string): Promise<DriveFile | null> {
+  const cached = getCachedFolder(id);
+  if (cached !== undefined) return cached;
+
+  const inflight = inflightFolderLookups.get(id);
+  if (inflight) return inflight;
+
+  const promise = (async () => {
+    try {
+      const r = await driveRequest(
+        `/files/${id}?fields=${encodeURIComponent("id,name,parents")}`,
+      );
+      if (!r.ok) {
+        setCachedFolder(id, null);
+        return null;
+      }
+      const f = (await r.json()) as DriveFile;
+      setCachedFolder(id, f);
+      return f;
+    } catch {
+      setCachedFolder(id, null);
+      return null;
+    } finally {
+      inflightFolderLookups.delete(id);
+    }
+  })();
+
+  inflightFolderLookups.set(id, promise);
+  return promise;
+}
+
 export async function searchFolders(
   query: string,
   pageSize: number = 25,
@@ -115,48 +181,48 @@ export async function searchFolders(
     const folders = data.files || [];
     if (folders.length === 0) return [];
 
-    const folderCache = new Map<string, DriveFile | null>();
+    const MAX_DEPTH = 8;
+    const visited = new Set<string>();
 
-    async function fetchFolder(id: string): Promise<DriveFile | null> {
-      if (folderCache.has(id)) return folderCache.get(id) ?? null;
-      try {
-        const r = await driveRequest(
-          `/files/${id}?fields=${encodeURIComponent("id,name,parents")}`,
-        );
-        if (!r.ok) {
-          folderCache.set(id, null);
-          return null;
-        }
-        const f = (await r.json()) as DriveFile;
-        folderCache.set(id, f);
-        return f;
-      } catch {
-        folderCache.set(id, null);
-        return null;
-      }
+    let frontier = new Set<string>();
+    for (const folder of folders) {
+      const p = folder.parents?.[0];
+      if (p) frontier.add(p);
     }
 
-    async function buildPath(parentId: string | undefined): Promise<string> {
+    for (let depth = 0; depth < MAX_DEPTH && frontier.size > 0; depth++) {
+      const ids = Array.from(frontier).filter((id) => !visited.has(id));
+      if (ids.length === 0) break;
+      ids.forEach((id) => visited.add(id));
+
+      const fetched = await Promise.all(ids.map((id) => fetchFolderMeta(id)));
+      const next = new Set<string>();
+      for (const f of fetched) {
+        const parent = f?.parents?.[0];
+        if (parent && !visited.has(parent)) next.add(parent);
+      }
+      frontier = next;
+    }
+
+    function buildPath(parentId: string | undefined): string {
       if (!parentId) return "My Drive";
       const segments: string[] = [];
+      const seen = new Set<string>();
       let current: string | undefined = parentId;
-      const guard = new Set<string>();
-      while (current && !guard.has(current) && segments.length < 8) {
-        guard.add(current);
-        const f = await fetchFolder(current);
-        if (!f) break;
-        segments.unshift(f.name);
-        current = f.parents?.[0];
+      while (current && !seen.has(current) && segments.length < MAX_DEPTH) {
+        seen.add(current);
+        const cached = getCachedFolder(current);
+        if (cached === undefined || cached === null) break;
+        segments.unshift(cached.name);
+        current = cached.parents?.[0];
       }
       return ["My Drive", ...segments].join(" / ");
     }
 
-    const results: DriveFolderSearchResult[] = [];
-    for (const folder of folders) {
-      const parentPath = await buildPath(folder.parents?.[0]);
-      results.push({ ...folder, parentPath });
-    }
-    return results;
+    return folders.map((folder) => ({
+      ...folder,
+      parentPath: buildPath(folder.parents?.[0]),
+    }));
   } catch (err) {
     console.error("Drive search folders error:", err);
     return [];
