@@ -34,6 +34,7 @@ import TeamSchedule from "@/pages/TeamSchedule";
 import TeamCrew from "@/pages/TeamCrew";
 import TeamSettings from "@/pages/TeamSettings";
 import TeamUploads from "@/pages/TeamUploads";
+import AdminEmailPreviews from "@/pages/AdminEmailPreviews";
 import AuthVerify from "@/pages/AuthVerify";
 import CaseStudyDetail from "@/pages/case-studies/CaseStudyDetail";
 import AlaskaBeringSeaCrabbers from "@/pages/case-studies/AlaskaBeringSeaCrabbers";
@@ -204,6 +205,13 @@ function Router() {
         {() => (
           <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
             <TeamUploads />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/team/email-previews">
+        {() => (
+          <ProtectedRoute allowedRoles={OWNER_ROLES} redirectTo="/team/dashboard">
+            <AdminEmailPreviews />
           </ProtectedRoute>
         )}
       </Route>

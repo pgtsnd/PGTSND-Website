@@ -82,6 +82,17 @@ const navItems: NavItem[] = [
       </svg>
     ),
   },
+  {
+    href: "/team/email-previews",
+    label: "Email Previews",
+    ownerOnly: true,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <polyline points="3 7 12 13 21 7" />
+      </svg>
+    ),
+  },
   { href: "/team/settings", label: "Settings", icon: settingsIcon, ownerOnly: true },
 ];
 
