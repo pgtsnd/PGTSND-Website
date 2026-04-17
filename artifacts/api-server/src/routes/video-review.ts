@@ -65,46 +65,60 @@ router.post(
   "/deliverables/:deliverableId/comments",
   requireProjectAccessViaEntity(resolveProjectFromDeliverable, "deliverableId"),
   async (req, res) => {
-    const { timestampSeconds, content } = req.body;
+    const { timestampSeconds, content, deliverableVersionId: bodyVersionId } = req.body;
 
     if (timestampSeconds === undefined || !content?.trim()) {
       res.status(400).json({ error: "timestampSeconds and content are required" });
       return;
     }
 
-    const requestedVersionId =
-      typeof req.body.deliverableVersionId === "string" && req.body.deliverableVersionId.length > 0
-        ? req.body.deliverableVersionId
-        : null;
-
-    let deliverableVersionId: string | null = null;
-    if (requestedVersionId) {
-      const [version] = await db
-        .select({ id: deliverableVersionsTable.id })
+    let resolvedVersionId: string | null = null;
+    let resolvedVersionLabel: string | null = null;
+    if (typeof bodyVersionId === "string" && bodyVersionId.length > 0) {
+      const [v] = await db
+        .select()
         .from(deliverableVersionsTable)
         .where(
           and(
-            eq(deliverableVersionsTable.id, requestedVersionId),
+            eq(deliverableVersionsTable.id, bodyVersionId),
             eq(deliverableVersionsTable.deliverableId, req.params.deliverableId),
           ),
         )
         .limit(1);
-      if (!version) {
+      if (v) {
+        resolvedVersionId = v.id;
+        resolvedVersionLabel = v.version;
+      } else {
         res.status(400).json({ error: "deliverableVersionId does not belong to this deliverable" });
         return;
       }
-      deliverableVersionId = version.id;
-    } else {
-      deliverableVersionId = await resolveCurrentDeliverableVersionId(
-        req.params.deliverableId,
-      );
+    }
+    if (!resolvedVersionId) {
+      const [latest] = await db
+        .select()
+        .from(deliverableVersionsTable)
+        .where(eq(deliverableVersionsTable.deliverableId, req.params.deliverableId))
+        .orderBy(desc(deliverableVersionsTable.createdAt))
+        .limit(1);
+      if (latest) {
+        resolvedVersionId = latest.id;
+        resolvedVersionLabel = latest.version;
+      } else {
+        const [d] = await db
+          .select({ version: deliverablesTable.version })
+          .from(deliverablesTable)
+          .where(eq(deliverablesTable.id, req.params.deliverableId))
+          .limit(1);
+        resolvedVersionLabel = d?.version ?? null;
+      }
     }
 
     const [comment] = await db
       .insert(videoCommentsTable)
       .values({
         deliverableId: req.params.deliverableId,
-        deliverableVersionId,
+        deliverableVersionId: resolvedVersionId,
+        versionLabel: resolvedVersionLabel,
         authorId: req.user!.id,
         authorName: req.user!.name,
         timestampSeconds: Number(timestampSeconds),

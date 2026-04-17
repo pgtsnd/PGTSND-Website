@@ -1,5 +1,5 @@
 {
-  "id": "5555f8c6-14d8-4283-b675-20932a9f48aa",
+  "id": "99299f38-a979-4c13-9c8d-c87ad0fed5b7",
   "prevId": "bfe5f37c-533d-48ab-8ed5-6c8ed4fc04ed",
   "version": "7",
   "dialect": "postgresql",
@@ -1923,6 +1923,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "payment_link_sent_at": {
+          "name": "payment_link_sent_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_link_sent_to": {
+          "name": "payment_link_sent_to",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -2206,6 +2218,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "version_label": {
+          "name": "version_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "author_id": {
           "name": "author_id",
           "type": "text",
@@ -2289,6 +2307,21 @@
             },
             {
               "expression": "timestamp_seconds",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "video_comments_version_idx": {
+          "name": "video_comments_version_idx",
+          "columns": [
+            {
+              "expression": "deliverable_version_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"

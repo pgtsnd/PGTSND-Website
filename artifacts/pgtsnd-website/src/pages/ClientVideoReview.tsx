@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
-import VideoPlayer from "../components/VideoPlayer";
+import VideoPlayer, { type VideoPlayerHandle } from "../components/VideoPlayer";
 import VideoReviewPanel from "../components/VideoReviewPanel";
 import type { VideoComment } from "../components/VideoReviewPanel";
 import { api, type Deliverable, type DeliverableVersion, type VideoCommentWithReplies } from "../lib/api";
@@ -23,7 +23,14 @@ export default function ClientVideoReview() {
   const [submitting, setSubmitting] = useState(false);
   const [activeTimestamp, setActiveTimestamp] = useState<number | null>(null);
   const [seekTo, setSeekTo] = useState<number | null>(null);
+  const [seekToB, setSeekToB] = useState<number | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareDeliverableId, setCompareDeliverableId] = useState<string | null>(null);
+  const [compareComments, setCompareComments] = useState<VideoCommentWithReplies[]>([]);
+  const [syncPlayheads, setSyncPlayheads] = useState(true);
+  const playerARef = useRef<VideoPlayerHandle | null>(null);
+  const playerBRef = useRef<VideoPlayerHandle | null>(null);
 
   // Deep-link query params from the resolved-comment email:
   // ?deliverableId=...&commentId=...&action=reply|reopen
@@ -85,6 +92,9 @@ export default function ClientVideoReview() {
 
   useEffect(() => {
     if (!selectedDeliverable) return;
+    setCompareMode(false);
+    setCompareDeliverableId(null);
+    setCompareComments([]);
     api
       .getVideoComments(selectedDeliverable.id)
       .then(setComments)
@@ -94,6 +104,17 @@ export default function ClientVideoReview() {
       .then(setDeliverableVersions)
       .catch(() => setDeliverableVersions([]));
   }, [selectedDeliverable?.id]);
+
+  useEffect(() => {
+    if (!compareDeliverableId) {
+      setCompareComments([]);
+      return;
+    }
+    api
+      .getVideoComments(compareDeliverableId)
+      .then(setCompareComments)
+      .catch(() => setCompareComments([]));
+  }, [compareDeliverableId]);
 
   const handleApprove = async () => {
     if (!selectedDeliverable) return;
@@ -145,6 +166,21 @@ export default function ClientVideoReview() {
     },
     [selectedDeliverable],
   );
+
+  const mirrorPlay = (source: "A" | "B", playing: boolean) => {
+    if (!syncPlayheads || !compareMode) return;
+    const target = source === "A" ? playerBRef.current : playerARef.current;
+    if (!target) return;
+    if (target.isPlaying() === playing) return;
+    if (playing) target.play();
+    else target.pause();
+  };
+
+  const mirrorSeek = (source: "A" | "B", seconds: number) => {
+    if (!syncPlayheads || !compareMode) return;
+    const target = source === "A" ? playerBRef.current : playerARef.current;
+    target?.seek(seconds);
+  };
 
   const handleAddReply = useCallback(
     async (commentId: string, content: string) => {
@@ -210,18 +246,41 @@ export default function ClientVideoReview() {
   );
 
   const handleCommentClick = useCallback((comment: VideoComment) => {
-    setSeekTo(comment.timestampSeconds);
-    setTimeout(() => setSeekTo(null), 100);
-  }, []);
+    const ts = comment.timestampSeconds;
+    const belongsToB = !!compareDeliverableId && comment.deliverableId === compareDeliverableId;
+    if (compareMode && compareDeliverableId) {
+      if (belongsToB) {
+        setSeekToB(ts);
+        setTimeout(() => setSeekToB(null), 100);
+        if (syncPlayheads) {
+          setSeekTo(ts);
+          setTimeout(() => setSeekTo(null), 100);
+        } else {
+          playerBRef.current?.seek(ts);
+        }
+      } else {
+        setSeekTo(ts);
+        setTimeout(() => setSeekTo(null), 100);
+        if (syncPlayheads) {
+          setSeekToB(ts);
+          setTimeout(() => setSeekToB(null), 100);
+        }
+      }
+    } else {
+      setSeekTo(ts);
+      setTimeout(() => setSeekTo(null), 100);
+    }
+  }, [compareMode, compareDeliverableId, syncPlayheads]);
 
   const handleMarkerClick = useCallback(
     (id: string) => {
-      const comment = comments.find((c) => c.id === id);
+      const comment =
+        comments.find((c) => c.id === id) ?? compareComments.find((c) => c.id === id);
       if (comment) {
         handleCommentClick(comment);
       }
     },
-    [comments, handleCommentClick],
+    [comments, compareComments, handleCommentClick],
   );
 
   const statusLabel = (s: string) => {
@@ -512,49 +571,178 @@ export default function ClientVideoReview() {
                 />
               </div>
               {versions.length > 1 && (
-                <select
-                  value={selectedDeliverable.id}
-                  onChange={(e) => {
-                    const v = deliverables.find((d) => d.id === e.target.value);
-                    if (v) {
-                      setSelectedDeliverable(v);
-                      setActiveTimestamp(null);
-                    }
-                  }}
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 500,
-                    fontSize: "11px",
-                    color: t.text,
-                    background: t.bgCard,
-                    border: `1px solid ${t.border}`,
-                    borderRadius: "6px",
-                    padding: "6px 10px",
-                    cursor: "pointer",
-                    outline: "none",
-                  }}
-                >
-                  {versions.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.version || "v1"}
-                    </option>
-                  ))}
-                </select>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                  <select
+                    value={selectedDeliverable.id}
+                    onChange={(e) => {
+                      const v = deliverables.find((d) => d.id === e.target.value);
+                      if (v) {
+                        setSelectedDeliverable(v);
+                        setActiveTimestamp(null);
+                      }
+                    }}
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 500,
+                      fontSize: "11px",
+                      color: t.text,
+                      background: t.bgCard,
+                      border: `1px solid ${t.border}`,
+                      borderRadius: "6px",
+                      padding: "6px 10px",
+                      cursor: "pointer",
+                      outline: "none",
+                    }}
+                  >
+                    {versions.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.version || "v1"}
+                      </option>
+                    ))}
+                  </select>
+                  {isVideo && (
+                    <button
+                      data-testid="client-review-compare-toggle"
+                      onClick={() => {
+                        if (compareMode) {
+                          setCompareMode(false);
+                          setCompareDeliverableId(null);
+                          return;
+                        }
+                        const candidate = versions.find((v) => v.id !== selectedDeliverable.id);
+                        if (!candidate) {
+                          toast("Need at least 2 versions to compare", "error");
+                          return;
+                        }
+                        setCompareDeliverableId(candidate.id);
+                        setCompareMode(true);
+                      }}
+                      style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 600,
+                        fontSize: "11px",
+                        color: compareMode ? "#000" : t.text,
+                        background: compareMode ? "rgba(255,200,60,0.9)" : t.bgCard,
+                        border: `1px solid ${t.border}`,
+                        borderRadius: "6px",
+                        padding: "6px 12px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {compareMode ? "Exit Compare" : "Compare"}
+                    </button>
+                  )}
+                  {isVideo && compareMode && (
+                    <>
+                      <select
+                        data-testid="client-review-compare-version-select"
+                        value={compareDeliverableId ?? ""}
+                        onChange={(e) => setCompareDeliverableId(e.target.value)}
+                        style={{
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: 500,
+                          fontSize: "11px",
+                          color: t.text,
+                          background: t.bgCard,
+                          border: `1px solid ${t.border}`,
+                          borderRadius: "6px",
+                          padding: "6px 10px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {versions
+                          .filter((v) => v.id !== selectedDeliverable.id)
+                          .map((v) => (
+                            <option key={v.id} value={v.id}>
+                              vs {v.version || "v1"}
+                            </option>
+                          ))}
+                      </select>
+                      <label style={{
+                        fontFamily: "'Montserrat', sans-serif", fontSize: "11px",
+                        color: t.textMuted, display: "flex", alignItems: "center", gap: "4px",
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={syncPlayheads}
+                          onChange={(e) => setSyncPlayheads(e.target.checked)}
+                        />
+                        Sync playheads
+                      </label>
+                    </>
+                  )}
+                </div>
               )}
             </div>
 
             {selectedDeliverable.fileUrl ? (
               isVideo ? (
-                <VideoPlayer
-                  src={selectedDeliverable.fileUrl}
-                  markers={comments.map((c) => ({
-                    id: c.id,
-                    timestampSeconds: c.timestampSeconds,
-                  }))}
-                  onTimeClick={(seconds) => setActiveTimestamp(seconds)}
-                  onMarkerClick={handleMarkerClick}
-                  seekTo={seekTo}
-                />
+                compareMode && compareDeliverableId ? (
+                  <div data-testid="client-review-compare-side" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div>
+                      <div style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 700, fontSize: "10px", textTransform: "uppercase",
+                        letterSpacing: "0.08em", color: t.textMuted, marginBottom: "6px",
+                      }}>{selectedDeliverable.version || "v1"}</div>
+                      <VideoPlayer
+                        ref={playerARef}
+                        key={`A-${selectedDeliverable.fileUrl}`}
+                        src={selectedDeliverable.fileUrl}
+                        markers={comments.map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
+                        onTimeClick={(seconds) => setActiveTimestamp(seconds)}
+                        onMarkerClick={handleMarkerClick}
+                        seekTo={seekTo ?? undefined}
+                        onPlayingChange={(p) => mirrorPlay("A", p)}
+                        onUserSeek={(s) => mirrorSeek("A", s)}
+                      />
+                    </div>
+                    <div>
+                      <div style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 700, fontSize: "10px", textTransform: "uppercase",
+                        letterSpacing: "0.08em", color: t.textMuted, marginBottom: "6px",
+                      }}>{deliverables.find((d) => d.id === compareDeliverableId)?.version || ""}</div>
+                      {(() => {
+                        const bUrl = deliverables.find((d) => d.id === compareDeliverableId)?.fileUrl;
+                        if (!bUrl) {
+                          return (
+                            <div style={{
+                              background: t.bgCard, border: `1px solid ${t.border}`,
+                              borderRadius: "10px", padding: "60px 12px", textAlign: "center",
+                              fontFamily: "'Montserrat', sans-serif", fontSize: "12px",
+                              color: t.textMuted,
+                            }}>No file for this version</div>
+                          );
+                        }
+                        return (
+                          <VideoPlayer
+                            ref={playerBRef}
+                            key={`B-${compareDeliverableId}`}
+                            src={bUrl}
+                            markers={compareComments.map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
+                            onMarkerClick={handleMarkerClick}
+                            seekTo={seekToB ?? undefined}
+                            hideCommentButton
+                            onPlayingChange={(p) => mirrorPlay("B", p)}
+                            onUserSeek={(s) => mirrorSeek("B", s)}
+                          />
+                        );
+                      })()}
+                    </div>
+                  </div>
+                ) : (
+                  <VideoPlayer
+                    src={selectedDeliverable.fileUrl}
+                    markers={comments.map((c) => ({
+                      id: c.id,
+                      timestampSeconds: c.timestampSeconds,
+                    }))}
+                    onTimeClick={(seconds) => setActiveTimestamp(seconds)}
+                    onMarkerClick={handleMarkerClick}
+                    seekTo={seekTo}
+                  />
+                )
               ) : kind === "image" ? (
                 <div
                   style={{
@@ -836,7 +1024,13 @@ export default function ClientVideoReview() {
               }}
             >
               <VideoReviewPanel
-                comments={comments}
+                comments={
+                  compareMode && compareDeliverableId
+                    ? [...comments, ...compareComments].sort(
+                        (a, b) => a.timestampSeconds - b.timestampSeconds,
+                      )
+                    : comments
+                }
                 onAddComment={handleAddComment}
                 onAddReply={handleAddReply}
                 onCommentClick={handleCommentClick}

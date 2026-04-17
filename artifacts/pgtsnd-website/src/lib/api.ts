@@ -253,6 +253,7 @@ export interface VideoCommentWithReplies {
   id: string;
   deliverableId: string;
   deliverableVersionId: string | null;
+  versionLabel: string | null;
   authorId: string | null;
   authorName: string;
   timestampSeconds: number;

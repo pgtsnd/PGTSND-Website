@@ -21,8 +21,11 @@ export const videoCommentsTable = pgTable(
     deliverableId: text("deliverable_id")
       .notNull()
       .references(() => deliverablesTable.id, { onDelete: "cascade" }),
-    deliverableVersionId: text("deliverable_version_id")
-      .references(() => deliverableVersionsTable.id, { onDelete: "set null" }),
+    deliverableVersionId: text("deliverable_version_id").references(
+      () => deliverableVersionsTable.id,
+      { onDelete: "set null" },
+    ),
+    versionLabel: text("version_label"),
     authorId: text("author_id")
       .references(() => usersTable.id),
     authorName: text("author_name").notNull(),
@@ -37,6 +40,7 @@ export const videoCommentsTable = pgTable(
   (table) => [
     index("video_comments_deliverable_idx").on(table.deliverableId),
     index("video_comments_timestamp_idx").on(table.deliverableId, table.timestampSeconds),
+    index("video_comments_version_idx").on(table.deliverableVersionId),
   ],
 );
 

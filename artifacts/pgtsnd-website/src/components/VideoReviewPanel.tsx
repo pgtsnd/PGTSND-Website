@@ -14,7 +14,8 @@ export interface VideoCommentReply {
 export interface VideoComment {
   id: string;
   deliverableId: string;
-  deliverableVersionId: string | null;
+  deliverableVersionId?: string | null;
+  versionLabel?: string | null;
   authorId: string | null;
   authorName: string;
   timestampSeconds: number;
@@ -600,6 +601,18 @@ export default function VideoReviewPanel({
                 <span style={f({ fontWeight: 600, fontSize: "11px", color: t.text })}>
                   {comment.authorName}
                 </span>
+                {comment.versionLabel && (
+                  <span
+                    data-testid={`comment-version-badge-${comment.id}`}
+                    style={f({
+                      fontWeight: 600, fontSize: "9px", color: "#7aa7ff",
+                      background: "rgba(122,167,255,0.12)", padding: "2px 6px",
+                      borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.05em",
+                    })}
+                  >
+                    {comment.versionLabel}
+                  </span>
+                )}
                 <span style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>
                   {timeAgo(comment.createdAt)}
                 </span>

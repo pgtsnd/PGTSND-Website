@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import { useTheme } from "./ThemeContext";
 
 interface CommentMarker {
@@ -13,6 +13,17 @@ interface VideoPlayerProps {
   onMarkerClick?: (id: string) => void;
   currentTime?: number;
   seekTo?: number | null;
+  onPlayingChange?: (playing: boolean) => void;
+  onUserSeek?: (seconds: number) => void;
+  hideCommentButton?: boolean;
+}
+
+export interface VideoPlayerHandle {
+  play: () => void;
+  pause: () => void;
+  seek: (seconds: number) => void;
+  getCurrentTime: () => number;
+  isPlaying: () => boolean;
 }
 
 function formatTime(seconds: number): string {
@@ -25,13 +36,16 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export default function VideoPlayer({
+const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(function VideoPlayer({
   src,
   markers = [],
   onTimeClick,
   onMarkerClick,
   seekTo,
-}: VideoPlayerProps) {
+  onPlayingChange,
+  onUserSeek,
+  hideCommentButton = false,
+}, ref) {
   const { t } = useTheme();
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
@@ -46,6 +60,33 @@ export default function VideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const controlsTimeout = useRef<number | null>(null);
 
+  useImperativeHandle(ref, () => ({
+    play: () => {
+      const v = videoRef.current;
+      if (!v) return;
+      if (v.paused) {
+        v.play().catch(() => undefined);
+        setIsPlaying(true);
+      }
+    },
+    pause: () => {
+      const v = videoRef.current;
+      if (!v) return;
+      if (!v.paused) {
+        v.pause();
+        setIsPlaying(false);
+      }
+    },
+    seek: (seconds: number) => {
+      const v = videoRef.current;
+      if (!v) return;
+      v.currentTime = seconds;
+      setCurrentTime(seconds);
+    },
+    getCurrentTime: () => videoRef.current?.currentTime ?? 0,
+    isPlaying: () => !!videoRef.current && !videoRef.current.paused,
+  }), []);
+
   useEffect(() => {
     if (seekTo !== null && seekTo !== undefined && videoRef.current) {
       videoRef.current.currentTime = seekTo;
@@ -59,11 +100,13 @@ export default function VideoPlayer({
     if (video.paused) {
       video.play();
       setIsPlaying(true);
+      onPlayingChange?.(true);
     } else {
       video.pause();
       setIsPlaying(false);
+      onPlayingChange?.(false);
     }
-  }, []);
+  }, [onPlayingChange]);
 
   const handleTimeUpdate = useCallback(() => {
     if (videoRef.current) {
@@ -85,10 +128,12 @@ export default function VideoPlayer({
       const rect = bar.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const ratio = Math.max(0, Math.min(1, x / rect.width));
-      video.currentTime = ratio * duration;
-      setCurrentTime(video.currentTime);
+      const newTime = ratio * duration;
+      video.currentTime = newTime;
+      setCurrentTime(newTime);
+      onUserSeek?.(newTime);
     },
-    [duration],
+    [duration, onUserSeek],
   );
 
   const handleSpeedChange = useCallback((rate: number) => {
@@ -130,9 +175,10 @@ export default function VideoPlayer({
     if (onTimeClick && videoRef.current) {
       videoRef.current.pause();
       setIsPlaying(false);
+      onPlayingChange?.(false);
       onTimeClick(videoRef.current.currentTime);
     }
-  }, [onTimeClick]);
+  }, [onTimeClick, onPlayingChange]);
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -148,9 +194,9 @@ export default function VideoPlayer({
         src={src}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
+        onPlay={() => { setIsPlaying(true); onPlayingChange?.(true); }}
+        onPause={() => { setIsPlaying(false); onPlayingChange?.(false); }}
+        onEnded={() => { setIsPlaying(false); onPlayingChange?.(false); }}
         onClick={togglePlay}
         style={{ width: "100%", display: "block", cursor: "pointer" }}
       />
@@ -270,7 +316,7 @@ export default function VideoPlayer({
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            {onTimeClick && (
+            {onTimeClick && !hideCommentButton && (
               <button
                 onClick={handleAddComment}
                 title="Add comment at current time"
@@ -353,6 +399,8 @@ export default function VideoPlayer({
       </div>
     </div>
   );
-}
+});
+
+export default VideoPlayer;
 
 export { formatTime };
