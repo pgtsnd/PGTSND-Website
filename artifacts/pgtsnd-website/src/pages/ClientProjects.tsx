@@ -4,6 +4,7 @@ import { useTheme } from "../components/ThemeContext";
 import { api, type Project, type TeamMember } from "../lib/api";
 import { ClientProjectsSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import ProjectMuteToggle from "../components/ProjectMuteToggle";
+import BulkMuteDialog from "../components/BulkMuteDialog";
 
 export default function ClientProjects() {
   const { t } = useTheme();
@@ -13,6 +14,7 @@ export default function ClientProjects() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [bulkMuteOpen, setBulkMuteOpen] = useState(false);
 
   useEffect(() => {
     api
@@ -90,7 +92,29 @@ export default function ClientProjects() {
   return (
     <ClientLayout>
       <div style={{ padding: "40px 48px" }}>
-        <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "24px", color: t.text, marginBottom: "32px" }}>Projects</h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+          <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "24px", color: t.text }}>Projects</h1>
+          <button
+            onClick={() => setBulkMuteOpen(true)}
+            data-testid="bulk-mute-btn"
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 600, fontSize: "12px", color: t.text,
+              background: "transparent", border: `1px solid ${t.border}`,
+              borderRadius: "6px", padding: "10px 16px", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: "8px",
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+              <path d="M18.63 13A17.89 17.89 0 0118 8" />
+              <path d="M6.26 6.26A5.86 5.86 0 006 8c0 7-3 9-3 9h14" />
+              <path d="M18 8a6 6 0 00-9.33-5" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+            Mute notifications
+          </button>
+        </div>
 
         <div style={{ display: "flex", gap: "8px", marginBottom: "40px" }}>
           {projects.map((p) => (
@@ -225,6 +249,12 @@ export default function ClientProjects() {
           </>
         )}
       </div>
+      <BulkMuteDialog
+        open={bulkMuteOpen}
+        projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+        onClose={() => setBulkMuteOpen(false)}
+        onApplied={() => setReloadKey((k) => k + 1)}
+      />
     </ClientLayout>
   );
 }

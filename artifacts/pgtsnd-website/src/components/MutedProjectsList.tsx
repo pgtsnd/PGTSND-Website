@@ -27,6 +27,8 @@ export default function MutedProjectsList({ variant = "team" }: Props) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [unmuting, setUnmuting] = useState<Record<string, boolean>>({});
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkUnmuting, setBulkUnmuting] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -39,6 +41,14 @@ export default function MutedProjectsList({ variant = "team" }: Props) {
           status: m.status,
         })),
       );
+      setSelected((prev) => {
+        const valid = new Set(mutes.projectIds);
+        const next = new Set<string>();
+        prev.forEach((id) => {
+          if (valid.has(id)) next.add(id);
+        });
+        return next;
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     }
@@ -63,10 +73,44 @@ export default function MutedProjectsList({ variant = "team" }: Props) {
     }
   };
 
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (!rows) return;
+    setSelected((prev) =>
+      prev.size === rows.length ? new Set() : new Set(rows.map((r) => r.id)),
+    );
+  };
+
+  const bulkUnmute = async () => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+    setBulkUnmuting(true);
+    setError(null);
+    try {
+      await api.unmuteProjects(ids);
+      setSelected(new Set());
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to unmute");
+    } finally {
+      setBulkUnmuting(false);
+    }
+  };
+
   const f = (s: object) => ({
     fontFamily: "'Montserrat', sans-serif" as const,
     ...s,
   });
+
+  const allSelected = !!rows && rows.length > 0 && selected.size === rows.length;
 
   return (
     <div data-testid="muted-projects-list" style={{ marginTop: "32px" }}>
@@ -147,94 +191,162 @@ export default function MutedProjectsList({ variant = "team" }: Props) {
       )}
 
       {rows && rows.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-          }}
-        >
-          {rows.map((row) => {
-            const busy = !!unmuting[row.id];
-            const showStatus =
-              row.status &&
-              (row.status === "archived" || row.status === "delivered");
-            const statusLabel = row.status
-              ? STATUS_LABELS[row.status] ?? row.status
-              : null;
-            return (
-              <div
-                key={row.id}
-                data-testid={`muted-project-row-${row.id}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "12px 16px",
-                  background: t.bgCard,
-                  border: `1px solid ${t.border}`,
-                  borderRadius: "8px",
-                }}
-              >
-                <span
+        <>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "10px",
+              gap: "12px",
+            }}
+          >
+            <label
+              style={f({
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                fontWeight: 500,
+                fontSize: "12px",
+                color: t.textMuted,
+                cursor: "pointer",
+              })}
+            >
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleAll}
+                data-testid="muted-projects-select-all"
+              />
+              {selected.size > 0
+                ? `${selected.size} selected`
+                : "Select all"}
+            </label>
+            <button
+              type="button"
+              onClick={bulkUnmute}
+              disabled={selected.size === 0 || bulkUnmuting}
+              data-testid="muted-projects-bulk-unmute"
+              style={f({
+                fontWeight: 600,
+                fontSize: "11px",
+                color: t.text,
+                background: "transparent",
+                border: `1px solid ${t.border}`,
+                borderRadius: "6px",
+                padding: "6px 12px",
+                cursor:
+                  selected.size === 0 || bulkUnmuting ? "default" : "pointer",
+                opacity: selected.size === 0 || bulkUnmuting ? 0.5 : 1,
+              })}
+            >
+              {bulkUnmuting
+                ? "Unmuting…"
+                : selected.size > 1
+                  ? `Unmute ${selected.size} projects`
+                  : "Unmute selected"}
+            </button>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+            }}
+          >
+            {rows.map((row) => {
+              const busy = !!unmuting[row.id] || bulkUnmuting;
+              const isChecked = selected.has(row.id);
+              const showStatus =
+                row.status &&
+                (row.status === "archived" || row.status === "delivered");
+              const statusLabel = row.status
+                ? STATUS_LABELS[row.status] ?? row.status
+                : null;
+              return (
+                <div
+                  key={row.id}
+                  data-testid={`muted-project-row-${row.id}`}
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "8px",
-                    minWidth: 0,
+                    justifyContent: "space-between",
+                    padding: "12px 16px",
+                    background: t.bgCard,
+                    border: `1px solid ${t.border}`,
+                    borderRadius: "8px",
                   }}
                 >
-                  <span
-                    style={f({
-                      fontWeight: 500,
-                      fontSize: "13px",
-                      color: t.text,
-                    })}
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      cursor: "pointer",
+                      flex: 1,
+                      minWidth: 0,
+                    }}
                   >
-                    {row.name}
-                  </span>
-                  {showStatus && statusLabel && (
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => toggleSelected(row.id)}
+                      data-testid={`muted-project-select-${row.id}`}
+                      disabled={bulkUnmuting}
+                    />
                     <span
-                      data-testid={`muted-project-status-${row.id}`}
                       style={f({
-                        fontWeight: 600,
-                        fontSize: "10px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                        color: t.textMuted,
-                        background: "transparent",
-                        border: `1px solid ${t.border}`,
-                        borderRadius: "4px",
-                        padding: "2px 6px",
+                        fontWeight: 500,
+                        fontSize: "13px",
+                        color: t.text,
                       })}
                     >
-                      {statusLabel}
+                      {row.name}
                     </span>
-                  )}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => unmute(row.id)}
-                  disabled={busy}
-                  data-testid={`muted-project-unmute-${row.id}`}
-                  style={f({
-                    fontWeight: 600,
-                    fontSize: "11px",
-                    color: t.text,
-                    background: "transparent",
-                    border: `1px solid ${t.border}`,
-                    borderRadius: "6px",
-                    padding: "6px 12px",
-                    cursor: busy ? "default" : "pointer",
-                    opacity: busy ? 0.6 : 1,
-                  })}
-                >
-                  {busy ? "Unmuting…" : "Unmute"}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+                    {showStatus && statusLabel && (
+                      <span
+                        data-testid={`muted-project-status-${row.id}`}
+                        style={f({
+                          fontWeight: 600,
+                          fontSize: "10px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.04em",
+                          color: t.textMuted,
+                          background: "transparent",
+                          border: `1px solid ${t.border}`,
+                          borderRadius: "4px",
+                          padding: "2px 6px",
+                        })}
+                      >
+                        {statusLabel}
+                      </span>
+                    )}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => unmute(row.id)}
+                    disabled={busy}
+                    data-testid={`muted-project-unmute-${row.id}`}
+                    style={f({
+                      fontWeight: 600,
+                      fontSize: "11px",
+                      color: t.text,
+                      background: "transparent",
+                      border: `1px solid ${t.border}`,
+                      borderRadius: "6px",
+                      padding: "6px 12px",
+                      cursor: busy ? "default" : "pointer",
+                      opacity: busy ? 0.6 : 1,
+                    })}
+                  >
+                    {unmuting[row.id] ? "Unmuting…" : "Unmute"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

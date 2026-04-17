@@ -583,4 +583,22 @@ export const api = {
       `/users/me/project-mutes/${projectId}`,
       { method: "DELETE" },
     ),
+
+  muteProjects: (projectIds: string[]) =>
+    apiFetch<{ projectIds: string[]; muted: boolean }>(
+      `/users/me/project-mutes`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ projectIds }),
+      },
+    ),
+
+  unmuteProjects: (projectIds: string[]) =>
+    apiFetch<{ projectIds: string[]; muted: boolean }>(
+      `/users/me/project-mutes`,
+      {
+        method: "DELETE",
+        body: JSON.stringify({ projectIds }),
+      },
+    ),
 };

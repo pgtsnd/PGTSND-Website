@@ -5,6 +5,7 @@ import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
 import { ProjectsSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import NewProjectWizard from "../components/NewProjectWizard";
+import BulkMuteDialog from "../components/BulkMuteDialog";
 import {
   useDashboardData,
   formatPhase,
@@ -30,6 +31,7 @@ export default function TeamProjects() {
   const { projects, isLoading, isError, refetch } = useDashboardData();
   const [filter, setFilter] = useState<FilterKey>("all");
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [bulkMuteOpen, setBulkMuteOpen] = useState(false);
   const [, navigate] = useLocation();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
@@ -66,6 +68,26 @@ export default function TeamProjects() {
       <div style={{ padding: "40px 48px", maxWidth: "1200px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
           <h1 style={f({ fontWeight: 800, fontSize: "24px", color: t.text })}>Projects</h1>
+          <div style={{ display: "flex", gap: "8px" }}>
+          <button
+            onClick={() => setBulkMuteOpen(true)}
+            data-testid="bulk-mute-btn"
+            style={f({
+              fontWeight: 600, fontSize: "12px", color: t.text,
+              background: "transparent", border: `1px solid ${t.border}`, borderRadius: "6px",
+              padding: "10px 16px", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: "8px",
+            })}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+              <path d="M18.63 13A17.89 17.89 0 0118 8" />
+              <path d="M6.26 6.26A5.86 5.86 0 006 8c0 7-3 9-3 9h14" />
+              <path d="M18 8a6 6 0 00-9.33-5" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+            Mute notifications
+          </button>
           <button
             onClick={() => setWizardOpen(true)}
             data-testid="new-project-btn"
@@ -78,6 +100,7 @@ export default function TeamProjects() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
             New Project
           </button>
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: "6px", marginBottom: "28px" }}>
@@ -166,6 +189,12 @@ export default function TeamProjects() {
           })}
         </div>
       </div>
+      <BulkMuteDialog
+        open={bulkMuteOpen}
+        projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+        onClose={() => setBulkMuteOpen(false)}
+        onApplied={() => refetch()}
+      />
       <NewProjectWizard
         open={wizardOpen}
         onClose={() => setWizardOpen(false)}
