@@ -17,8 +17,11 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AccessToken,
+  AccessTokenIssueResult,
   CheckoutSession,
   Contract,
+  CreateAccessToken,
   CreateCheckoutSessionRequest,
   CreateContract,
   CreateDeliverable,
@@ -5608,3 +5611,277 @@ export function useGetInvoicePaymentDetails<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Owner/partner only. Returns every access token across the studio.
+ * @summary List access tokens
+ */
+export const getListAccessTokensUrl = () => {
+  return `/api/access-tokens`;
+};
+
+export const listAccessTokens = async (
+  options?: RequestInit,
+): Promise<AccessToken[]> => {
+  return customFetch<AccessToken[]>(getListAccessTokensUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAccessTokensQueryKey = () => {
+  return [`/api/access-tokens`] as const;
+};
+
+export const getListAccessTokensQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAccessTokens>>,
+  TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAccessTokens>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListAccessTokensQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAccessTokens>>
+  > = ({ signal }) => listAccessTokens({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAccessTokens>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAccessTokensQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAccessTokens>>
+>;
+export type ListAccessTokensQueryError = ErrorType<
+  UnauthorizedResponse | ForbiddenResponse
+>;
+
+/**
+ * @summary List access tokens
+ */
+
+export function useListAccessTokens<
+  TData = Awaited<ReturnType<typeof listAccessTokens>>,
+  TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAccessTokens>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAccessTokensQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Owner/partner only. Creates an access token for either an existing user
+(pass userId) or a new user (pass newUser). The plaintext token is returned
+ONCE in the response and cannot be retrieved again.
+
+ * @summary Generate an access token
+ */
+export const getCreateAccessTokenUrl = () => {
+  return `/api/access-tokens`;
+};
+
+export const createAccessToken = async (
+  createAccessToken: CreateAccessToken,
+  options?: RequestInit,
+): Promise<AccessTokenIssueResult> => {
+  return customFetch<AccessTokenIssueResult>(getCreateAccessTokenUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createAccessToken),
+  });
+};
+
+export const getCreateAccessTokenMutationOptions = <
+  TError = ErrorType<
+    | ValidationErrorResponse
+    | UnauthorizedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAccessToken>>,
+    TError,
+    { data: BodyType<CreateAccessToken> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAccessToken>>,
+  TError,
+  { data: BodyType<CreateAccessToken> },
+  TContext
+> => {
+  const mutationKey = ["createAccessToken"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAccessToken>>,
+    { data: BodyType<CreateAccessToken> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAccessToken(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAccessTokenMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAccessToken>>
+>;
+export type CreateAccessTokenMutationBody = BodyType<CreateAccessToken>;
+export type CreateAccessTokenMutationError = ErrorType<
+  | ValidationErrorResponse
+  | UnauthorizedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+>;
+
+/**
+ * @summary Generate an access token
+ */
+export const useCreateAccessToken = <
+  TError = ErrorType<
+    | ValidationErrorResponse
+    | UnauthorizedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAccessToken>>,
+    TError,
+    { data: BodyType<CreateAccessToken> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAccessToken>>,
+  TError,
+  { data: BodyType<CreateAccessToken> },
+  TContext
+> => {
+  return useMutation(getCreateAccessTokenMutationOptions(options));
+};
+
+/**
+ * Owner/partner only. Marks the token revoked immediately.
+ * @summary Revoke an access token
+ */
+export const getRevokeAccessTokenUrl = (id: string) => {
+  return `/api/access-tokens/${id}/revoke`;
+};
+
+export const revokeAccessToken = async (
+  id: string,
+  options?: RequestInit,
+): Promise<AccessToken> => {
+  return customFetch<AccessToken>(getRevokeAccessTokenUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getRevokeAccessTokenMutationOptions = <
+  TError = ErrorType<
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof revokeAccessToken>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof revokeAccessToken>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["revokeAccessToken"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof revokeAccessToken>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return revokeAccessToken(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RevokeAccessTokenMutationResult = NonNullable<
+  Awaited<ReturnType<typeof revokeAccessToken>>
+>;
+
+export type RevokeAccessTokenMutationError = ErrorType<
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse
+>;
+
+/**
+ * @summary Revoke an access token
+ */
+export const useRevokeAccessToken = <
+  TError = ErrorType<
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof revokeAccessToken>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof revokeAccessToken>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getRevokeAccessTokenMutationOptions(options));
+};

@@ -7,13 +7,13 @@ import { useAuth, getDashboardPath } from "../lib/auth";
 import { consumePostLoginRedirect, consumeSessionExpiredMessage } from "../lib/session-expired";
 
 export default function ClientHub() {
-  const [mode, setMode] = useState<"login" | "register" | "check-email">("login");
+  const [mode, setMode] = useState<"token" | "magic" | "check-email">("token");
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [, navigate] = useLocation();
-  const { login, googleLogin, user, loading } = useAuth();
+  const { login, loginWithToken, googleLogin, user, loading } = useAuth();
 
   useEffect(() => {
     if (!loading && user) {
@@ -57,6 +57,16 @@ export default function ClientHub() {
     setSubmitting(true);
 
     try {
+      if (mode === "token") {
+        const result = await loginWithToken(email, token);
+        if (result.success) {
+          navigate(result.redirect || "/client-hub/dashboard");
+          return;
+        }
+        setError(result.error || "Invalid email or access token");
+        return;
+      }
+
       const result = await login(email);
 
       if (result.demo) {
@@ -157,7 +167,7 @@ export default function ClientHub() {
             Click the link in your email to access your dashboard. The link expires in 15 minutes.
           </p>
           <button
-            onClick={() => setMode("login")}
+            onClick={() => setMode("token")}
             style={{
               fontFamily: "'Montserrat', sans-serif",
               fontWeight: 500,
@@ -218,7 +228,7 @@ export default function ClientHub() {
             marginBottom: "20px",
           }}
         >
-          {mode === "login" ? "Welcome Back" : "Create Account"}
+          {mode === "token" ? "Sign In" : "Magic Link"}
         </h1>
         <p
           style={{
@@ -230,9 +240,9 @@ export default function ClientHub() {
             marginBottom: "48px",
           }}
         >
-          {mode === "login"
-            ? "Sign in with your email to access your project dashboard."
-            : "Enter your invite token and email to set up your account."}
+          {mode === "token"
+            ? "Enter the email and access token your project lead handed you."
+            : "We will email you a one-time link to sign in."}
         </p>
 
         <button
@@ -285,16 +295,44 @@ export default function ClientHub() {
           <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.15)" }} />
         </div>
 
+        <div style={{ display: "flex", gap: "8px", marginBottom: "32px" }}>
+          {(["token", "magic"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => { setMode(m); setError(""); }}
+              style={{
+                flex: 1,
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 600,
+                fontSize: "11px",
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
+                padding: "12px",
+                cursor: "pointer",
+                borderRadius: "4px",
+                background: mode === m ? "#ffffff" : "transparent",
+                color: mode === m ? "#000000" : "#ffffff",
+                border: `1px solid ${mode === m ? "#ffffff" : "rgba(255,255,255,0.25)"}`,
+              }}
+            >
+              {m === "token" ? "Access Token" : "Magic Link"}
+            </button>
+          ))}
+        </div>
+
         <form onSubmit={handleSubmit}>
-          {mode === "register" && (
+          {mode === "token" && (
             <div style={{ marginBottom: "32px" }}>
-              <label style={labelStyle}>Invite Token</label>
+              <label style={labelStyle}>Access Token</label>
               <input
                 type="text"
                 value={token}
-                onChange={(e) => setToken(e.target.value)}
-                placeholder="Paste your invite token"
-                style={inputStyle}
+                onChange={(e) => { setToken(e.target.value); setError(""); }}
+                placeholder="XXXXX-XXXXX-XXXXX-XXXXX-..."
+                autoComplete="off"
+                spellCheck={false}
+                style={{ ...inputStyle, letterSpacing: "0.05em" }}
               />
               <p
                 style={{
@@ -306,7 +344,7 @@ export default function ClientHub() {
                   lineHeight: 1.5,
                 }}
               >
-                Your project lead will provide this token when your project kicks off.
+                Your project lead hands this to you in person or in a secure channel.
               </p>
             </div>
           )}
@@ -338,66 +376,27 @@ export default function ClientHub() {
           <CTAButton
             type="submit"
             disabled={submitting}
-            label={submitting ? "Sending..." : mode === "login" ? "Send Magic Link" : "Create Account"}
+            label={
+              submitting
+                ? mode === "token" ? "Signing In..." : "Sending..."
+                : mode === "token" ? "Sign In" : "Send Magic Link"
+            }
           />
         </form>
 
         <div style={{ marginTop: "40px" }}>
-          {mode === "login" ? (
-            <p
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 400,
-                fontSize: "14px",
-                color: "rgba(255,255,255,0.4)",
-              }}
-            >
-              First time here?{" "}
-              <button
-                onClick={() => setMode("register")}
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "14px",
-                  color: "#ffffff",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                  textUnderlineOffset: "4px",
-                }}
-              >
-                Create an account
-              </button>
-            </p>
-          ) : (
-            <p
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 400,
-                fontSize: "14px",
-                color: "rgba(255,255,255,0.4)",
-              }}
-            >
-              Already have an account?{" "}
-              <button
-                onClick={() => setMode("login")}
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "14px",
-                  color: "#ffffff",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                  textUnderlineOffset: "4px",
-                }}
-              >
-                Sign in
-              </button>
-            </p>
-          )}
+          <p
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 400,
+              fontSize: "13px",
+              color: "rgba(255,255,255,0.4)",
+              lineHeight: 1.6,
+            }}
+          >
+            Don't have an access token? Reach out to your project lead and they will issue
+            you one.
+          </p>
         </div>
       </section>
 

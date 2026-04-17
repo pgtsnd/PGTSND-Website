@@ -1289,6 +1289,77 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /access-tokens:
+    get:
+      operationId: listAccessTokens
+      tags: [users]
+      summary: List access tokens
+      description: Owner/partner only. Returns every access token across the studio.
+      responses:
+        "200":
+          description: List of access tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccessToken"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createAccessToken
+      tags: [users]
+      summary: Generate an access token
+      description: |
+        Owner/partner only. Creates an access token for either an existing user
+        (pass userId) or a new user (pass newUser). The plaintext token is returned
+        ONCE in the response and cannot be retrieved again.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccessToken"
+      responses:
+        "201":
+          description: Access token created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessTokenIssueResult"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /access-tokens/{id}/revoke:
+    post:
+      operationId: revokeAccessToken
+      tags: [users]
+      summary: Revoke an access token
+      description: Owner/partner only. Marks the token revoked immediately.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Access token revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessToken"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
   parameters:
     Id:
@@ -1569,6 +1640,76 @@ components:
           type: boolean
         emailNotifyComments:
           type: boolean
+
+    AccessToken:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+          enum: [active, revoked]
+        createdAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+          nullable: true
+        revokedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        revokedBy:
+          type: string
+          nullable: true
+        userName:
+          type: string
+          nullable: true
+        userEmail:
+          type: string
+        userRole:
+          type: string
+          enum: [owner, partner, crew, client]
+      required:
+        - id
+        - userId
+        - label
+        - status
+        - createdAt
+        - userEmail
+        - userRole
+
+    CreateAccessToken:
+      type: object
+      properties:
+        label:
+          type: string
+          minLength: 1
+        userId:
+          type: string
+        newUser:
+          $ref: "#/components/schemas/CreateUser"
+      required:
+        - label
+
+    AccessTokenIssueResult:
+      type: object
+      properties:
+        token:
+          type: string
+        record:
+          $ref: "#/components/schemas/AccessToken"
+      required:
+        - token
+        - record
 
     UpdateUser:
       type: object

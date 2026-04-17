@@ -8,10 +8,12 @@ import { consumePostLoginRedirect, consumeSessionExpiredMessage } from "../lib/s
 
 export default function TeamLogin() {
   const [email, setEmail] = useState("");
+  const [accessToken, setAccessToken] = useState("");
+  const [authMode, setAuthMode] = useState<"token" | "magic">("token");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [, navigate] = useLocation();
-  const { login, googleLogin, user, loading } = useAuth();
+  const { login, loginWithToken, googleLogin, user, loading } = useAuth();
 
   useEffect(() => {
     if (!loading && user) {
@@ -40,6 +42,16 @@ export default function TeamLogin() {
     setSubmitting(true);
 
     try {
+      if (authMode === "token") {
+        const result = await loginWithToken(email, accessToken);
+        if (result.success) {
+          navigate(result.redirect || "/team/dashboard");
+          return;
+        }
+        setError(result.error || "Invalid email or access token");
+        return;
+      }
+
       const result = await login(email);
 
       if (result.demo && result.redirect) {
@@ -164,7 +176,86 @@ export default function TeamLogin() {
           <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.15)" }} />
         </div>
 
+        <div style={{ display: "flex", gap: "8px", marginBottom: "32px" }}>
+          {(["token", "magic"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => { setAuthMode(m); setError(""); }}
+              style={{
+                flex: 1,
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 600,
+                fontSize: "11px",
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
+                padding: "12px",
+                cursor: "pointer",
+                borderRadius: "4px",
+                background: authMode === m ? "#ffffff" : "transparent",
+                color: authMode === m ? "#000000" : "#ffffff",
+                border: `1px solid ${authMode === m ? "#ffffff" : "rgba(255,255,255,0.25)"}`,
+              }}
+            >
+              {m === "token" ? "Access Token" : "Magic Link"}
+            </button>
+          ))}
+        </div>
+
         <form onSubmit={handleSubmit}>
+          {authMode === "token" && (
+            <div style={{ marginBottom: "32px" }}>
+              <label
+                htmlFor="team-token"
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.15em",
+                  color: "rgba(255,255,255,0.5)",
+                  display: "block",
+                  marginBottom: "8px",
+                }}
+              >
+                Access Token
+              </label>
+              <input
+                id="team-token"
+                type="text"
+                value={accessToken}
+                onChange={(e) => { setAccessToken(e.target.value); setError(""); }}
+                placeholder="XXXXX-XXXXX-XXXXX-XXXXX-..."
+                autoComplete="off"
+                spellCheck={false}
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "16px",
+                  color: "#ffffff",
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: "1px solid rgba(255,255,255,0.3)",
+                  padding: "14px 0",
+                  width: "100%",
+                  outline: "none",
+                  letterSpacing: "0.05em",
+                }}
+              />
+              <p
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "12px",
+                  color: "rgba(255,255,255,0.35)",
+                  marginTop: "10px",
+                  lineHeight: 1.5,
+                }}
+              >
+                Your project lead issues this token. It is one-of-a-kind and can be revoked at any time.
+              </p>
+            </div>
+          )}
           <div style={{ marginBottom: "48px" }}>
             <label
               htmlFor="team-email"
@@ -218,7 +309,11 @@ export default function TeamLogin() {
           <CTAButton
             type="submit"
             disabled={submitting}
-            label={submitting ? "Sending..." : "Send Magic Link"}
+            label={
+              submitting
+                ? authMode === "token" ? "Signing In..." : "Sending..."
+                : authMode === "token" ? "Sign In" : "Send Magic Link"
+            }
           />
         </form>
       </section>

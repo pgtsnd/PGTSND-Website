@@ -33,6 +33,7 @@ import TeamMessages from "@/pages/TeamMessages";
 import TeamSchedule from "@/pages/TeamSchedule";
 import TeamCrew from "@/pages/TeamCrew";
 import TeamSettings from "@/pages/TeamSettings";
+import TeamAccess from "@/pages/TeamAccess";
 import TeamUploads from "@/pages/TeamUploads";
 import AdminEmailPreviews from "@/pages/AdminEmailPreviews";
 import AuthVerify from "@/pages/AuthVerify";
@@ -212,6 +213,13 @@ function Router() {
         {() => (
           <ProtectedRoute allowedRoles={OWNER_ROLES} redirectTo="/team/dashboard">
             <AdminEmailPreviews />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/team/access">
+        {() => (
+          <ProtectedRoute allowedRoles={OWNER_ROLES} redirectTo="/team/dashboard">
+            <TeamAccess />
           </ProtectedRoute>
         )}
       </Route>

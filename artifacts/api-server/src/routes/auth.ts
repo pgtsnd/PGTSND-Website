@@ -10,6 +10,11 @@ import {
   DEMO_EMAIL,
   ensureDemoUser,
 } from "../lib/auth";
+import {
+  findActiveAccessTokenByPlaintext,
+  isAccessTokenActive,
+  markAccessTokenUsed,
+} from "../lib/access-tokens";
 import { logger } from "../lib/logger";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
@@ -117,6 +122,58 @@ router.post("/auth/magic-link", magicLinkLimiter, magicLinkEmailLimiter, async (
     res.status(500).json({ error: "Failed to send magic link" });
   }
 });
+
+const accessTokenLoginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  handler: authRateLimitHandler,
+});
+
+router.post(
+  "/auth/access-token-login",
+  accessTokenLoginLimiter,
+  async (req: Request, res: Response) => {
+    try {
+      const { email, token: accessToken } = req.body ?? {};
+      if (!email || typeof email !== "string" || !accessToken || typeof accessToken !== "string") {
+        res.status(400).json({ error: "Email and access token are required" });
+        return;
+      }
+
+      const found = await findActiveAccessTokenByPlaintext(accessToken, email);
+      if (!found) {
+        res.status(401).json({ error: "Invalid email or access token" });
+        return;
+      }
+
+      await markAccessTokenUsed(found.tokenId);
+
+      const jwtToken = signToken({
+        userId: found.userId,
+        email: found.userEmail,
+        role: found.userRole,
+        tokenId: found.tokenId,
+      });
+      res.cookie(COOKIE_NAME, jwtToken, COOKIE_OPTIONS);
+      res.json({
+        success: true,
+        user: {
+          id: found.userId,
+          email: found.userEmail,
+          name: found.userName,
+          role: found.userRole,
+          avatarUrl: found.userAvatarUrl,
+        },
+        redirect: getDashboardPath(found.userRole),
+      });
+    } catch (err) {
+      logger.error({ err }, "Access token login failed");
+      res.status(500).json({ error: "Failed to sign in with access token" });
+    }
+  },
+);
 
 router.get("/auth/verify-magic-link", async (req: Request, res: Response) => {
   try {
@@ -243,6 +300,15 @@ router.get("/auth/me", async (req: Request, res: Response) => {
     res.clearCookie(COOKIE_NAME, { path: "/" });
     res.status(401).json({ error: "Invalid session" });
     return;
+  }
+
+  if (payload.tokenId) {
+    const stillActive = await isAccessTokenActive(payload.tokenId);
+    if (!stillActive) {
+      res.clearCookie(COOKIE_NAME, { path: "/" });
+      res.status(401).json({ error: "Access token revoked" });
+      return;
+    }
   }
 
   const [user] = await db

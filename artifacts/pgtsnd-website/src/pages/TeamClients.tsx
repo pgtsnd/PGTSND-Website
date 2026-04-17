@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import TeamLayout from "../components/TeamLayout";
+import MemberAccessActions from "../components/MemberAccessActions";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
 import { ClientsSkeleton, ErrorState } from "../components/TeamLoadingStates";
@@ -387,6 +388,8 @@ export default function TeamClients() {
 
     return {
       id: org.id,
+      userId: clientUser?.id ?? null,
+      userRole: clientUser?.role ?? "client",
       name: org.contactName ?? org.name,
       company: org.name,
       email: org.contactEmail ?? "",
@@ -582,7 +585,17 @@ export default function TeamClients() {
 
                     <div style={{ padding: "24px" }}>
                       {clientTab === "overview" && (
-                        <ClientOverview client={client} t={t} f={f} />
+                        <>
+                          <ClientOverview client={client} t={t} f={f} />
+                          {client.userId && (
+                            <MemberAccessActions
+                              userId={client.userId}
+                              userName={client.name}
+                              userEmail={client.email}
+                              userRole={client.userRole}
+                            />
+                          )}
+                        </>
                       )}
                       {clientTab === "scope" && (
                         <ClientScope client={client} t={t} f={f} stripeStatus={stripeStatus} />

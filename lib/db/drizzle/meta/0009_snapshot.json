@@ -1,6 +1,6 @@
 {
-  "id": "ba610669-5d3a-4da3-ac15-2dc98665af15",
-  "prevId": "97710553-79a8-4acc-8f1c-e68ebac1d438",
+  "id": "14bea1d7-94bd-44f0-914e-96c011ecb367",
+  "prevId": "ba610669-5d3a-4da3-ac15-2dc98665af15",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -198,6 +198,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": true
+        },
+        "bookkeeper_email": {
+          "name": "bookkeeper_email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",

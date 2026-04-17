@@ -129,6 +129,51 @@ export interface UpdateNotificationPreferences {
   emailNotifyComments?: boolean;
 }
 
+export type AccessTokenStatus =
+  (typeof AccessTokenStatus)[keyof typeof AccessTokenStatus];
+
+export const AccessTokenStatus = {
+  active: "active",
+  revoked: "revoked",
+} as const;
+
+export type AccessTokenUserRole =
+  (typeof AccessTokenUserRole)[keyof typeof AccessTokenUserRole];
+
+export const AccessTokenUserRole = {
+  owner: "owner",
+  partner: "partner",
+  crew: "crew",
+  client: "client",
+} as const;
+
+export interface AccessToken {
+  id: string;
+  userId: string;
+  label: string;
+  status: AccessTokenStatus;
+  createdAt: string;
+  lastUsedAt?: string | null;
+  revokedAt?: string | null;
+  createdBy?: string | null;
+  revokedBy?: string | null;
+  userName?: string | null;
+  userEmail: string;
+  userRole: AccessTokenUserRole;
+}
+
+export interface CreateAccessToken {
+  /** @minLength 1 */
+  label: string;
+  userId?: string;
+  newUser?: CreateUser;
+}
+
+export interface AccessTokenIssueResult {
+  token: string;
+  record: AccessToken;
+}
+
 export interface UpdateUser {
   name?: string;
   avatarUrl?: string;

@@ -10,12 +10,16 @@ import {
   useListUsers,
   useCreateMessage,
   useUpdateUser,
+  useDeleteUser,
   useListDmContacts,
   useListDmConversations,
   useGetDmThread,
   useSendDm,
   useMarkDmThreadRead,
   useGetUnreadSummary,
+  useListAccessTokens,
+  useCreateAccessToken,
+  useRevokeAccessToken,
 } from "@workspace/api-client-react";
 import type {
   Project,
@@ -26,10 +30,11 @@ import type {
   Message,
   Contract,
   ProjectMember,
+  AccessToken,
 } from "@workspace/api-client-react";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
 
-export type { Project, Organization, User, Task, Deliverable, Message, Contract, ProjectMember };
+export type { Project, Organization, User, Task, Deliverable, Message, Contract, ProjectMember, AccessToken };
 
 export function useProjects() {
   const { userId } = useTeamAuth();
@@ -128,6 +133,26 @@ export function useUnreadSummary() {
 
 export function useUpdateProfile() {
   return useUpdateUser();
+}
+
+export function useRemoveTeamMember() {
+  return useDeleteUser();
+}
+
+export function useAccessTokens() {
+  const { userId, currentUser } = useTeamAuth();
+  const isOwner = currentUser?.role === "owner" || currentUser?.role === "partner";
+  return useListAccessTokens(
+    isOwner && userId ? undefined : { query: { enabled: false, queryKey: ["access-tokens"] } },
+  );
+}
+
+export function useIssueAccessToken() {
+  return useCreateAccessToken();
+}
+
+export function useRevokeAccessTokenMutation() {
+  return useRevokeAccessToken();
 }
 
 export function useProjectWithDetails(projectId: string) {

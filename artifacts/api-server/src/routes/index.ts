@@ -18,6 +18,7 @@ import projectMutesRouter from "./project-mutes";
 import adminEmailPreviewsRouter from "./admin-email-previews";
 import publicReviewRouter from "./public-review";
 import storageRouter from "./storage";
+import accessTokensRouter from "./access-tokens";
 import { authMiddleware } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -52,5 +53,6 @@ router.use(integrationsRouter);
 router.use(videoReviewRouter);
 router.use(projectMutesRouter);
 router.use(adminEmailPreviewsRouter);
+router.use(accessTokensRouter);
 
 export default router;

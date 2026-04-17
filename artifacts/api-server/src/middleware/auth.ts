@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { verifyToken } from "../lib/auth";
+import { isAccessTokenActive } from "../lib/access-tokens";
 
 const COOKIE_NAME = "pgtsnd_session";
 
@@ -24,18 +25,29 @@ export async function authMiddleware(
   next: NextFunction,
 ) {
   let userId: string | undefined;
+  let tokenId: string | undefined;
 
   const token = req.cookies?.[COOKIE_NAME];
   if (token) {
     const payload = verifyToken(token);
     if (payload) {
       userId = payload.userId;
+      tokenId = payload.tokenId;
     }
   }
 
   if (!userId) {
     res.status(401).json({ error: "Authentication required" });
     return;
+  }
+
+  if (tokenId) {
+    const stillActive = await isAccessTokenActive(tokenId);
+    if (!stillActive) {
+      res.clearCookie(COOKIE_NAME, { path: "/" });
+      res.status(401).json({ error: "Access token revoked" });
+      return;
+    }
   }
 
   const [user] = await db

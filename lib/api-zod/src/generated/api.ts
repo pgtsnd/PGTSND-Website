@@ -1509,3 +1509,90 @@ export const GetInvoicePaymentDetailsResponse = zod.object({
   receiptUrl: zod.string().nullable(),
   paidAt: zod.coerce.date().nullable(),
 });
+
+/**
+ * Owner/partner only. Returns every access token across the studio.
+ * @summary List access tokens
+ */
+export const ListAccessTokensResponseItem = zod.object({
+  id: zod.string(),
+  userId: zod.string(),
+  label: zod.string(),
+  status: zod.enum(["active", "revoked"]),
+  createdAt: zod.coerce.date(),
+  lastUsedAt: zod.coerce.date().nullish(),
+  revokedAt: zod.coerce.date().nullish(),
+  createdBy: zod.string().nullish(),
+  revokedBy: zod.string().nullish(),
+  userName: zod.string().nullish(),
+  userEmail: zod.string(),
+  userRole: zod.enum(["owner", "partner", "crew", "client"]),
+});
+export const ListAccessTokensResponse = zod.array(ListAccessTokensResponseItem);
+
+/**
+ * Owner/partner only. Creates an access token for either an existing user
+(pass userId) or a new user (pass newUser). The plaintext token is returned
+ONCE in the response and cannot be retrieved again.
+
+ * @summary Generate an access token
+ */
+
+export const CreateAccessTokenBody = zod.object({
+  label: zod.string().min(1),
+  userId: zod.string().optional(),
+  newUser: zod
+    .object({
+      email: zod.string(),
+      name: zod.string(),
+      role: zod.enum(["owner", "partner", "crew", "client"]).optional(),
+      avatarUrl: zod.string().optional(),
+      phone: zod.string().optional(),
+      title: zod.string().optional(),
+      initials: zod.string().optional(),
+      dayRate: zod.number().optional(),
+      halfDayRate: zod.number().optional(),
+      hourlyRate: zod.number().optional(),
+      rateNotes: zod.string().optional(),
+      w9OnFile: zod.boolean().optional(),
+      taxClassification: zod.string().optional(),
+      ein: zod.string().optional(),
+      address: zod.string().optional(),
+      city: zod.string().optional(),
+      state: zod.string().optional(),
+      zip: zod.string().optional(),
+      emergencyContactName: zod.string().optional(),
+      emergencyContactPhone: zod.string().optional(),
+      emergencyContactRelation: zod.string().optional(),
+      equipment: zod.string().optional(),
+      specialties: zod.string().optional(),
+      portfolio: zod.string().optional(),
+      availability: zod.string().optional(),
+      paymentMethod: zod.string().optional(),
+      notes: zod.string().optional(),
+    })
+    .optional(),
+});
+
+/**
+ * Owner/partner only. Marks the token revoked immediately.
+ * @summary Revoke an access token
+ */
+export const RevokeAccessTokenParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const RevokeAccessTokenResponse = zod.object({
+  id: zod.string(),
+  userId: zod.string(),
+  label: zod.string(),
+  status: zod.enum(["active", "revoked"]),
+  createdAt: zod.coerce.date(),
+  lastUsedAt: zod.coerce.date().nullish(),
+  revokedAt: zod.coerce.date().nullish(),
+  createdBy: zod.string().nullish(),
+  revokedBy: zod.string().nullish(),
+  userName: zod.string().nullish(),
+  userEmail: zod.string(),
+  userRole: zod.enum(["owner", "partner", "crew", "client"]),
+});

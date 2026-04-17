@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "bookkeeper_email" varchar(255);

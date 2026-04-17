@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import TeamLayout from "../components/TeamLayout";
+import MemberAccessActions from "../components/MemberAccessActions";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
 import { CrewSkeleton, ErrorState } from "../components/TeamLoadingStates";
@@ -403,6 +404,12 @@ export default function TeamCrew() {
                           <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, marginTop: "8px" })}>
                             Member since {new Date(member.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
                           </p>
+                          <MemberAccessActions
+                            userId={member.id}
+                            userName={member.name}
+                            userEmail={member.email}
+                            userRole={member.role}
+                          />
                         </div>
                       )}
 
