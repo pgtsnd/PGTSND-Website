@@ -41,6 +41,19 @@ function tokenDisplayStatus(tk: { status: string; expiresAt?: string | null }): 
   return { label: "active", tone: "active" };
 }
 
+// Tokens whose last activity (or creation, if never used) is older than this
+// many days are flagged as dormant on /team/access. Adjust here to change the
+// threshold across the page.
+const DORMANT_THRESHOLD_DAYS = 90;
+const DORMANT_THRESHOLD_MS = DORMANT_THRESHOLD_DAYS * 24 * 60 * 60 * 1000;
+
+function isDormantToken(tk: AccessToken): boolean {
+  if (tk.status !== "active") return false;
+  const reference = tk.lastUsedAt ?? tk.createdAt;
+  if (!reference) return false;
+  return Date.now() - new Date(reference).getTime() > DORMANT_THRESHOLD_MS;
+}
+
 export default function TeamAccess() {
   const { t } = useTheme();
   const { allUsers, currentUser } = useTeamAuth();
@@ -323,8 +336,16 @@ export default function TeamAccess() {
                 </tr>
               </thead>
               <tbody>
-                {tokens.map((tk) => (
-                  <tr key={tk.id} style={{ borderBottom: `1px solid ${t.border}` }}>
+                {tokens.map((tk) => {
+                  const dormant = isDormantToken(tk);
+                  return (
+                  <tr
+                    key={tk.id}
+                    style={{
+                      borderBottom: `1px solid ${t.border}`,
+                      background: dormant ? "rgba(255, 176, 32, 0.08)" : undefined,
+                    }}
+                  >
                     <td style={{ padding: "14px 16px" }}>
                       <div style={f({ fontSize: "13px", color: t.text, fontWeight: 600 })}>
                         {tk.userName || tk.userEmail}
@@ -386,6 +407,23 @@ export default function TeamAccess() {
                           Never used
                         </span>
                       )}
+                      {dormant && (
+                        <div style={{ marginTop: "6px" }}>
+                          <span
+                            title={`No activity in over ${DORMANT_THRESHOLD_DAYS} days — consider revoking`}
+                            style={f({
+                              display: "inline-block",
+                              fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em",
+                              padding: "3px 8px", borderRadius: "100px",
+                              color: "#7a4a00",
+                              background: "rgba(255, 176, 32, 0.25)",
+                              border: "1px solid rgba(255, 176, 32, 0.6)",
+                            })}
+                          >
+                            Dormant {DORMANT_THRESHOLD_DAYS}d+
+                          </span>
+                        </div>
+                      )}
                     </td>
                     <td style={{ padding: "14px 16px", textAlign: "right" }}>
                       {tokenDisplayStatus(tk).tone === "active" && (
@@ -404,7 +442,8 @@ export default function TeamAccess() {
                       )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
             </div>
