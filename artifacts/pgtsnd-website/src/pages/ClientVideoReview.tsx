@@ -32,13 +32,12 @@ export default function ClientVideoReview() {
     api
       .getClientDeliverables()
       .then((data) => {
-        const videoDeliverables = data.filter((d) => d.type === "video");
-        const pendingOrReview = videoDeliverables.filter(
+        const pendingOrReview = data.filter(
           (d) => d.status === "in_review" || d.status === "pending",
         );
         const allDeliverables = [
           ...pendingOrReview,
-          ...videoDeliverables.filter(
+          ...data.filter(
             (d) => d.status !== "in_review" && d.status !== "pending",
           ),
         ];
@@ -159,6 +158,23 @@ export default function ClientVideoReview() {
     return t.textMuted;
   };
 
+  type Kind = "video" | "image" | "pdf" | "other";
+  const classify = (d: Deliverable | null): Kind => {
+    if (!d) return "other";
+    const dtype = (d.type ?? "").toLowerCase();
+    const url = (d.fileUrl ?? "").toLowerCase().split("?")[0] ?? "";
+    const ext = url.includes(".") ? url.split(".").pop() ?? "" : "";
+    if (dtype === "video" || ["mp4", "mov", "webm", "m4v", "avi", "mkv"].includes(ext)) return "video";
+    if (dtype === "image" || dtype === "graphic" || dtype === "graphics" ||
+        dtype === "photo" || dtype === "photos" || dtype === "still" || dtype === "stills" ||
+        ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "avif", "svg"].includes(ext))
+      return "image";
+    if (dtype === "pdf" || ext === "pdf") return "pdf";
+    return "other";
+  };
+  const kind = classify(selectedDeliverable);
+  const isVideo = kind === "video";
+
   const versions = selectedDeliverable
     ? deliverables
         .filter(
@@ -257,8 +273,19 @@ export default function ClientVideoReview() {
                 color: t.text,
               }}
             >
-              Video Review
+              Client Review
             </h1>
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 400,
+                fontSize: "12px",
+                color: t.textMuted,
+                marginTop: "4px",
+              }}
+            >
+              Review videos, images, and documents from your team.
+            </p>
           </div>
           {isPending && (
             <div style={{ display: "flex", gap: "10px" }}>
@@ -334,69 +361,84 @@ export default function ClientVideoReview() {
         </div>
 
         {selectedDeliverable && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: "24px" }}>
-            <div>
-              <div style={{ marginBottom: "12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <h3
-                    style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 700,
-                      fontSize: "16px",
-                      color: t.text,
-                    }}
-                  >
-                    {selectedDeliverable.title}
-                  </h3>
-                  <span
-                    style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 600,
-                      fontSize: "10px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.06em",
-                      color: statusColor(selectedDeliverable.status),
-                      background: `${statusColor(selectedDeliverable.status)}12`,
-                      padding: "4px 12px",
-                      borderRadius: "4px",
-                    }}
-                  >
-                    {statusLabel(selectedDeliverable.status)}
-                  </span>
-                </div>
-                {versions.length > 1 && (
-                  <select
-                    value={selectedDeliverable.id}
-                    onChange={(e) => {
-                      const v = deliverables.find((d) => d.id === e.target.value);
-                      if (v) {
-                        setSelectedDeliverable(v);
-                        setActiveTimestamp(null);
-                      }
-                    }}
-                    style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 500,
-                      fontSize: "11px",
-                      color: t.text,
-                      background: t.bgCard,
-                      border: `1px solid ${t.border}`,
-                      borderRadius: "6px",
-                      padding: "6px 10px",
-                      cursor: "pointer",
-                      outline: "none",
-                    }}
-                  >
-                    {versions.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.version || "v1"}
-                      </option>
-                    ))}
-                  </select>
-                )}
+          <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+            <div style={{ marginBottom: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                <h3
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 700,
+                    fontSize: "16px",
+                    color: t.text,
+                  }}
+                >
+                  {selectedDeliverable.title}
+                </h3>
+                <span
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "10px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    color: statusColor(selectedDeliverable.status),
+                    background: `${statusColor(selectedDeliverable.status)}12`,
+                    padding: "4px 12px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  {statusLabel(selectedDeliverable.status)}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 500,
+                    fontSize: "10px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    color: t.textMuted,
+                    border: `1px solid ${t.borderSubtle}`,
+                    padding: "3px 10px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  {kind === "other" ? "File" : kind}
+                </span>
               </div>
+              {versions.length > 1 && (
+                <select
+                  value={selectedDeliverable.id}
+                  onChange={(e) => {
+                    const v = deliverables.find((d) => d.id === e.target.value);
+                    if (v) {
+                      setSelectedDeliverable(v);
+                      setActiveTimestamp(null);
+                    }
+                  }}
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 500,
+                    fontSize: "11px",
+                    color: t.text,
+                    background: t.bgCard,
+                    border: `1px solid ${t.border}`,
+                    borderRadius: "6px",
+                    padding: "6px 10px",
+                    cursor: "pointer",
+                    outline: "none",
+                  }}
+                >
+                  {versions.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.version || "v1"}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
 
-              {selectedDeliverable.fileUrl ? (
+            {selectedDeliverable.fileUrl ? (
+              isVideo ? (
                 <VideoPlayer
                   src={selectedDeliverable.fileUrl}
                   markers={comments.map((c) => ({
@@ -407,66 +449,165 @@ export default function ClientVideoReview() {
                   onMarkerClick={handleMarkerClick}
                   seekTo={seekTo}
                 />
+              ) : kind === "image" ? (
+                <div
+                  style={{
+                    background: "#000",
+                    border: `1px solid ${t.border}`,
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "320px",
+                    maxHeight: "75vh",
+                  }}
+                >
+                  <img
+                    src={selectedDeliverable.fileUrl}
+                    alt={selectedDeliverable.title}
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "75vh",
+                      objectFit: "contain",
+                      display: "block",
+                    }}
+                  />
+                </div>
+              ) : kind === "pdf" ? (
+                <div
+                  style={{
+                    background: t.bgCard,
+                    border: `1px solid ${t.border}`,
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <iframe
+                    src={selectedDeliverable.fileUrl}
+                    title={selectedDeliverable.title}
+                    style={{
+                      width: "100%",
+                      height: "75vh",
+                      border: "none",
+                      display: "block",
+                    }}
+                  />
+                  <div
+                    style={{
+                      borderTop: `1px solid ${t.border}`,
+                      padding: "10px 14px",
+                      display: "flex",
+                      justifyContent: "flex-end",
+                    }}
+                  >
+                    <a
+                      href={selectedDeliverable.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 600,
+                        fontSize: "11px",
+                        color: t.text,
+                        textDecoration: "none",
+                        border: `1px solid ${t.border}`,
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                      }}
+                    >
+                      Open in new tab
+                    </a>
+                  </div>
+                </div>
               ) : (
                 <div
                   style={{
                     background: t.bgCard,
                     border: `1px solid ${t.border}`,
                     borderRadius: "10px",
-                    padding: "80px 24px",
+                    padding: "60px 24px",
                     textAlign: "center",
                   }}
                 >
-                  <svg
-                    width="48"
-                    height="48"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={t.textMuted}
-                    strokeWidth="1.5"
-                    style={{ marginBottom: "12px" }}
-                  >
-                    <polygon points="23 7 16 12 23 17 23 7" />
-                    <rect x="1" y="5" width="15" height="14" rx="2" />
-                  </svg>
                   <p
                     style={{
                       fontFamily: "'Montserrat', sans-serif",
                       fontWeight: 500,
                       fontSize: "14px",
                       color: t.textMuted,
+                      marginBottom: "12px",
                     }}
                   >
-                    No video file attached yet
+                    No inline preview available for this file.
                   </p>
-                  <p
+                  <a
+                    href={selectedDeliverable.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
                     style={{
                       fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 400,
+                      fontWeight: 600,
                       fontSize: "12px",
-                      color: t.textMuted,
-                      marginTop: "4px",
+                      color: t.text,
+                      textDecoration: "none",
+                      border: `1px solid ${t.border}`,
+                      padding: "8px 16px",
+                      borderRadius: "6px",
+                      display: "inline-block",
                     }}
                   >
-                    The team will upload the video when it's ready for review.
-                  </p>
+                    Download / open file
+                  </a>
                 </div>
-              )}
-
-              {selectedDeliverable.description && (
+              )
+            ) : (
+              <div
+                style={{
+                  background: t.bgCard,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: "10px",
+                  padding: "80px 24px",
+                  textAlign: "center",
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 500,
+                    fontSize: "14px",
+                    color: t.textMuted,
+                  }}
+                >
+                  No file attached yet
+                </p>
                 <p
                   style={{
                     fontFamily: "'Montserrat', sans-serif",
                     fontWeight: 400,
                     fontSize: "12px",
                     color: t.textMuted,
-                    marginTop: "12px",
+                    marginTop: "4px",
                   }}
                 >
-                  {selectedDeliverable.description}
+                  The team will upload it when it's ready for review.
                 </p>
-              )}
-            </div>
+              </div>
+            )}
+
+            {selectedDeliverable.description && (
+              <p
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "12px",
+                  color: t.textMuted,
+                  marginTop: "12px",
+                }}
+              >
+                {selectedDeliverable.description}
+              </p>
+            )}
 
             <div
               style={{
@@ -474,8 +615,7 @@ export default function ClientVideoReview() {
                 border: `1px solid ${t.border}`,
                 borderRadius: "10px",
                 padding: "20px",
-                maxHeight: "calc(100vh - 200px)",
-                overflowY: "auto",
+                marginTop: "24px",
               }}
             >
               <VideoReviewPanel
@@ -484,6 +624,7 @@ export default function ClientVideoReview() {
                 onAddReply={handleAddReply}
                 onCommentClick={handleCommentClick}
                 activeTimestamp={activeTimestamp}
+                hideTimestamps={!isVideo}
               />
             </div>
           </div>

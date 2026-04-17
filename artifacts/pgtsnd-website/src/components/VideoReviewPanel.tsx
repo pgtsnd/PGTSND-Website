@@ -36,6 +36,7 @@ interface VideoReviewPanelProps {
   publicAuthorName?: string;
   onPublicAuthorNameChange?: (name: string) => void;
   onResolveComment?: (commentId: string, resolved: boolean, note?: string) => Promise<void>;
+  hideTimestamps?: boolean;
 }
 
 function timeAgo(date: string | Date) {
@@ -59,6 +60,7 @@ export default function VideoReviewPanel({
   publicAuthorName = "",
   onPublicAuthorNameChange,
   onResolveComment,
+  hideTimestamps = false,
 }: VideoReviewPanelProps) {
   const { t } = useTheme();
   const [newComment, setNewComment] = useState("");
@@ -69,6 +71,8 @@ export default function VideoReviewPanel({
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [resolveNote, setResolveNote] = useState("");
   const [showResolvedSummary, setShowResolvedSummary] = useState(false);
+  const composerOpen = hideTimestamps || activeTimestamp !== null;
+  const composerTimestamp = hideTimestamps ? 0 : activeTimestamp;
 
   const unresolvedCount = comments.filter((c) => !c.resolvedAt).length;
   const resolvedComments = comments
@@ -80,11 +84,11 @@ export default function VideoReviewPanel({
     : comments;
 
   const handleSubmitComment = async () => {
-    if (!newComment.trim() || activeTimestamp === null) return;
+    if (!newComment.trim() || composerTimestamp === null) return;
     if (isPublic && !publicAuthorName.trim()) return;
     setSubmitting(true);
     try {
-      await onAddComment(activeTimestamp, newComment.trim());
+      await onAddComment(composerTimestamp, newComment.trim());
       setNewComment("");
     } catch {
     }
@@ -180,24 +184,26 @@ export default function VideoReviewPanel({
         )}
       </div>
 
-      {activeTimestamp !== null && (
+      {composerOpen && (
         <div style={{
           marginBottom: "16px", background: t.bgCard,
           border: `1px solid rgba(255,200,60,0.3)`, borderRadius: "8px",
           padding: "12px",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-            <span style={f({
-              fontWeight: 600, fontSize: "10px", color: "rgba(255,200,60,0.9)",
-              background: "rgba(255,200,60,0.1)", padding: "2px 8px",
-              borderRadius: "4px", fontVariantNumeric: "tabular-nums",
-            })}>
-              {formatTime(activeTimestamp)}
-            </span>
-            <span style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
-              Comment at this timestamp
-            </span>
-          </div>
+          {!hideTimestamps && activeTimestamp !== null && (
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+              <span style={f({
+                fontWeight: 600, fontSize: "10px", color: "rgba(255,200,60,0.9)",
+                background: "rgba(255,200,60,0.1)", padding: "2px 8px",
+                borderRadius: "4px", fontVariantNumeric: "tabular-nums",
+              })}>
+                {formatTime(activeTimestamp)}
+              </span>
+              <span style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+                Comment at this timestamp
+              </span>
+            </div>
+          )}
           {isPublic && (
             <input
               value={publicAuthorName}
@@ -295,13 +301,15 @@ export default function VideoReviewPanel({
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginBottom: "4px" }}>
-                      <span style={f({
-                        fontWeight: 600, fontSize: "10px", color: "rgba(255,200,60,0.9)",
-                        background: "rgba(255,200,60,0.1)", padding: "2px 6px",
-                        borderRadius: "4px", fontVariantNumeric: "tabular-nums",
-                      })}>
-                        {formatTime(rc.timestampSeconds)}
-                      </span>
+                      {!hideTimestamps && (
+                        <span style={f({
+                          fontWeight: 600, fontSize: "10px", color: "rgba(255,200,60,0.9)",
+                          background: "rgba(255,200,60,0.1)", padding: "2px 6px",
+                          borderRadius: "4px", fontVariantNumeric: "tabular-nums",
+                        })}>
+                          {formatTime(rc.timestampSeconds)}
+                        </span>
+                      )}
                       <span style={f({ fontWeight: 600, fontSize: "11px", color: t.text })}>
                         {rc.authorName}
                       </span>
@@ -338,7 +346,9 @@ export default function VideoReviewPanel({
             </svg>
             <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>
               {comments.length === 0
-                ? "No comments yet. Click the Comment button on the video player to add one."
+                ? hideTimestamps
+                  ? "No comments yet. Use the box above to leave feedback."
+                  : "No comments yet. Click the Comment button on the video player to add one."
                 : "All comments are resolved."}
             </p>
           </div>
@@ -360,17 +370,19 @@ export default function VideoReviewPanel({
               style={{ cursor: "pointer" }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", flexWrap: "wrap" }}>
-                <button
-                  style={f({
-                    fontWeight: 600, fontSize: "10px", color: "rgba(255,200,60,0.9)",
-                    background: "rgba(255,200,60,0.1)", padding: "2px 8px",
-                    borderRadius: "4px", border: "none", cursor: "pointer",
-                    fontVariantNumeric: "tabular-nums",
-                  })}
-                  title="Jump to timestamp"
-                >
-                  {formatTime(comment.timestampSeconds)}
-                </button>
+                {!hideTimestamps && (
+                  <button
+                    style={f({
+                      fontWeight: 600, fontSize: "10px", color: "rgba(255,200,60,0.9)",
+                      background: "rgba(255,200,60,0.1)", padding: "2px 8px",
+                      borderRadius: "4px", border: "none", cursor: "pointer",
+                      fontVariantNumeric: "tabular-nums",
+                    })}
+                    title="Jump to timestamp"
+                  >
+                    {formatTime(comment.timestampSeconds)}
+                  </button>
+                )}
                 <span style={f({ fontWeight: 600, fontSize: "11px", color: t.text })}>
                   {comment.authorName}
                 </span>
