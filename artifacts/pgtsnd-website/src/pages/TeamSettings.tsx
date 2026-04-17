@@ -13,6 +13,7 @@ import {
   useDisconnectIntegration,
   useVaultStatus,
   useEncryptExisting,
+  useRotateVault,
   type IntegrationSetting,
 } from "../hooks/useIntegrations";
 
@@ -261,11 +262,13 @@ const integrationMeta: Record<string, { label: string; desc: string; fields: { k
 
 function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
   const { toast } = useToast();
+  const { currentUser } = useTeamAuth();
   const { data: integrations, isLoading, isError, refetch } = useIntegrations();
   const { data: vault } = useVaultStatus();
   const updateMutation = useUpdateIntegration();
   const disconnectMutation = useDisconnectIntegration();
   const encryptExisting = useEncryptExisting();
+  const isOwner = currentUser?.role === "owner";
   const [expandedType, setExpandedType] = useState<string | null>(null);
   const [formData, setFormData] = useState<Record<string, Record<string, string>>>({});
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
@@ -377,6 +380,10 @@ function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
             </button>
           )}
         </div>
+      )}
+
+      {vault?.active && isOwner && (
+        <VaultRotationCard t={t} f={f} />
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -498,6 +505,213 @@ function IntegrationsPanel({ t, f }: { t: any; f: (s: object) => object }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function VaultRotationCard({ t, f }: { t: any; f: (s: object) => object }) {
+  const rotate = useRotateVault();
+  const [open, setOpen] = useState(false);
+  const [oldKey, setOldKey] = useState("");
+  const [newKey, setNewKey] = useState("");
+  const [confirmKey, setConfirmKey] = useState("");
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [result, setResult] = useState<{ rowsRotated: number; valuesRotated: number; valuesSkipped: number } | null>(null);
+
+  const reset = () => {
+    setOldKey("");
+    setNewKey("");
+    setConfirmKey("");
+    setLocalError(null);
+  };
+
+  const handleRotate = () => {
+    setLocalError(null);
+    if (!oldKey || !newKey) {
+      setLocalError("Both the current and new master keys are required.");
+      return;
+    }
+    if (oldKey === newKey) {
+      setLocalError("The new key must be different from the current key.");
+      return;
+    }
+    if (newKey !== confirmKey) {
+      setLocalError("The new key and confirmation do not match.");
+      return;
+    }
+    rotate.mutate(
+      { oldKey, newKey },
+      {
+        onSuccess: (data) => {
+          setResult({
+            rowsRotated: data.rowsRotated,
+            valuesRotated: data.valuesRotated,
+            valuesSkipped: data.valuesSkipped,
+          });
+          reset();
+        },
+      },
+    );
+  };
+
+  const inputStyle = f({
+    fontWeight: 400, fontSize: "13px", color: t.text,
+    background: t.bgCard, border: `1px solid ${t.border}`,
+    borderRadius: "6px", padding: "10px 14px", width: "100%",
+    outline: "none", boxSizing: "border-box" as const,
+  });
+  const labelStyle = f({
+    fontWeight: 500, fontSize: "11px", color: t.textMuted,
+    textTransform: "uppercase", letterSpacing: "0.06em",
+    display: "block", marginBottom: "6px",
+  });
+
+  const errorMessage = localError ?? (rotate.isError ? rotate.error.message : null);
+
+  return (
+    <div style={{
+      background: t.bgCard,
+      border: `1px solid ${t.border}`,
+      borderRadius: "8px",
+      marginBottom: "20px",
+      overflow: "hidden",
+    }}>
+      <div
+        onClick={() => setOpen(!open)}
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "14px 18px", cursor: "pointer",
+        }}
+      >
+        <div>
+          <p style={f({ fontWeight: 600, fontSize: "12px", color: t.text, marginBottom: "2px" })}>
+            Rotate Master Key
+          </p>
+          <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+            Re-encrypt every stored secret under a new VAULT_MASTER_KEY in a single transaction.
+          </p>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="2" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s ease" }}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
+
+      {open && (
+        <div style={{ padding: "0 18px 18px", borderTop: `1px solid ${t.border}` }}>
+          <div style={{
+            background: "rgba(255,180,60,0.05)",
+            border: "1px solid rgba(255,180,60,0.15)",
+            borderRadius: "6px",
+            padding: "10px 14px",
+            margin: "14px 0",
+          }}>
+            <p style={f({ fontWeight: 600, fontSize: "11px", color: t.text, marginBottom: "4px" })}>
+              Important
+            </p>
+            <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, lineHeight: 1.5 })}>
+              The current key must match the server's active VAULT_MASTER_KEY. After a successful rotation,
+              update the VAULT_MASTER_KEY environment variable to the new value and restart the API server,
+              or stored secrets will become unreadable.
+            </p>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div>
+              <label style={labelStyle}>Current Master Key</label>
+              <input
+                type="password"
+                autoComplete="off"
+                value={oldKey}
+                onChange={(e) => setOldKey(e.target.value)}
+                placeholder="Active VAULT_MASTER_KEY"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>New Master Key</label>
+              <input
+                type="password"
+                autoComplete="off"
+                value={newKey}
+                onChange={(e) => setNewKey(e.target.value)}
+                placeholder="e.g. output of openssl rand -base64 48"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Confirm New Master Key</label>
+              <input
+                type="password"
+                autoComplete="off"
+                value={confirmKey}
+                onChange={(e) => setConfirmKey(e.target.value)}
+                placeholder="Re-enter the new key"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
+          {errorMessage && (
+            <div style={{
+              marginTop: "12px",
+              padding: "10px 14px",
+              background: "rgba(255,120,120,0.06)",
+              border: "1px solid rgba(255,120,120,0.2)",
+              borderRadius: "6px",
+            }}>
+              <p style={f({ fontWeight: 500, fontSize: "12px", color: "rgba(255,120,120,0.95)" })}>
+                {errorMessage}
+              </p>
+            </div>
+          )}
+
+          {result && !rotate.isPending && !errorMessage && (
+            <div style={{
+              marginTop: "12px",
+              padding: "10px 14px",
+              background: "rgba(96,208,96,0.06)",
+              border: "1px solid rgba(96,208,96,0.2)",
+              borderRadius: "6px",
+            }}>
+              <p style={f({ fontWeight: 600, fontSize: "12px", color: "rgba(96,208,96,0.95)", marginBottom: "4px" })}>
+                Rotation complete
+              </p>
+              <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, lineHeight: 1.5 })}>
+                Re-encrypted {result.valuesRotated} value{result.valuesRotated === 1 ? "" : "s"} across{" "}
+                {result.rowsRotated} integration{result.rowsRotated === 1 ? "" : "s"}.{" "}
+                {result.valuesSkipped > 0 && `${result.valuesSkipped} plaintext value${result.valuesSkipped === 1 ? "" : "s"} were left unchanged. `}
+                Now update VAULT_MASTER_KEY to the new value and restart the API server.
+              </p>
+            </div>
+          )}
+
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "14px" }}>
+            <button
+              onClick={handleRotate}
+              disabled={rotate.isPending}
+              style={f({
+                fontWeight: 600, fontSize: "12px", color: t.accentText,
+                background: t.accent, border: "none", borderRadius: "6px",
+                padding: "10px 20px", cursor: rotate.isPending ? "wait" : "pointer",
+                opacity: rotate.isPending ? 0.7 : 1,
+              })}
+            >
+              {rotate.isPending ? "Rotating..." : "Rotate Key"}
+            </button>
+            <button
+              onClick={() => { reset(); setResult(null); rotate.reset(); }}
+              disabled={rotate.isPending}
+              style={f({
+                fontWeight: 500, fontSize: "11px", color: t.textMuted,
+                background: "transparent", border: `1px solid ${t.border}`,
+                borderRadius: "6px", padding: "10px 16px", cursor: "pointer",
+              })}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

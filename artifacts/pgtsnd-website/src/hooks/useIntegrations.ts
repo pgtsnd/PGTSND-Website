@@ -201,6 +201,29 @@ export function useVaultStatus() {
   });
 }
 
+export interface VaultRotateResult {
+  message: string;
+  rowsRotated: number;
+  valuesRotated: number;
+  valuesSkipped: number;
+}
+
+export function useRotateVault() {
+  const queryClient = useQueryClient();
+
+  return useMutation<VaultRotateResult, Error, { oldKey: string; newKey: string }>({
+    mutationFn: ({ oldKey, newKey }) =>
+      apiFetch("/integrations/vault/rotate", {
+        method: "POST",
+        body: JSON.stringify({ oldKey, newKey }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations/vault"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
+    },
+  });
+}
+
 export function useEncryptExisting() {
   const queryClient = useQueryClient();
 
