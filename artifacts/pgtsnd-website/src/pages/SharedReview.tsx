@@ -18,6 +18,7 @@ export default function SharedReview() {
   const [activeTimestamp, setActiveTimestamp] = useState<number | null>(null);
   const [seekTo, setSeekTo] = useState<number | null>(null);
   const [authorName, setAuthorName] = useState("");
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -172,6 +173,17 @@ export default function SharedReview() {
   }
 
   const deliverable = data.deliverable;
+  const versions = data.versions ?? [];
+  const activeVersion = selectedVersionId
+    ? versions.find((v) => v.id === selectedVersionId) ?? null
+    : null;
+  const activeFileUrl = activeVersion?.fileUrl ?? deliverable.fileUrl;
+  const activeVersionLabel = activeVersion?.version ?? deliverable.version ?? "v1";
+  const isViewingPreviousCut = !!activeVersion && activeVersion.fileUrl !== deliverable.fileUrl;
+  const buildSrc = (url: string) =>
+    url.startsWith("/api/storage/objects/")
+      ? `${url}?reviewToken=${encodeURIComponent(token)}`
+      : url;
 
   return (
     <div style={{ minHeight: "100vh", background: t.bg }}>
@@ -234,17 +246,117 @@ export default function SharedReview() {
         }}
       >
         <div>
-          {deliverable.fileUrl ? (
+          {versions.length > 0 && (
+            <div
+              style={{
+                marginBottom: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                flexWrap: "wrap",
+              }}
+            >
+              <label
+                htmlFor="shared-review-version-select"
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "11px",
+                  color: t.textMuted,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                Version
+              </label>
+              <select
+                id="shared-review-version-select"
+                data-testid="shared-review-version-select"
+                value={selectedVersionId ?? ""}
+                onChange={(e) => setSelectedVersionId(e.target.value || null)}
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 500,
+                  fontSize: "12px",
+                  color: t.text,
+                  background: t.bgCard,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: "6px",
+                  padding: "6px 10px",
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+              >
+                <option value="">Latest ({deliverable.version || "v1"})</option>
+                {versions.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.version} ·{" "}
+                    {new Date(v.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {isViewingPreviousCut && (
+            <div
+              data-testid="shared-review-previous-version-banner"
+              style={{
+                marginBottom: "12px",
+                padding: "10px 14px",
+                background: t.bgCard,
+                border: `1px solid ${t.border}`,
+                borderRadius: "8px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "10px",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 500,
+                  fontSize: "12px",
+                  color: t.textSecondary,
+                }}
+              >
+                Viewing previous cut {activeVersionLabel} (latest is{" "}
+                {deliverable.version || "v1"})
+              </span>
+              <button
+                onClick={() => setSelectedVersionId(null)}
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "11px",
+                  color: t.text,
+                  background: "transparent",
+                  border: `1px solid ${t.border}`,
+                  borderRadius: "6px",
+                  padding: "5px 10px",
+                  cursor: "pointer",
+                }}
+              >
+                Back to latest
+              </button>
+            </div>
+          )}
+
+          {activeFileUrl ? (
             <VideoPlayer
-              src={
-                deliverable.fileUrl.startsWith("/api/storage/objects/")
-                  ? `${deliverable.fileUrl}?reviewToken=${encodeURIComponent(token)}`
-                  : deliverable.fileUrl
+              src={buildSrc(activeFileUrl)}
+              markers={
+                isViewingPreviousCut
+                  ? []
+                  : comments.map((c) => ({
+                      id: c.id,
+                      timestampSeconds: c.timestampSeconds,
+                    }))
               }
-              markers={comments.map((c) => ({
-                id: c.id,
-                timestampSeconds: c.timestampSeconds,
-              }))}
               onTimeClick={(seconds) => setActiveTimestamp(seconds)}
               onMarkerClick={handleMarkerClick}
               seekTo={seekTo}
@@ -341,6 +453,117 @@ export default function SharedReview() {
               fontSize={11}
             />
           </div>
+
+          {(() => {
+            const previousCuts = versions.filter(
+              (v) => v.fileUrl !== deliverable.fileUrl,
+            );
+            if (previousCuts.length === 0) return null;
+            return (
+              <div
+                data-testid="shared-review-previous-cuts"
+                style={{
+                  marginTop: "20px",
+                  padding: "16px",
+                  background: t.bgCard,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: "10px",
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 700,
+                    fontSize: "10px",
+                    color: t.textMuted,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    marginBottom: "10px",
+                  }}
+                >
+                  Previous cuts ({previousCuts.length})
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {previousCuts.map((v) => (
+                    <div
+                      key={v.id}
+                      data-testid={`shared-review-previous-cut-${v.id}`}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "8px 12px",
+                        background: t.bg,
+                        border: `1px solid ${t.borderSubtle}`,
+                        borderRadius: "6px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span
+                          style={{
+                            fontFamily: "'Montserrat', sans-serif",
+                            fontWeight: 700,
+                            fontSize: "10px",
+                            color: t.text,
+                            background: t.bgCard,
+                            border: `1px solid ${t.border}`,
+                            borderRadius: "4px",
+                            padding: "2px 8px",
+                          }}
+                        >
+                          {v.version}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: "'Montserrat', sans-serif",
+                            fontWeight: 400,
+                            fontSize: "11px",
+                            color: t.textMuted,
+                          }}
+                        >
+                          Uploaded{" "}
+                          {new Date(v.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </div>
+                      <a
+                        href={buildSrc(v.fileUrl)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: 600,
+                          fontSize: "11px",
+                          color: t.text,
+                          textDecoration: "none",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                      >
+                        View
+                        <svg
+                          width="10"
+                          height="10"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                          <polyline points="15 3 21 3 21 9" />
+                          <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         <div

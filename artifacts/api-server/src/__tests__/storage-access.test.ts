@@ -35,6 +35,7 @@ const state = {
   projectMembers: [] as MockProjectMember[],
   projects: new Map<string, { clientId: string | null }>(),
   mediaUploads: new Map<string, { id: string; objectPath: string }>(),
+  deliverableVersions: [] as { id: string; deliverableId: string; fileUrl: string }[],
 };
 
 const usersTable = {
@@ -67,6 +68,11 @@ const projectsTable = {
 const projectMembersTable = {
   projectId: "projectMembers.projectId",
   userId: "projectMembers.userId",
+};
+const deliverableVersionsTable = {
+  id: "deliverableVersions.id",
+  deliverableId: "deliverableVersions.deliverableId",
+  fileUrl: "deliverableVersions.fileUrl",
 };
 
 vi.mock("drizzle-orm", () => ({
@@ -129,6 +135,17 @@ function runQuery(table: unknown, cond: unknown): unknown[] {
     const p = state.projects.get(id);
     return p ? [{ clientId: p.clientId }] : [];
   }
+  if (table === deliverableVersionsTable) {
+    const fileUrl = eqs["deliverableVersions.fileUrl"] as string | undefined;
+    if (!fileUrl) return [];
+    const v = state.deliverableVersions.find((dv) => dv.fileUrl === fileUrl);
+    if (!v) return [];
+    const d = Array.from(state.deliverables.values()).find(
+      (dd) => dd.id === v.deliverableId,
+    );
+    if (!d) return [];
+    return [{ id: d.id, projectId: d.projectId, fileUrl: d.fileUrl }];
+  }
   return [];
 }
 
@@ -136,6 +153,9 @@ function makeQuery(table: unknown) {
   let cond: unknown = null;
   const exec = async () => runQuery(table, cond);
   const builder: Record<string, unknown> = {
+    innerJoin() {
+      return builder;
+    },
     where(c: unknown) {
       cond = c;
       return builder;
@@ -180,6 +200,7 @@ vi.mock("@workspace/db", () => ({
   contractsTable: {},
   invoicesTable: {},
   videoCommentsTable: {},
+  deliverableVersionsTable,
 }));
 
 vi.mock("../lib/objectStorage", () => {
@@ -233,6 +254,7 @@ beforeEach(async () => {
   state.projectMembers.length = 0;
   state.projects.clear();
   state.mediaUploads.clear();
+  state.deliverableVersions.length = 0;
 
   if (!storageRouter) {
     storageRouter = (await import("../routes/storage")).default;

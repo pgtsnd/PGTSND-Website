@@ -4,7 +4,7 @@ import { useTheme } from "../components/ThemeContext";
 import VideoPlayer from "../components/VideoPlayer";
 import VideoReviewPanel from "../components/VideoReviewPanel";
 import type { VideoComment } from "../components/VideoReviewPanel";
-import { api, type Deliverable, type VideoCommentWithReplies } from "../lib/api";
+import { api, type Deliverable, type DeliverableVersion, type VideoCommentWithReplies } from "../lib/api";
 import UploaderBadge from "../components/UploaderBadge";
 import { ClientVideoReviewSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import { useToast } from "../components/Toast";
@@ -15,6 +15,7 @@ export default function ClientVideoReview() {
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [selectedDeliverable, setSelectedDeliverable] = useState<Deliverable | null>(null);
   const [comments, setComments] = useState<VideoCommentWithReplies[]>([]);
+  const [deliverableVersions, setDeliverableVersions] = useState<DeliverableVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -61,6 +62,10 @@ export default function ClientVideoReview() {
       .getVideoComments(selectedDeliverable.id)
       .then(setComments)
       .catch(() => setComments([]));
+    api
+      .getDeliverableVersions(selectedDeliverable.id)
+      .then(setDeliverableVersions)
+      .catch(() => setDeliverableVersions([]));
   }, [selectedDeliverable?.id]);
 
   const handleApprove = async () => {
@@ -631,6 +636,117 @@ export default function ClientVideoReview() {
                 {selectedDeliverable.description}
               </p>
             )}
+
+            {(() => {
+              const previousCuts = deliverableVersions.filter(
+                (v) => v.fileUrl !== selectedDeliverable.fileUrl,
+              );
+              if (previousCuts.length === 0) return null;
+              return (
+                <div
+                  data-testid="client-previous-cuts"
+                  style={{
+                    marginTop: "20px",
+                    padding: "16px",
+                    background: t.bgCard,
+                    border: `1px solid ${t.border}`,
+                    borderRadius: "10px",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 700,
+                      fontSize: "10px",
+                      color: t.textMuted,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    Previous cuts ({previousCuts.length})
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {previousCuts.map((v) => (
+                      <div
+                        key={v.id}
+                        data-testid={`client-previous-cut-${v.id}`}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "8px 12px",
+                          background: t.bg,
+                          border: `1px solid ${t.borderSubtle}`,
+                          borderRadius: "6px",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <span
+                            style={{
+                              fontFamily: "'Montserrat', sans-serif",
+                              fontWeight: 700,
+                              fontSize: "10px",
+                              color: t.text,
+                              background: t.bgCard,
+                              border: `1px solid ${t.border}`,
+                              borderRadius: "4px",
+                              padding: "2px 8px",
+                            }}
+                          >
+                            {v.version}
+                          </span>
+                          <span
+                            style={{
+                              fontFamily: "'Montserrat', sans-serif",
+                              fontWeight: 400,
+                              fontSize: "11px",
+                              color: t.textMuted,
+                            }}
+                          >
+                            Uploaded{" "}
+                            {new Date(v.createdAt).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </span>
+                        </div>
+                        <a
+                          href={v.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontFamily: "'Montserrat', sans-serif",
+                            fontWeight: 600,
+                            fontSize: "11px",
+                            color: t.text,
+                            textDecoration: "none",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          View
+                          <svg
+                            width="10"
+                            height="10"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                          </svg>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div
               style={{

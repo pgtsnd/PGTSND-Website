@@ -78,6 +78,12 @@ router.get(
       uploaderAvatarUrl = uploader?.avatarUrl ?? null;
     }
 
+    const versions = await db
+      .select()
+      .from(deliverableVersionsTable)
+      .where(eq(deliverableVersionsTable.deliverableId, deliverable.id))
+      .orderBy(desc(deliverableVersionsTable.createdAt));
+
     res.json({
       deliverable: {
         ...deliverable,
@@ -86,6 +92,7 @@ router.get(
         uploadedByAvatarUrl: uploaderAvatarUrl,
       },
       comments: commentsWithReplies,
+      versions,
     });
   },
 );

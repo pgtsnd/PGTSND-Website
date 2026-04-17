@@ -247,6 +247,7 @@ export interface ReviewLinkData {
 export interface PublicReviewData {
   deliverable: Deliverable;
   comments: VideoCommentWithReplies[];
+  versions: DeliverableVersion[];
 }
 
 class ApiError extends Error {

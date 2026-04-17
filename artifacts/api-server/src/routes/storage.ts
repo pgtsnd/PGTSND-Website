@@ -5,6 +5,7 @@ import {
   db,
   usersTable,
   deliverablesTable,
+  deliverableVersionsTable,
   reviewLinksTable,
   mediaUploadsTable,
 } from "@workspace/db";
@@ -313,7 +314,7 @@ router.get(
         return;
       }
 
-      const [deliverable] = await db
+      let [deliverable] = await db
         .select({
           id: deliverablesTable.id,
           projectId: deliverablesTable.projectId,
@@ -327,6 +328,25 @@ router.get(
           ),
         )
         .limit(1);
+
+      if (!deliverable) {
+        const [versionMatch] = await db
+          .select({
+            id: deliverablesTable.id,
+            projectId: deliverablesTable.projectId,
+            fileUrl: deliverablesTable.fileUrl,
+          })
+          .from(deliverableVersionsTable)
+          .innerJoin(
+            deliverablesTable,
+            eq(deliverableVersionsTable.deliverableId, deliverablesTable.id),
+          )
+          .where(eq(deliverableVersionsTable.fileUrl, fileUrl))
+          .limit(1);
+        if (versionMatch) {
+          deliverable = versionMatch;
+        }
+      }
 
       if (!deliverable) {
         res.status(404).json({ error: "Object not found" });
