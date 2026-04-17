@@ -254,7 +254,21 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       </aside>
 
       <main style={{ flex: 1, marginLeft: "260px", minHeight: "100vh" }}>
-        {children}
+        <style>{`
+          @keyframes clientPageFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .client-page-transition {
+            animation: clientPageFadeIn 220ms ease-out both;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .client-page-transition { animation: none; }
+          }
+        `}</style>
+        <div key={location} className="client-page-transition">
+          {children}
+        </div>
       </main>
     </div>
   );
