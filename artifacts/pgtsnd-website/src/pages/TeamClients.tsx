@@ -16,6 +16,7 @@ import {
 import {
   useCreateOrganization,
   useCreateUser,
+  useCreateInvoiceCheckoutSession,
   getListOrganizationsQueryKey,
   getListUsersQueryKey,
 } from "@workspace/api-client-react";
@@ -191,6 +192,7 @@ export default function TeamClients() {
   const [copiedInvoiceId, setCopiedInvoiceId] = useState<string | null>(null);
   const [linkLoadingId, setLinkLoadingId] = useState<string | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
+  const createCheckoutMutation = useCreateInvoiceCheckoutSession();
 
   const [showExportModal, setShowExportModal] = useState(false);
   const allStatuses: Invoice["status"][] = ["draft", "sent", "paid", "overdue", "void"];
@@ -208,7 +210,10 @@ export default function TeamClients() {
       const baseUrl = `${window.location.origin}/client/billing`;
       const successUrl = `${baseUrl}?payment=success`;
       const cancelUrl = `${baseUrl}?payment=canceled`;
-      const result = await api.createCheckoutSession(invoiceId, successUrl, cancelUrl);
+      const result = await createCheckoutMutation.mutateAsync({
+        id: invoiceId,
+        data: { successUrl, cancelUrl },
+      });
       try {
         await navigator.clipboard.writeText(result.url);
       } catch {

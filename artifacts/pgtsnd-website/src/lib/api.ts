@@ -365,23 +365,6 @@ export const api = {
   sendInvoice: (id: string) =>
     apiFetch<Invoice>(`/invoices/${id}/send`, { method: "POST" }),
 
-  createCheckoutSession: (id: string, successUrl: string, cancelUrl: string) =>
-    apiFetch<{ url: string }>(`/invoices/${id}/checkout`, {
-      method: "POST",
-      body: JSON.stringify({ successUrl, cancelUrl }),
-    }),
-
-  getPaymentDetails: (id: string) =>
-    apiFetch<{
-      paymentIntentId: string | null;
-      amount: number;
-      currency: string;
-      status: string;
-      paymentMethod: string | null;
-      receiptUrl: string | null;
-      paidAt: string | null;
-    }>(`/invoices/${id}/payment`),
-
   getDocuSignSigningUrl: (contractId: string) =>
     apiFetch<{ url: string }>(`/integrations/docusign/signing-url/${contractId}`),
 

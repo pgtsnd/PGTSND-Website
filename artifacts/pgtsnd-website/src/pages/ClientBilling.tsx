@@ -5,6 +5,11 @@ import { api, type Invoice } from "../lib/api";
 import { exportInvoicesToCsv, generateInvoicePdf } from "../lib/exports";
 import { ClientBillingSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import { useToast } from "../components/Toast";
+import {
+  useCreateInvoiceCheckoutSession,
+  getInvoicePaymentDetails,
+  type PaymentDetails,
+} from "@workspace/api-client-react";
 
 function formatDate(date: string | Date | null) {
   if (!date) return "—";
@@ -23,15 +28,8 @@ export default function ClientBilling() {
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentCanceled, setPaymentCanceled] = useState(false);
-  const [paymentDetails, setPaymentDetails] = useState<Record<string, {
-    paymentIntentId: string | null;
-    amount: number;
-    currency: string;
-    status: string;
-    paymentMethod: string | null;
-    receiptUrl: string | null;
-    paidAt: string | null;
-  }>>({});
+  const [paymentDetails, setPaymentDetails] = useState<Record<string, PaymentDetails>>({});
+  const createCheckoutMutation = useCreateInvoiceCheckoutSession();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -46,7 +44,7 @@ export default function ClientBilling() {
             setInvoices(data);
             const paidOnes = data.filter((i) => i.status === "paid");
             paidOnes.forEach((inv) => {
-              api.getPaymentDetails(inv.id).then((details) => {
+              getInvoicePaymentDetails(inv.id).then((details) => {
                 setPaymentDetails((prev) => ({ ...prev, [inv.id]: details }));
               }).catch(() => {});
             });
@@ -73,7 +71,7 @@ export default function ClientBilling() {
         setError(null);
         const paidOnes = data.filter((i) => i.status === "paid");
         paidOnes.forEach((inv) => {
-          api.getPaymentDetails(inv.id).then((details) => {
+          getInvoicePaymentDetails(inv.id).then((details) => {
             setPaymentDetails((prev) => ({ ...prev, [inv.id]: details }));
           }).catch(() => {});
         });
@@ -130,7 +128,10 @@ export default function ClientBilling() {
       const successUrl = `${baseUrl}?payment=success`;
       const cancelUrl = `${baseUrl}?payment=canceled`;
 
-      const result = await api.createCheckoutSession(invoice.id, successUrl, cancelUrl);
+      const result = await createCheckoutMutation.mutateAsync({
+        id: invoice.id,
+        data: { successUrl, cancelUrl },
+      });
       window.location.href = result.url;
     } catch (err) {
       if (invoice.stripeHostedUrl) {
