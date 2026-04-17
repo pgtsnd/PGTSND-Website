@@ -42,5 +42,13 @@ export const insertMessageSchema = createInsertSchema(messagesTable).omit({
 
 export const selectMessageSchema = createSelectSchema(messagesTable);
 
+export const enrichedMessageSchema = selectMessageSchema.extend({
+  senderName: z.string().nullable().optional(),
+  senderInitials: z.string().nullable().optional(),
+  senderRole: z.string().nullable().optional(),
+  senderAvatarUrl: z.string().nullable().optional(),
+  isTeam: z.boolean().nullable().optional(),
+});
+
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messagesTable.$inferSelect;

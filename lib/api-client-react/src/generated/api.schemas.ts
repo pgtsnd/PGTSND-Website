@@ -601,6 +601,11 @@ export interface Message {
   content: string;
   read: boolean;
   createdAt: string;
+  senderName?: string | null;
+  senderInitials?: string | null;
+  senderRole?: string | null;
+  senderAvatarUrl?: string | null;
+  isTeam?: boolean | null;
 }
 
 export interface DmContact {

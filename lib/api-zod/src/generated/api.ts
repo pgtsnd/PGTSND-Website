@@ -1106,6 +1106,11 @@ export const ListProjectMessagesResponseItem = zod.object({
   content: zod.string(),
   read: zod.boolean(),
   createdAt: zod.coerce.date(),
+  senderName: zod.string().nullish(),
+  senderInitials: zod.string().nullish(),
+  senderRole: zod.string().nullish(),
+  senderAvatarUrl: zod.string().nullish(),
+  isTeam: zod.boolean().nullish(),
 });
 export const ListProjectMessagesResponse = zod.array(
   ListProjectMessagesResponseItem,
@@ -1137,6 +1142,11 @@ export const MarkMessageReadResponse = zod.object({
   content: zod.string(),
   read: zod.boolean(),
   createdAt: zod.coerce.date(),
+  senderName: zod.string().nullish(),
+  senderInitials: zod.string().nullish(),
+  senderRole: zod.string().nullish(),
+  senderAvatarUrl: zod.string().nullish(),
+  isTeam: zod.boolean().nullish(),
 });
 
 /**
@@ -1154,6 +1164,11 @@ export const GetMessageResponse = zod.object({
   content: zod.string(),
   read: zod.boolean(),
   createdAt: zod.coerce.date(),
+  senderName: zod.string().nullish(),
+  senderInitials: zod.string().nullish(),
+  senderRole: zod.string().nullish(),
+  senderAvatarUrl: zod.string().nullish(),
+  isTeam: zod.boolean().nullish(),
 });
 
 /**
@@ -1211,6 +1226,11 @@ export const GetDmThreadResponseItem = zod.object({
   content: zod.string(),
   read: zod.boolean(),
   createdAt: zod.coerce.date(),
+  senderName: zod.string().nullish(),
+  senderInitials: zod.string().nullish(),
+  senderRole: zod.string().nullish(),
+  senderAvatarUrl: zod.string().nullish(),
+  isTeam: zod.boolean().nullish(),
 });
 export const GetDmThreadResponse = zod.array(GetDmThreadResponseItem);
 

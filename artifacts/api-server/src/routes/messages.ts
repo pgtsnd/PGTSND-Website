@@ -1,5 +1,13 @@
 import { Router } from "express";
-import { db, messagesTable, insertMessageSchema, selectMessageSchema } from "@workspace/db";
+import {
+  db,
+  messagesTable,
+  projectsTable,
+  usersTable,
+  insertMessageSchema,
+  selectMessageSchema,
+  enrichedMessageSchema,
+} from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireRole } from "../middleware/auth";
 import {
@@ -8,6 +16,7 @@ import {
   resolveProjectFromMessage,
 } from "../middleware/project-access";
 import { validateAndSend, validateAndSendArray } from "../middleware/validate-response";
+import * as slackService from "../services/slack";
 
 const router = Router();
 
@@ -15,11 +24,92 @@ router.get(
   "/projects/:projectId/messages",
   requireProjectAccess("projectId"),
   async (req, res) => {
-    const messages = await db
-      .select()
+    const projectId = req.params.projectId;
+
+    const dbMessages = await db
+      .select({
+        id: messagesTable.id,
+        projectId: messagesTable.projectId,
+        recipientId: messagesTable.recipientId,
+        senderId: messagesTable.senderId,
+        content: messagesTable.content,
+        read: messagesTable.read,
+        createdAt: messagesTable.createdAt,
+        senderName: usersTable.name,
+        senderInitials: usersTable.initials,
+        senderRole: usersTable.role,
+      })
       .from(messagesTable)
-      .where(eq(messagesTable.projectId, req.params.projectId));
-    validateAndSendArray(res, selectMessageSchema, messages);
+      .leftJoin(usersTable, eq(messagesTable.senderId, usersTable.id))
+      .where(eq(messagesTable.projectId, projectId));
+
+    const enrichedDb = dbMessages.map((m) => ({
+      ...m,
+      senderAvatarUrl: null as string | null,
+      isTeam: m.senderRole !== "client",
+    }));
+
+    const [project] = await db
+      .select()
+      .from(projectsTable)
+      .where(eq(projectsTable.id, projectId))
+      .limit(1);
+
+    if (
+      project?.slackChannelId &&
+      (await slackService.isSlackConnected())
+    ) {
+      const slackHistory = await slackService.getChannelHistory(
+        project.slackChannelId,
+        50,
+      );
+      const uniqueUserIds = Array.from(
+        new Set(slackHistory.map((m) => m.user).filter((u): u is string => !!u)),
+      );
+      const userInfos = await Promise.all(
+        uniqueUserIds.map((uid) => slackService.getUserInfo(uid)),
+      );
+      const userInfoMap = new Map<
+        string,
+        { name: string; initials: string; imageUrl?: string }
+      >();
+      uniqueUserIds.forEach((uid, idx) => {
+        const info = userInfos[idx];
+        if (info)
+          userInfoMap.set(uid, {
+            name: info.name,
+            initials: info.initials,
+            imageUrl: info.imageUrl,
+          });
+      });
+
+      const slackMsgs = slackHistory.map((m) => {
+        const info = m.user ? userInfoMap.get(m.user) : undefined;
+        return {
+          id: `slack-${m.ts}`,
+          projectId,
+          recipientId: null,
+          senderId: m.user || "slack",
+          content: m.text,
+          read: true,
+          createdAt: new Date(parseFloat(m.ts) * 1000),
+          senderName: info?.name ?? "Slack",
+          senderInitials: info?.initials ?? "SL",
+          senderRole: "owner",
+          senderAvatarUrl: info?.imageUrl ?? null,
+          isTeam: true,
+        };
+      });
+
+      const merged = [...enrichedDb, ...slackMsgs].sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      );
+      validateAndSendArray(res, enrichedMessageSchema, merged);
+      return;
+    }
+
+    validateAndSendArray(res, enrichedMessageSchema, enrichedDb);
   },
 );
 

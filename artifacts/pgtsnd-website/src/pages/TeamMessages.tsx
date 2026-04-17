@@ -482,8 +482,30 @@ export default function TeamMessages() {
               sortedMessages.map((msg: Message) => {
                 const sender = userMap.get(msg.senderId);
                 const isMe = msg.senderId === currentUser?.id;
+                const senderName = msg.senderName ?? sender?.name ?? "Unknown";
+                const senderInitials =
+                  msg.senderInitials ??
+                  (sender?.name
+                    ? initials(sender.name)
+                    : initials(senderName));
+                const avatarUrl = msg.senderAvatarUrl ?? null;
                 return (
-                  <div key={msg.id} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", marginBottom: "16px" }}>
+                  <div key={msg.id} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", marginBottom: "16px", gap: "10px", alignItems: "flex-start", flexDirection: isMe ? "row-reverse" : "row" }}>
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={senderName}
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = "none";
+                          const sib = (e.currentTarget as HTMLImageElement).nextElementSibling as HTMLElement | null;
+                          if (sib) sib.style.display = "flex";
+                        }}
+                        style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                      />
+                    ) : null}
+                    <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: t.bgCard, border: `1px solid ${t.border}`, display: avatarUrl ? "none" : "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10px", color: t.textSecondary, flexShrink: 0 }}>
+                      {senderInitials || "??"}
+                    </div>
                     <div style={{
                       maxWidth: "65%", padding: "12px 16px",
                       background: isMe ? t.accent : t.bgCard,
@@ -492,7 +514,7 @@ export default function TeamMessages() {
                     }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px", gap: "16px" }}>
                         <span style={f({ fontWeight: 600, fontSize: "11px", color: isMe ? t.accentText : t.text })}>
-                          {sender?.name ?? "Unknown"}
+                          {senderName}
                         </span>
                         <span style={f({ fontWeight: 400, fontSize: "10px", color: isMe ? "rgba(255,255,255,0.6)" : t.textMuted })}>
                           {timeAgo(msg.createdAt)}

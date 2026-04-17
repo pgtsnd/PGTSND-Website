@@ -14,4 +14,9 @@ export interface Message {
   content: string;
   read: boolean;
   createdAt: Date;
+  senderName?: string | null;
+  senderInitials?: string | null;
+  senderRole?: string | null;
+  senderAvatarUrl?: string | null;
+  isTeam?: boolean | null;
 }

@@ -2266,6 +2266,21 @@ components:
         createdAt:
           type: string
           format: date-time
+        senderName:
+          type: string
+          nullable: true
+        senderInitials:
+          type: string
+          nullable: true
+        senderRole:
+          type: string
+          nullable: true
+        senderAvatarUrl:
+          type: string
+          nullable: true
+        isTeam:
+          type: boolean
+          nullable: true
       required:
         - id
         - senderId
