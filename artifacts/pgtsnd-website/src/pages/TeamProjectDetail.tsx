@@ -423,15 +423,19 @@ function ProjectIntegrationsCard({ project, projectId }: { project: any; project
   const driveConnected = !!status?.google_drive;
   const slackConnected = !!status?.slack;
 
-  const { data: folders, isLoading: foldersLoading, isError: foldersError } = useDriveFolders(driveConnected);
+  type DriveCrumb = { id: string | null; name: string };
+  const [drivePath, setDrivePath] = useState<DriveCrumb[]>([{ id: null, name: "My Drive" }]);
+  const currentDriveParent = drivePath[drivePath.length - 1];
+  const { data: folders, isLoading: foldersLoading, isError: foldersError } = useDriveFolders(
+    driveConnected,
+    currentDriveParent.id ?? undefined,
+  );
   const { data: channels, isLoading: channelsLoading, isError: channelsError } = useSlackChannels(slackConnected);
 
   const updateProject = useUpdateProject();
 
   const [driveValue, setDriveValue] = useState<string>(project.driveFolderId || "");
-  const [drivePasteMode, setDrivePasteMode] = useState<boolean>(
-    !!project.driveFolderId && !!folders && !folders.some((folder) => folder.id === project.driveFolderId),
-  );
+  const [drivePasteMode, setDrivePasteMode] = useState<boolean>(false);
   const [slackValue, setSlackValue] = useState<string>(project.slackChannelId || "");
 
   useEffect(() => {
@@ -443,10 +447,20 @@ function ProjectIntegrationsCard({ project, projectId }: { project: any; project
   }, [project.slackChannelId]);
 
   useEffect(() => {
-    if (project.driveFolderId && folders && !folders.some((folder) => folder.id === project.driveFolderId)) {
+    setDrivePath([{ id: null, name: "My Drive" }]);
+    setDrivePasteMode(false);
+  }, [projectId]);
+
+  useEffect(() => {
+    if (
+      project.driveFolderId &&
+      drivePath.length === 1 &&
+      folders &&
+      !folders.some((folder) => folder.id === project.driveFolderId)
+    ) {
       setDrivePasteMode(true);
     }
-  }, [folders, project.driveFolderId]);
+  }, [folders, project.driveFolderId, drivePath.length]);
 
   const driveDirty = (project.driveFolderId || "") !== driveValue.trim();
   const slackDirty = (project.slackChannelId || "") !== slackValue.trim();
@@ -517,19 +531,151 @@ function ProjectIntegrationsCard({ project, projectId }: { project: any; project
             ) : (
               <>
                 {!drivePasteMode ? (
-                  <select
-                    value={driveValue}
-                    onChange={(e) => setDriveValue(e.target.value)}
-                    disabled={foldersLoading}
-                    style={inputStyle}
-                  >
-                    <option value="">
-                      {foldersLoading ? "Loading folders…" : foldersError ? "Failed to load — try paste" : "— No folder selected —"}
-                    </option>
-                    {(folders || []).map((folder) => (
-                      <option key={folder.id} value={folder.id}>{folder.name}</option>
-                    ))}
-                  </select>
+                  <div style={{
+                    border: `1px solid ${t.border}`, borderRadius: "6px",
+                    background: t.hoverBg, overflow: "hidden",
+                  }}>
+                    <div style={{
+                      display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px",
+                      padding: "8px 10px", borderBottom: `1px solid ${t.border}`,
+                      ...f({ fontWeight: 500, fontSize: "11px", color: t.textMuted }),
+                    }}>
+                      {drivePath.map((crumb, i) => {
+                        const isLast = i === drivePath.length - 1;
+                        return (
+                          <span key={`${crumb.id ?? "root"}-${i}`} style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                            {i > 0 && (
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="9 18 15 12 9 6" />
+                              </svg>
+                            )}
+                            {isLast ? (
+                              <span style={f({ fontWeight: 600, color: t.text })}>{crumb.name}</span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setDrivePath((p) => p.slice(0, i + 1))}
+                                style={{
+                                  background: "transparent", border: "none", padding: 0, cursor: "pointer",
+                                  ...f({ fontWeight: 500, fontSize: "11px", color: t.textMuted, textDecoration: "underline" }),
+                                }}
+                              >
+                                {crumb.name}
+                              </button>
+                            )}
+                          </span>
+                        );
+                      })}
+                      {drivePath.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setDrivePath((p) => p.slice(0, -1))}
+                          title="Up one folder"
+                          style={{
+                            marginLeft: "auto", background: "transparent", border: "none",
+                            cursor: "pointer", padding: "2px 4px", display: "inline-flex", alignItems: "center", gap: "4px",
+                            ...f({ fontWeight: 500, fontSize: "10px", color: t.textMuted }),
+                          }}
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="15 18 9 12 15 6" />
+                          </svg>
+                          Back
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                      {foldersLoading ? (
+                        <div style={{ padding: "16px", ...f({ fontWeight: 400, fontSize: "12px", color: t.textMuted }) }}>
+                          Loading folders…
+                        </div>
+                      ) : foldersError ? (
+                        <div style={{ padding: "16px", ...f({ fontWeight: 400, fontSize: "12px", color: t.textMuted }) }}>
+                          Failed to load — try paste mode
+                        </div>
+                      ) : (folders || []).length === 0 ? (
+                        <div style={{ padding: "16px", ...f({ fontWeight: 400, fontSize: "12px", color: t.textMuted }) }}>
+                          No subfolders here.
+                        </div>
+                      ) : (
+                        (folders || []).map((folder) => {
+                          const selected = driveValue === folder.id;
+                          return (
+                            <div
+                              key={folder.id}
+                              style={{
+                                display: "flex", alignItems: "center", gap: "8px",
+                                padding: "8px 10px", borderTop: `1px solid ${t.border}`,
+                                background: selected ? t.activeNav : "transparent",
+                              }}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => setDriveValue(folder.id)}
+                                style={{
+                                  flex: 1, display: "flex", alignItems: "center", gap: "8px",
+                                  background: "transparent", border: "none", padding: 0,
+                                  cursor: "pointer", textAlign: "left",
+                                  ...f({ fontWeight: selected ? 600 : 500, fontSize: "12px", color: t.text }),
+                                }}
+                                title="Select this folder"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={selected ? t.accent : t.textMuted} strokeWidth="1.5">
+                                  <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+                                </svg>
+                                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{folder.name}</span>
+                                {selected && (
+                                  <span style={f({ fontWeight: 600, fontSize: "9px", color: t.accent, textTransform: "uppercase", letterSpacing: "0.06em" })}>
+                                    Selected
+                                  </span>
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDrivePath((p) => [...p, { id: folder.id, name: folder.name }])}
+                                title="Open folder"
+                                style={{
+                                  background: "transparent", border: `1px solid ${t.border}`,
+                                  borderRadius: "4px", padding: "4px 8px", cursor: "pointer",
+                                  display: "inline-flex", alignItems: "center", gap: "4px",
+                                  ...f({ fontWeight: 500, fontSize: "10px", color: t.textMuted }),
+                                }}
+                              >
+                                Open
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                              </button>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                    {currentDriveParent.id && (
+                      <div style={{
+                        padding: "8px 10px", borderTop: `1px solid ${t.border}`,
+                        display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px",
+                      }}>
+                        <span style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>
+                          Or pick the current folder:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setDriveValue(currentDriveParent.id as string)}
+                          disabled={driveValue === currentDriveParent.id}
+                          style={f({
+                            fontWeight: 600, fontSize: "10px",
+                            color: driveValue === currentDriveParent.id ? t.textMuted : t.text,
+                            background: "transparent", border: `1px solid ${t.border}`,
+                            borderRadius: "4px", padding: "4px 8px",
+                            cursor: driveValue === currentDriveParent.id ? "default" : "pointer",
+                          })}
+                        >
+                          {driveValue === currentDriveParent.id ? "Selected" : `Select “${currentDriveParent.name}”`}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <input
                     value={driveValue}
@@ -538,9 +684,14 @@ function ProjectIntegrationsCard({ project, projectId }: { project: any; project
                     style={inputStyle}
                   />
                 )}
+                {driveValue && (
+                  <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, marginTop: "8px", wordBreak: "break-all" })}>
+                    Selected folder ID: <span style={{ color: t.text }}>{driveValue}</span>
+                  </p>
+                )}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "10px", gap: "8px" }}>
                   <button onClick={() => setDrivePasteMode((v) => !v)} style={linkBtn} type="button">
-                    {drivePasteMode ? "Choose from list" : "Paste folder ID"}
+                    {drivePasteMode ? "Browse folders" : "Paste folder ID"}
                   </button>
                   <button
                     onClick={handleSaveDrive}

@@ -165,11 +165,12 @@ export interface DriveFolder {
   parents?: string[];
 }
 
-export function useDriveFolders(enabled: boolean = true) {
+export function useDriveFolders(enabled: boolean = true, parentId?: string) {
   const { user } = useAuth();
+  const qs = parentId ? `?parentId=${encodeURIComponent(parentId)}` : "";
   return useQuery<DriveFolder[]>({
-    queryKey: ["/api/integrations/drive/folders"],
-    queryFn: () => apiFetch("/integrations/drive/folders"),
+    queryKey: ["/api/integrations/drive/folders", parentId ?? "root"],
+    queryFn: () => apiFetch(`/integrations/drive/folders${qs}`),
     enabled: !!user && enabled,
     staleTime: 30000,
   });
