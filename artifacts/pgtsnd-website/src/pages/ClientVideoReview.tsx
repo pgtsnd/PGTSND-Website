@@ -29,6 +29,8 @@ export default function ClientVideoReview() {
   const [compareDeliverableId, setCompareDeliverableId] = useState<string | null>(null);
   const [compareComments, setCompareComments] = useState<VideoCommentWithReplies[]>([]);
   const [syncPlayheads, setSyncPlayheads] = useState(true);
+  const [compareLayout, setCompareLayout] = useState<"side" | "ab">("side");
+  const [abShowingB, setAbShowingB] = useState(false);
   const playerARef = useRef<VideoPlayerHandle | null>(null);
   const playerBRef = useRef<VideoPlayerHandle | null>(null);
 
@@ -95,6 +97,7 @@ export default function ClientVideoReview() {
     setCompareMode(false);
     setCompareDeliverableId(null);
     setCompareComments([]);
+    setAbShowingB(false);
     api
       .getVideoComments(selectedDeliverable.id)
       .then(setComments)
@@ -248,7 +251,7 @@ export default function ClientVideoReview() {
   const handleCommentClick = useCallback((comment: VideoComment) => {
     const ts = comment.timestampSeconds;
     const belongsToB = !!compareDeliverableId && comment.deliverableId === compareDeliverableId;
-    if (compareMode && compareDeliverableId) {
+    if (compareMode && compareDeliverableId && compareLayout === "side") {
       if (belongsToB) {
         setSeekToB(ts);
         setTimeout(() => setSeekToB(null), 100);
@@ -266,11 +269,16 @@ export default function ClientVideoReview() {
           setTimeout(() => setSeekToB(null), 100);
         }
       }
+    } else if (compareMode && compareDeliverableId && compareLayout === "ab") {
+      if (belongsToB && !abShowingB) setAbShowingB(true);
+      if (!belongsToB && abShowingB) setAbShowingB(false);
+      setSeekTo(ts);
+      setTimeout(() => setSeekTo(null), 100);
     } else {
       setSeekTo(ts);
       setTimeout(() => setSeekTo(null), 100);
     }
-  }, [compareMode, compareDeliverableId, syncPlayheads]);
+  }, [compareMode, compareDeliverableId, compareLayout, syncPlayheads, abShowingB]);
 
   const handleMarkerClick = useCallback(
     (id: string) => {
@@ -658,17 +666,75 @@ export default function ClientVideoReview() {
                             </option>
                           ))}
                       </select>
-                      <label style={{
-                        fontFamily: "'Montserrat', sans-serif", fontSize: "11px",
-                        color: t.textMuted, display: "flex", alignItems: "center", gap: "4px",
-                      }}>
-                        <input
-                          type="checkbox"
-                          checked={syncPlayheads}
-                          onChange={(e) => setSyncPlayheads(e.target.checked)}
-                        />
-                        Sync playheads
-                      </label>
+                      <div style={{ display: "flex", gap: 0, border: `1px solid ${t.border}`, borderRadius: "6px", overflow: "hidden" }}>
+                        <button
+                          data-testid="client-review-compare-layout-side"
+                          onClick={() => setCompareLayout("side")}
+                          style={{
+                            fontFamily: "'Montserrat', sans-serif",
+                            fontWeight: 600,
+                            fontSize: "10px",
+                            color: compareLayout === "side" ? "#000" : t.textMuted,
+                            background: compareLayout === "side" ? "rgba(255,200,60,0.9)" : "transparent",
+                            border: "none",
+                            padding: "5px 10px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Side-by-side
+                        </button>
+                        <button
+                          data-testid="client-review-compare-layout-ab"
+                          onClick={() => setCompareLayout("ab")}
+                          style={{
+                            fontFamily: "'Montserrat', sans-serif",
+                            fontWeight: 600,
+                            fontSize: "10px",
+                            color: compareLayout === "ab" ? "#000" : t.textMuted,
+                            background: compareLayout === "ab" ? "rgba(255,200,60,0.9)" : "transparent",
+                            border: "none",
+                            padding: "5px 10px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          A/B Toggle
+                        </button>
+                      </div>
+                      {compareLayout === "side" && (
+                        <label style={{
+                          fontFamily: "'Montserrat', sans-serif", fontSize: "11px",
+                          color: t.textMuted, display: "flex", alignItems: "center", gap: "4px",
+                        }}>
+                          <input
+                            data-testid="client-review-compare-sync"
+                            type="checkbox"
+                            checked={syncPlayheads}
+                            onChange={(e) => setSyncPlayheads(e.target.checked)}
+                          />
+                          Sync playheads
+                        </label>
+                      )}
+                      {compareLayout === "ab" && (
+                        <button
+                          data-testid="client-review-compare-ab-toggle"
+                          onClick={() => setAbShowingB((v) => !v)}
+                          style={{
+                            fontFamily: "'Montserrat', sans-serif",
+                            fontWeight: 600,
+                            fontSize: "11px",
+                            color: t.text,
+                            background: t.bgCard,
+                            border: `1px solid ${t.border}`,
+                            borderRadius: "6px",
+                            padding: "5px 12px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Showing {abShowingB
+                            ? deliverables.find((d) => d.id === compareDeliverableId)?.version || "B"
+                            : selectedDeliverable.version || "v1"} — switch
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
@@ -678,59 +744,89 @@ export default function ClientVideoReview() {
             {selectedDeliverable.fileUrl ? (
               isVideo ? (
                 compareMode && compareDeliverableId ? (
-                  <div data-testid="client-review-compare-side" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                    <div>
-                      <div style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 700, fontSize: "10px", textTransform: "uppercase",
-                        letterSpacing: "0.08em", color: t.textMuted, marginBottom: "6px",
-                      }}>{selectedDeliverable.version || "v1"}</div>
-                      <VideoPlayer
-                        ref={playerARef}
-                        key={`A-${selectedDeliverable.fileUrl}`}
-                        src={selectedDeliverable.fileUrl}
-                        markers={comments.map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
-                        onTimeClick={(seconds) => setActiveTimestamp(seconds)}
-                        onMarkerClick={handleMarkerClick}
-                        seekTo={seekTo ?? undefined}
-                        onPlayingChange={(p) => mirrorPlay("A", p)}
-                        onUserSeek={(s) => mirrorSeek("A", s)}
-                      />
-                    </div>
-                    <div>
-                      <div style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 700, fontSize: "10px", textTransform: "uppercase",
-                        letterSpacing: "0.08em", color: t.textMuted, marginBottom: "6px",
-                      }}>{deliverables.find((d) => d.id === compareDeliverableId)?.version || ""}</div>
-                      {(() => {
-                        const bUrl = deliverables.find((d) => d.id === compareDeliverableId)?.fileUrl;
-                        if (!bUrl) {
+                  compareLayout === "side" ? (
+                    <div data-testid="client-review-compare-side" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                      <div>
+                        <div style={{
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: 700, fontSize: "10px", textTransform: "uppercase",
+                          letterSpacing: "0.08em", color: t.textMuted, marginBottom: "6px",
+                        }}>{selectedDeliverable.version || "v1"}</div>
+                        <VideoPlayer
+                          ref={playerARef}
+                          key={`A-${selectedDeliverable.fileUrl}`}
+                          src={selectedDeliverable.fileUrl}
+                          markers={comments.map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
+                          onTimeClick={(seconds) => setActiveTimestamp(seconds)}
+                          onMarkerClick={handleMarkerClick}
+                          seekTo={seekTo ?? undefined}
+                          onPlayingChange={(p) => mirrorPlay("A", p)}
+                          onUserSeek={(s) => mirrorSeek("A", s)}
+                        />
+                      </div>
+                      <div>
+                        <div style={{
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: 700, fontSize: "10px", textTransform: "uppercase",
+                          letterSpacing: "0.08em", color: t.textMuted, marginBottom: "6px",
+                        }}>{deliverables.find((d) => d.id === compareDeliverableId)?.version || ""}</div>
+                        {(() => {
+                          const bUrl = deliverables.find((d) => d.id === compareDeliverableId)?.fileUrl;
+                          if (!bUrl) {
+                            return (
+                              <div style={{
+                                background: t.bgCard, border: `1px solid ${t.border}`,
+                                borderRadius: "10px", padding: "60px 12px", textAlign: "center",
+                                fontFamily: "'Montserrat', sans-serif", fontSize: "12px",
+                                color: t.textMuted,
+                              }}>No file for this version</div>
+                            );
+                          }
                           return (
-                            <div style={{
-                              background: t.bgCard, border: `1px solid ${t.border}`,
-                              borderRadius: "10px", padding: "60px 12px", textAlign: "center",
-                              fontFamily: "'Montserrat', sans-serif", fontSize: "12px",
-                              color: t.textMuted,
-                            }}>No file for this version</div>
+                            <VideoPlayer
+                              ref={playerBRef}
+                              key={`B-${compareDeliverableId}`}
+                              src={bUrl}
+                              markers={compareComments.map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
+                              onMarkerClick={handleMarkerClick}
+                              seekTo={seekToB ?? undefined}
+                              hideCommentButton
+                              onPlayingChange={(p) => mirrorPlay("B", p)}
+                              onUserSeek={(s) => mirrorSeek("B", s)}
+                            />
                           );
-                        }
-                        return (
-                          <VideoPlayer
-                            ref={playerBRef}
-                            key={`B-${compareDeliverableId}`}
-                            src={bUrl}
-                            markers={compareComments.map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
-                            onMarkerClick={handleMarkerClick}
-                            seekTo={seekToB ?? undefined}
-                            hideCommentButton
-                            onPlayingChange={(p) => mirrorPlay("B", p)}
-                            onUserSeek={(s) => mirrorSeek("B", s)}
-                          />
-                        );
-                      })()}
+                        })()}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    (() => {
+                      const compareDeliverable = deliverables.find((d) => d.id === compareDeliverableId);
+                      const activeUrl = abShowingB ? compareDeliverable?.fileUrl : selectedDeliverable.fileUrl;
+                      const activeComments = abShowingB ? compareComments : comments;
+                      if (!activeUrl) {
+                        return (
+                          <div data-testid="client-review-compare-ab" style={{
+                            background: t.bgCard, border: `1px solid ${t.border}`,
+                            borderRadius: "10px", padding: "60px 12px", textAlign: "center",
+                            fontFamily: "'Montserrat', sans-serif", fontSize: "12px",
+                            color: t.textMuted,
+                          }}>No file for this version</div>
+                        );
+                      }
+                      return (
+                        <div data-testid="client-review-compare-ab">
+                          <VideoPlayer
+                            key={`AB-${activeUrl}`}
+                            src={activeUrl}
+                            markers={activeComments.map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
+                            onTimeClick={(seconds) => setActiveTimestamp(seconds)}
+                            onMarkerClick={handleMarkerClick}
+                            seekTo={seekTo ?? undefined}
+                          />
+                        </div>
+                      );
+                    })()
+                  )
                 ) : (
                   <VideoPlayer
                     src={selectedDeliverable.fileUrl}

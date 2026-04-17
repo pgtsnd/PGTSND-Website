@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRoute } from "wouter";
 import { useTheme } from "../components/ThemeContext";
-import VideoPlayer from "../components/VideoPlayer";
+import VideoPlayer, { type VideoPlayerHandle } from "../components/VideoPlayer";
 import VideoReviewPanel from "../components/VideoReviewPanel";
 import UploaderBadge from "../components/UploaderBadge";
 import type { VideoComment } from "../components/VideoReviewPanel";
@@ -16,10 +16,19 @@ export default function SharedReview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTimestamp, setActiveTimestamp] = useState<number | null>(null);
+  const [activeCommentVersionId, setActiveCommentVersionId] = useState<string | null>(null);
   const [seekTo, setSeekTo] = useState<number | null>(null);
+  const [seekToB, setSeekToB] = useState<number | null>(null);
   const [authorName, setAuthorName] = useState("");
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
   const [showAllVersionComments, setShowAllVersionComments] = useState(false);
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareVersionId, setCompareVersionId] = useState<string | null>(null);
+  const [compareLayout, setCompareLayout] = useState<"side" | "ab">("side");
+  const [abShowingB, setAbShowingB] = useState(false);
+  const [syncPlayheads, setSyncPlayheads] = useState(true);
+  const playerARef = useRef<VideoPlayerHandle | null>(null);
+  const playerBRef = useRef<VideoPlayerHandle | null>(null);
 
   useEffect(() => {
     setShowAllVersionComments(false);
@@ -41,11 +50,13 @@ export default function SharedReview() {
 
   const handleAddComment = useCallback(
     async (timestampSeconds: number, content: string) => {
+      const versionId = activeCommentVersionId ?? null;
       const comment = await api.addPublicComment(
         token,
         timestampSeconds,
         content,
         authorName,
+        versionId,
       );
       setComments((prev) =>
         [...prev, comment].sort(
@@ -53,8 +64,9 @@ export default function SharedReview() {
         ),
       );
       setActiveTimestamp(null);
+      setActiveCommentVersionId(null);
     },
-    [token, authorName],
+    [token, authorName, activeCommentVersionId],
   );
 
   const handleAddReply = useCallback(
@@ -74,18 +86,20 @@ export default function SharedReview() {
     [token, authorName],
   );
 
-  const handleCommentClick = useCallback((comment: VideoComment) => {
-    setSeekTo(comment.timestampSeconds);
-    setTimeout(() => setSeekTo(null), 100);
-  }, []);
+  const mirrorPlay = (source: "A" | "B", playing: boolean) => {
+    if (!syncPlayheads || !compareMode || compareLayout !== "side") return;
+    const target = source === "A" ? playerBRef.current : playerARef.current;
+    if (!target) return;
+    if (target.isPlaying() === playing) return;
+    if (playing) target.play();
+    else target.pause();
+  };
 
-  const handleMarkerClick = useCallback(
-    (id: string) => {
-      const comment = comments.find((c) => c.id === id);
-      if (comment) handleCommentClick(comment);
-    },
-    [comments, handleCommentClick],
-  );
+  const mirrorSeek = (source: "A" | "B", seconds: number) => {
+    if (!syncPlayheads || !compareMode || compareLayout !== "side") return;
+    const target = source === "A" ? playerBRef.current : playerARef.current;
+    target?.seek(seconds);
+  };
 
   const statusLabel = (s: string) => {
     const map: Record<string, string> = {
@@ -104,6 +118,52 @@ export default function SharedReview() {
     if (s === "revision_requested") return "rgba(255,140,60,0.8)";
     return t.textMuted;
   };
+
+  const handleCommentClick = useCallback(
+    (comment: VideoComment) => {
+      const ts = comment.timestampSeconds;
+      const belongsToB =
+        compareMode &&
+        compareVersionId &&
+        comment.deliverableVersionId === compareVersionId;
+      if (compareMode && compareLayout === "side") {
+        if (belongsToB) {
+          setSeekToB(ts);
+          setTimeout(() => setSeekToB(null), 100);
+          if (syncPlayheads) {
+            setSeekTo(ts);
+            setTimeout(() => setSeekTo(null), 100);
+          } else {
+            playerBRef.current?.seek(ts);
+          }
+        } else {
+          setSeekTo(ts);
+          setTimeout(() => setSeekTo(null), 100);
+          if (syncPlayheads) {
+            setSeekToB(ts);
+            setTimeout(() => setSeekToB(null), 100);
+          }
+        }
+      } else if (compareMode && compareLayout === "ab") {
+        if (belongsToB && !abShowingB) setAbShowingB(true);
+        if (!belongsToB && abShowingB) setAbShowingB(false);
+        setSeekTo(ts);
+        setTimeout(() => setSeekTo(null), 100);
+      } else {
+        setSeekTo(ts);
+        setTimeout(() => setSeekTo(null), 100);
+      }
+    },
+    [compareMode, compareLayout, compareVersionId, syncPlayheads, abShowingB],
+  );
+
+  const handleMarkerClick = useCallback(
+    (id: string) => {
+      const comment = comments.find((c) => c.id === id);
+      if (comment) handleCommentClick(comment);
+    },
+    [comments, handleCommentClick],
+  );
 
   if (loading) {
     return (
@@ -185,16 +245,53 @@ export default function SharedReview() {
   const activeFileUrl = activeVersion?.fileUrl ?? deliverable.fileUrl;
   const activeVersionLabel = activeVersion?.version ?? deliverable.version ?? "v1";
   const isViewingPreviousCut = !!activeVersion && activeVersion.fileUrl !== deliverable.fileUrl;
-  const versionLabelById: Record<string, string> = {};
-  for (const v of versions) versionLabelById[v.id] = v.version;
-  const visibleComments =
-    isViewingPreviousCut && !showAllVersionComments && activeVersion
-      ? comments.filter((c) => c.deliverableVersionId === activeVersion.id)
-      : comments;
   const buildSrc = (url: string) =>
     url.startsWith("/api/storage/objects/")
       ? `${url}?reviewToken=${encodeURIComponent(token)}`
       : url;
+
+  const effectiveActiveVersionId =
+    activeVersion?.id
+    ?? versions.find((v) => v.fileUrl === deliverable.fileUrl)?.id
+    ?? versions[0]?.id
+    ?? null;
+  const compareVersion = compareVersionId
+    ? versions.find((v) => v.id === compareVersionId) ?? null
+    : null;
+  const compareFileUrl = compareVersion?.fileUrl ?? null;
+  const compareVersionLabel = compareVersion?.version ?? "";
+
+  const versionLabelById: Record<string, string> = {};
+  for (const v of versions) versionLabelById[v.id] = v.version;
+
+  const handleToggleCompare = () => {
+    if (compareMode) {
+      setCompareMode(false);
+      setCompareVersionId(null);
+      setAbShowingB(false);
+      return;
+    }
+    const candidate = versions.find(
+      (v) => v.id !== (activeVersion?.id ?? versions[0]?.id),
+    );
+    if (!candidate) return;
+    setCompareVersionId(candidate.id);
+    setCompareMode(true);
+  };
+
+  const visibleComments = compareMode
+    ? comments.filter((c) => {
+        const aId = activeVersion?.id ?? null;
+        const bId = compareVersion?.id ?? null;
+        return (
+          (!c.deliverableVersionId && (!aId || c.deliverableVersionId === aId)) ||
+          c.deliverableVersionId === aId ||
+          c.deliverableVersionId === bId
+        );
+      })
+    : isViewingPreviousCut && !showAllVersionComments && activeVersion
+      ? comments.filter((c) => c.deliverableVersionId === activeVersion.id)
+      : comments;
 
   return (
     <div style={{ minHeight: "100vh", background: t.bg }}>
@@ -309,10 +406,187 @@ export default function SharedReview() {
                   </option>
                 ))}
               </select>
+              {versions.length >= 2 && (
+                <button
+                  data-testid="shared-review-compare-toggle"
+                  onClick={handleToggleCompare}
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "11px",
+                    color: compareMode ? "#000" : t.text,
+                    background: compareMode ? "rgba(255,200,60,0.9)" : t.bgCard,
+                    border: `1px solid ${compareMode ? "rgba(255,200,60,0.9)" : t.border}`,
+                    borderRadius: "6px",
+                    padding: "6px 12px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="4" width="8" height="16" rx="1" />
+                    <rect x="13" y="4" width="8" height="16" rx="1" />
+                  </svg>
+                  {compareMode ? "Exit Compare" : "Compare"}
+                </button>
+              )}
             </div>
           )}
 
-          {isViewingPreviousCut && (
+          {compareMode && (
+            <div
+              data-testid="shared-review-compare-controls"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                flexWrap: "wrap",
+                padding: "10px 12px",
+                marginBottom: "10px",
+                borderRadius: "8px",
+                background: t.bgCard,
+                border: `1px solid ${t.border}`,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 700,
+                  fontSize: "10px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: t.textMuted,
+                }}
+              >
+                Compare
+              </span>
+              <select
+                data-testid="shared-review-compare-version-select"
+                value={compareVersionId ?? ""}
+                onChange={(e) => setCompareVersionId(e.target.value || null)}
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 500,
+                  fontSize: "11px",
+                  color: t.text,
+                  background: t.bg,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: "6px",
+                  padding: "5px 8px",
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+              >
+                {versions
+                  .filter((v) => v.id !== effectiveActiveVersionId)
+                  .map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.version} ·{" "}
+                      {new Date(v.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </option>
+                  ))}
+              </select>
+              <span
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "11px",
+                  color: t.textMuted,
+                }}
+              >
+                vs {activeVersionLabel}
+              </span>
+              <div style={{ flex: 1 }} />
+              <div
+                style={{
+                  display: "flex",
+                  gap: 0,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: "6px",
+                  overflow: "hidden",
+                }}
+              >
+                <button
+                  data-testid="shared-review-compare-layout-side"
+                  onClick={() => setCompareLayout("side")}
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "10px",
+                    color: compareLayout === "side" ? "#000" : t.textMuted,
+                    background: compareLayout === "side" ? "rgba(255,200,60,0.9)" : "transparent",
+                    border: "none",
+                    padding: "5px 10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Side-by-side
+                </button>
+                <button
+                  data-testid="shared-review-compare-layout-ab"
+                  onClick={() => setCompareLayout("ab")}
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "10px",
+                    color: compareLayout === "ab" ? "#000" : t.textMuted,
+                    background: compareLayout === "ab" ? "rgba(255,200,60,0.9)" : "transparent",
+                    border: "none",
+                    padding: "5px 10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  A/B Toggle
+                </button>
+              </div>
+              {compareLayout === "side" && (
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+                  <input
+                    data-testid="shared-review-compare-sync"
+                    type="checkbox"
+                    checked={syncPlayheads}
+                    onChange={(e) => setSyncPlayheads(e.target.checked)}
+                  />
+                  <span
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 500,
+                      fontSize: "11px",
+                      color: t.text,
+                    }}
+                  >
+                    Sync playheads
+                  </span>
+                </label>
+              )}
+              {compareLayout === "ab" && (
+                <button
+                  data-testid="shared-review-compare-ab-toggle"
+                  onClick={() => setAbShowingB((v) => !v)}
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "11px",
+                    color: t.text,
+                    background: t.bg,
+                    border: `1px solid ${t.border}`,
+                    borderRadius: "6px",
+                    padding: "5px 12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Showing {abShowingB ? compareVersionLabel || "B" : activeVersionLabel} — switch
+                </button>
+              )}
+            </div>
+          )}
+
+          {isViewingPreviousCut && !compareMode && (
             <div
               data-testid="shared-review-previous-version-banner"
               style={{
@@ -381,16 +655,117 @@ export default function SharedReview() {
           )}
 
           {activeFileUrl ? (
-            <VideoPlayer
-              src={buildSrc(activeFileUrl)}
-              markers={visibleComments.map((c) => ({
-                id: c.id,
-                timestampSeconds: c.timestampSeconds,
-              }))}
-              onTimeClick={(seconds) => setActiveTimestamp(seconds)}
-              onMarkerClick={handleMarkerClick}
-              seekTo={seekTo}
-            />
+            compareMode && compareFileUrl ? (
+              compareLayout === "side" ? (
+                <div
+                  data-testid="shared-review-compare-side"
+                  style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 700,
+                        fontSize: "10px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        color: t.textMuted,
+                        marginBottom: "6px",
+                      }}
+                    >
+                      {activeVersionLabel}
+                    </div>
+                    <VideoPlayer
+                      ref={playerARef}
+                      key={`A-${activeFileUrl}`}
+                      src={buildSrc(activeFileUrl)}
+                      onTimeClick={(ts) => {
+                        setActiveTimestamp(ts);
+                        setActiveCommentVersionId(activeVersion?.id ?? effectiveActiveVersionId);
+                      }}
+                      seekTo={seekTo ?? undefined}
+                      markers={comments
+                        .filter(
+                          (c) =>
+                            !c.deliverableVersionId ||
+                            c.deliverableVersionId === (activeVersion?.id ?? effectiveActiveVersionId),
+                        )
+                        .map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
+                      onMarkerClick={handleMarkerClick}
+                      onPlayingChange={(p) => mirrorPlay("A", p)}
+                      onUserSeek={(s) => mirrorSeek("A", s)}
+                    />
+                  </div>
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 700,
+                        fontSize: "10px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        color: t.textMuted,
+                        marginBottom: "6px",
+                      }}
+                    >
+                      {compareVersionLabel}
+                    </div>
+                    <VideoPlayer
+                      ref={playerBRef}
+                      key={`B-${compareFileUrl}`}
+                      src={buildSrc(compareFileUrl)}
+                      onTimeClick={(ts) => {
+                        setActiveTimestamp(ts);
+                        setActiveCommentVersionId(compareVersion?.id ?? null);
+                      }}
+                      seekTo={seekToB ?? undefined}
+                      markers={comments
+                        .filter((c) => c.deliverableVersionId === (compareVersion?.id ?? null))
+                        .map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
+                      onMarkerClick={handleMarkerClick}
+                      onPlayingChange={(p) => mirrorPlay("B", p)}
+                      onUserSeek={(s) => mirrorSeek("B", s)}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div data-testid="shared-review-compare-ab">
+                  <VideoPlayer
+                    key={`AB-${abShowingB ? compareFileUrl : activeFileUrl}`}
+                    src={buildSrc(abShowingB ? compareFileUrl : activeFileUrl)}
+                    onTimeClick={(ts) => {
+                      setActiveTimestamp(ts);
+                      setActiveCommentVersionId(
+                        abShowingB
+                          ? compareVersion?.id ?? null
+                          : activeVersion?.id ?? effectiveActiveVersionId,
+                      );
+                    }}
+                    seekTo={seekTo ?? undefined}
+                    markers={comments
+                      .filter((c) =>
+                        abShowingB
+                          ? c.deliverableVersionId === (compareVersion?.id ?? null)
+                          : !c.deliverableVersionId ||
+                            c.deliverableVersionId === (activeVersion?.id ?? effectiveActiveVersionId),
+                      )
+                      .map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
+                    onMarkerClick={handleMarkerClick}
+                  />
+                </div>
+              )
+            ) : (
+              <VideoPlayer
+                src={buildSrc(activeFileUrl)}
+                markers={visibleComments.map((c) => ({
+                  id: c.id,
+                  timestampSeconds: c.timestampSeconds,
+                }))}
+                onTimeClick={(seconds) => setActiveTimestamp(seconds)}
+                onMarkerClick={handleMarkerClick}
+                seekTo={seekTo}
+              />
+            )
           ) : (
             <div
               style={{

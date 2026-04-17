@@ -513,10 +513,16 @@ export const api = {
   getPublicReview: (token: string) =>
     apiFetch<PublicReviewData>(`/public/review/${token}`),
 
-  addPublicComment: (token: string, timestampSeconds: number, content: string, authorName: string) =>
+  addPublicComment: (
+    token: string,
+    timestampSeconds: number,
+    content: string,
+    authorName: string,
+    deliverableVersionId?: string | null,
+  ) =>
     apiFetch<VideoCommentWithReplies>(`/public/review/${token}/comments`, {
       method: "POST",
-      body: JSON.stringify({ timestampSeconds, content, authorName }),
+      body: JSON.stringify({ timestampSeconds, content, authorName, deliverableVersionId }),
     }),
 
   addPublicCommentReply: (token: string, commentId: string, content: string, authorName: string) =>
