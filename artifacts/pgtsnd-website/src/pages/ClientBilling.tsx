@@ -247,7 +247,14 @@ export default function ClientBilling() {
                         <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "13px", color: t.textSecondary }}>{inv.description}</p>
                         <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "14px", color: t.text }}>${inv.amount.toLocaleString()}</p>
                         <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary }}>{formatDate(inv.dueDate)}</p>
-                        <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.05em", color: sc.color, background: sc.bg, padding: "4px 12px", borderRadius: "4px", textAlign: "center", display: "inline-block" }}>{statusLabel(inv.status)}</span>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "4px" }}>
+                          <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.05em", color: sc.color, background: sc.bg, padding: "4px 12px", borderRadius: "4px", textAlign: "center", display: "inline-block" }}>{statusLabel(inv.status)}</span>
+                          {inv.paymentLinkSentAt && (
+                            <span title={`Payment link emailed ${new Date(inv.paymentLinkSentAt).toLocaleString()}`} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em", color: t.textMuted, background: t.hoverBg, border: `1px solid ${t.borderSubtle}`, padding: "3px 8px", borderRadius: "4px", display: "inline-block" }}>
+                              Link emailed {new Date(inv.paymentLinkSentAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </span>
+                          )}
+                        </div>
                         <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
                           <button
                             onClick={() => handlePayClick(inv)}
