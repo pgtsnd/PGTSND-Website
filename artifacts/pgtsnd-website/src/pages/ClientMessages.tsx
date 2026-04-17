@@ -30,6 +30,62 @@ export default function ClientMessages() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const seenMessageIdsRef = useRef<Set<string>>(new Set());
   const baselineLoadedRef = useRef(false);
+  const unreadCountRef = useRef(0);
+  const originalTitleRef = useRef<string>(typeof document !== "undefined" ? document.title : "");
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const [muted, setMuted] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("pgtsnd:messages:muted") === "1";
+  });
+  const mutedRef = useRef(muted);
+
+  useEffect(() => {
+    mutedRef.current = muted;
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("pgtsnd:messages:muted", muted ? "1" : "0");
+    }
+  }, [muted]);
+
+  const playChime = () => {
+    if (mutedRef.current) return;
+    if (typeof window === "undefined") return;
+    try {
+      const Ctx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      const now = ctx.currentTime;
+      const tones = [880, 1320];
+      tones.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        const start = now + i * 0.12;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.12, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.3);
+      });
+    } catch {
+      // Ignore audio errors
+    }
+  };
+
+  const updateTabTitle = (count: number) => {
+    if (typeof document === "undefined") return;
+    const base = originalTitleRef.current || "PGTSND";
+    const stripped = base.replace(/^\(\d+\)\s*/, "");
+    originalTitleRef.current = stripped;
+    document.title = count > 0 ? `(${count}) ${stripped}` : stripped;
+  };
 
   const refetch = () => {
     setLoading(true);
@@ -54,14 +110,17 @@ export default function ClientMessages() {
     seenMessageIdsRef.current = nextSeen;
     baselineLoadedRef.current = true;
 
-    if (
-      typeof window === "undefined" ||
-      typeof Notification === "undefined" ||
-      Notification.permission !== "granted"
-    ) {
+    if (typeof window === "undefined") return;
+    const tabActive = document.visibilityState === "visible" && document.hasFocus();
+    if (tabActive || incoming.length === 0) return;
+
+    unreadCountRef.current += incoming.length;
+    updateTabTitle(unreadCountRef.current);
+    playChime();
+
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") {
       return;
     }
-    if (document.visibilityState === "visible" && document.hasFocus()) return;
 
     for (const { message, convo } of incoming) {
       try {
@@ -123,15 +182,33 @@ export default function ClientMessages() {
     const interval = setInterval(() => {
       loadMessages();
     }, 10000);
+    const clearUnread = () => {
+      if (unreadCountRef.current !== 0) {
+        unreadCountRef.current = 0;
+        updateTabTitle(0);
+      }
+    };
     const onVisibility = () => {
-      if (document.visibilityState === "visible") loadMessages();
+      if (document.visibilityState === "visible") {
+        loadMessages();
+        clearUnread();
+      }
     };
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", clearUnread);
     return () => {
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", clearUnread);
     };
   }, [activeConvo?.projectId]);
+
+  useEffect(() => {
+    return () => {
+      updateTabTitle(0);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -176,10 +253,31 @@ export default function ClientMessages() {
     <ClientLayout>
       <div style={{ display: "flex", height: "calc(100vh)" }}>
         <div style={{ width: "320px", borderRight: `1px solid ${t.border}`, display: "flex", flexDirection: "column", background: t.bgSidebar }}>
-          <div style={{ padding: "24px 20px 16px" }}>
-            <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "18px", color: t.text, marginBottom: "16px" }}>
+          <div style={{ padding: "24px 20px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "18px", color: t.text }}>
               Messages
             </h2>
+            <button
+              onClick={() => setMuted((m) => !m)}
+              title={muted ? "Unmute notification sound" : "Mute notification sound"}
+              aria-label={muted ? "Unmute notification sound" : "Mute notification sound"}
+              aria-pressed={muted}
+              style={{ background: "transparent", border: `1px solid ${t.border}`, borderRadius: "6px", padding: "6px 8px", cursor: "pointer", color: muted ? t.textMuted : t.text, display: "flex", alignItems: "center", gap: "6px", fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.05em" }}
+            >
+              {muted ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 5 6 9H2v6h4l5 4V5z" />
+                  <line x1="23" y1="9" x2="17" y2="15" />
+                  <line x1="17" y1="9" x2="23" y2="15" />
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 5 6 9H2v6h4l5 4V5z" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </svg>
+              )}
+              {muted ? "Muted" : "Sound"}
+            </button>
           </div>
 
           <div style={{ flex: 1, overflowY: "auto" }}>
