@@ -7,8 +7,13 @@ import {
   updateInvoiceSchema,
   selectInvoiceSchema,
   selectIntegrationSettingsSchema,
+  projectsTable,
+  organizationsTable,
+  usersTable,
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { sendEmail, getAppBaseUrl } from "../services/email";
+import { renderPaymentLinkEmail } from "../services/email-templates";
 import { requireRole } from "../middleware/auth";
 import { requireProjectAccess, requireProjectAccessViaEntity, resolveProjectFromInvoice } from "../middleware/project-access";
 import { validateAndSend, validateAndSendArray } from "../middleware/validate-response";
@@ -462,6 +467,140 @@ router.post(
     } catch (err) {
       console.error("Checkout session creation failed:", err);
       res.status(500).json({ error: "Failed to create checkout session" });
+    }
+  },
+);
+
+router.post(
+  "/invoices/:id/email-payment-link",
+  requireProjectAccessViaEntity(resolveProjectFromInvoice, "id"),
+  async (req, res) => {
+    try {
+      const [invoice] = await db
+        .select()
+        .from(invoicesTable)
+        .where(eq(invoicesTable.id, req.params.id))
+        .limit(1);
+
+      if (!invoice) {
+        res.status(404).json({ error: "Invoice not found" });
+        return;
+      }
+      if (invoice.status !== "sent" && invoice.status !== "overdue") {
+        res
+          .status(400)
+          .json({ error: "Payment links can only be emailed for sent or overdue invoices" });
+        return;
+      }
+
+      const [project] = await db
+        .select()
+        .from(projectsTable)
+        .where(eq(projectsTable.id, invoice.projectId))
+        .limit(1);
+
+      if (!project) {
+        res.status(404).json({ error: "Project not found" });
+        return;
+      }
+
+      let recipientEmail: string | null = null;
+      let recipientName: string | null = null;
+
+      if (project.clientId) {
+        const [clientUser] = await db
+          .select({ email: usersTable.email, name: usersTable.name })
+          .from(usersTable)
+          .where(eq(usersTable.id, project.clientId))
+          .limit(1);
+        if (clientUser?.email) {
+          recipientEmail = clientUser.email;
+          recipientName = clientUser.name ?? null;
+        }
+      }
+
+      if (!recipientEmail && project.organizationId) {
+        const [org] = await db
+          .select({
+            contactEmail: organizationsTable.contactEmail,
+            contactName: organizationsTable.contactName,
+          })
+          .from(organizationsTable)
+          .where(eq(organizationsTable.id, project.organizationId))
+          .limit(1);
+        if (org?.contactEmail) {
+          recipientEmail = org.contactEmail;
+          recipientName = org.contactName ?? null;
+        }
+      }
+
+      if (!recipientEmail) {
+        res.status(400).json({
+          error: "No client contact email is set for this project",
+        });
+        return;
+      }
+
+      const baseUrl = `${getAppBaseUrl()}/client/billing`;
+      const successUrl = `${baseUrl}?payment=success`;
+      const cancelUrl = `${baseUrl}?payment=canceled`;
+
+      const session = await stripeService.createCheckoutSession(
+        invoice.id,
+        successUrl,
+        cancelUrl,
+      );
+
+      if (!session) {
+        res.status(400).json({
+          error:
+            "Could not create a Stripe Checkout link. Make sure Stripe is connected and the invoice is unpaid.",
+        });
+        return;
+      }
+
+      const dueDateLabel = invoice.dueDate
+        ? new Date(invoice.dueDate).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })
+        : null;
+
+      const html = renderPaymentLinkEmail({
+        recipientName,
+        projectName: project.name,
+        invoiceNumber: invoice.invoiceNumber,
+        description: invoice.description,
+        amountUsd: invoice.amount,
+        dueDateLabel,
+        link: session.url,
+      });
+
+      const subject = invoice.invoiceNumber
+        ? `Payment link for ${invoice.invoiceNumber} – ${project.name}`
+        : `Payment link for ${project.name}`;
+
+      await sendEmail({
+        to: recipientEmail,
+        subject,
+        text: `Hi ${recipientName ?? "there"},\n\nHere is your secure Stripe payment link for ${project.name}${invoice.invoiceNumber ? ` (${invoice.invoiceNumber})` : ""}: ${session.url}\n\nAmount: $${invoice.amount.toLocaleString("en-US")}\nFor: ${invoice.description}${dueDateLabel ? `\nDue: ${dueDateLabel}` : ""}\n\nThanks,\nPGTSND Productions`,
+        html,
+      });
+
+      const [updated] = await db
+        .update(invoicesTable)
+        .set({
+          paymentLinkSentAt: new Date(),
+          paymentLinkSentTo: recipientEmail,
+        })
+        .where(eq(invoicesTable.id, invoice.id))
+        .returning();
+
+      validateAndSend(res, selectInvoiceSchema, updated);
+    } catch (err) {
+      logger.error({ err }, "Email payment link failed");
+      res.status(500).json({ error: "Failed to email payment link" });
     }
   },
 );

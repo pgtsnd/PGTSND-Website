@@ -193,6 +193,9 @@ export default function TeamClients() {
   const [linkLoadingId, setLinkLoadingId] = useState<string | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
   const createCheckoutMutation = useCreateInvoiceCheckoutSession();
+  const [emailLoadingId, setEmailLoadingId] = useState<string | null>(null);
+  const [emailedInvoiceId, setEmailedInvoiceId] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const [showExportModal, setShowExportModal] = useState(false);
   const allStatuses: Invoice["status"][] = ["draft", "sent", "paid", "overdue", "void"];
@@ -202,6 +205,22 @@ export default function TeamClients() {
     fromDate: string;
     toDate: string;
   }>({ statuses: [...allStatuses], clientId: "", fromDate: "", toDate: "" });
+
+  const handleEmailPaymentLink = async (invoiceId: string) => {
+    setEmailLoadingId(invoiceId);
+    setEmailError(null);
+    try {
+      const updated = await api.emailPaymentLink(invoiceId);
+      setInvoices((prev) => prev.map((inv) => (inv.id === updated.id ? updated : inv)));
+      setEmailedInvoiceId(invoiceId);
+      setTimeout(() => setEmailedInvoiceId((cur) => (cur === invoiceId ? null : cur)), 2500);
+    } catch (err: any) {
+      setEmailError(err?.data?.error || err?.message || "Failed to email payment link");
+      setTimeout(() => setEmailError(null), 5000);
+    } finally {
+      setEmailLoadingId(null);
+    }
+  };
 
   const handleCopyPaymentLink = async (invoiceId: string) => {
     setLinkLoadingId(invoiceId);
@@ -490,6 +509,10 @@ export default function TeamClients() {
                           copiedInvoiceId={copiedInvoiceId}
                           linkLoadingId={linkLoadingId}
                           linkError={linkError}
+                          handleEmailPaymentLink={handleEmailPaymentLink}
+                          emailLoadingId={emailLoadingId}
+                          emailedInvoiceId={emailedInvoiceId}
+                          emailError={emailError}
                           inputStyle={inputStyle}
                           labelStyle={labelStyle}
                         />
@@ -762,7 +785,7 @@ function ClientScope({ client, t, f, stripeStatus }: { client: any; t: any; f: a
   );
 }
 
-function ClientInvoices({ client, t, f, statusColor, stripeStatus, showNewInvoice, setShowNewInvoice, invoiceForm, setInvoiceForm, invoiceSaving, invoiceError, handleCreateInvoice, handleMarkPaid, handleSendInvoice, handleVoidInvoice, handleCopyPaymentLink, copiedInvoiceId, linkLoadingId, linkError, inputStyle, labelStyle }: any) {
+function ClientInvoices({ client, t, f, statusColor, stripeStatus, showNewInvoice, setShowNewInvoice, invoiceForm, setInvoiceForm, invoiceSaving, invoiceError, handleCreateInvoice, handleMarkPaid, handleSendInvoice, handleVoidInvoice, handleCopyPaymentLink, copiedInvoiceId, linkLoadingId, linkError, handleEmailPaymentLink, emailLoadingId, emailedInvoiceId, emailError, inputStyle, labelStyle }: any) {
   const allInvoices = (client.invoices as Invoice[]).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const paidInvoices = allInvoices.filter((i) => i.status === "paid");
   const pendingInvoices = allInvoices.filter((i) => i.status === "sent" || i.status === "draft");
@@ -885,9 +908,9 @@ function ClientInvoices({ client, t, f, statusColor, stripeStatus, showNewInvoic
         </div>
       )}
 
-      {linkError && (
+      {(linkError || emailError) && (
         <div style={{ marginBottom: "12px", padding: "8px 12px", background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.2)", borderRadius: "6px" }}>
-          <p style={f({ fontWeight: 500, fontSize: "11px", color: "rgba(255,100,80,0.95)" })}>{linkError}</p>
+          <p style={f({ fontWeight: 500, fontSize: "11px", color: "rgba(255,100,80,0.95)" })}>{linkError || emailError}</p>
         </div>
       )}
 
@@ -898,7 +921,7 @@ function ClientInvoices({ client, t, f, statusColor, stripeStatus, showNewInvoic
       ) : (
         <div style={{ border: `1px solid ${t.borderSubtle}`, borderRadius: "8px", overflow: "hidden" }}>
           <div style={{
-            display: "grid", gridTemplateColumns: "100px 1fr 100px 100px 120px 220px",
+            display: "grid", gridTemplateColumns: "100px 1fr 100px 100px 120px 320px",
             padding: "8px 14px", borderBottom: `1px solid ${t.borderSubtle}`,
           }}>
             {["Status", "Description", "Number", "Amount", "Due", "Actions"].map((h) => (
@@ -910,7 +933,7 @@ function ClientInvoices({ client, t, f, statusColor, stripeStatus, showNewInvoic
             const stripe = stripeStatus(inv);
             return (
               <div key={inv.id} style={{
-                display: "grid", gridTemplateColumns: "100px 1fr 100px 100px 120px 220px",
+                display: "grid", gridTemplateColumns: "100px 1fr 100px 100px 120px 320px",
                 padding: "10px 14px", borderBottom: `1px solid ${t.borderSubtle}`, alignItems: "center",
               }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
@@ -975,11 +998,42 @@ function ClientInvoices({ client, t, f, statusColor, stripeStatus, showNewInvoic
                             : "Copy Payment Link"}
                       </button>
                       <button
+                        onClick={() => handleEmailPaymentLink(inv.id)}
+                        disabled={emailLoadingId === inv.id}
+                        title={
+                          inv.paymentLinkSentAt
+                            ? `Last emailed ${new Date(inv.paymentLinkSentAt).toLocaleString()}${inv.paymentLinkSentTo ? ` to ${inv.paymentLinkSentTo}` : ""}`
+                            : "Email a Stripe Checkout link to the project's primary client contact"
+                        }
+                        style={f({
+                          fontWeight: 500, fontSize: "9px",
+                          color: emailedInvoiceId === inv.id ? "rgba(80,200,120,0.95)" : "rgba(120,180,255,0.95)",
+                          background: emailedInvoiceId === inv.id ? "rgba(80,200,120,0.08)" : "rgba(120,180,255,0.08)",
+                          border: "none", borderRadius: "4px", padding: "4px 8px",
+                          cursor: emailLoadingId === inv.id ? "wait" : "pointer",
+                          opacity: emailLoadingId === inv.id ? 0.7 : 1,
+                          display: "flex", alignItems: "center", gap: "4px",
+                        })}
+                      >
+                        {emailLoadingId === inv.id
+                          ? "Sending..."
+                          : emailedInvoiceId === inv.id
+                            ? "Sent!"
+                            : inv.paymentLinkSentAt
+                              ? "Resend Email"
+                              : "Email Payment Link"}
+                      </button>
+                      <button
                         onClick={() => handleMarkPaid(inv.id)}
                         style={f({ fontWeight: 500, fontSize: "9px", color: "rgba(80,200,120,0.9)", background: "rgba(80,200,120,0.08)", border: "none", borderRadius: "4px", padding: "4px 8px", cursor: "pointer" })}
                       >
                         Mark Paid
                       </button>
+                      {inv.paymentLinkSentAt && (
+                        <span style={f({ fontWeight: 400, fontSize: "9px", color: t.textMuted, width: "100%", marginTop: "2px" })}>
+                          Link emailed {new Date(inv.paymentLinkSentAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {new Date(inv.paymentLinkSentAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                        </span>
+                      )}
                     </>
                   )}
                   {inv.status !== "void" && inv.status !== "paid" && (

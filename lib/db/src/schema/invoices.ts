@@ -41,6 +41,8 @@ export const invoicesTable = pgTable(
     paymentMethod: varchar("payment_method", { length: 100 }),
     stripeHostedUrl: text("stripe_hosted_url"),
     stripePdfUrl: text("stripe_pdf_url"),
+    paymentLinkSentAt: timestamp("payment_link_sent_at"),
+    paymentLinkSentTo: varchar("payment_link_sent_to", { length: 255 }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()

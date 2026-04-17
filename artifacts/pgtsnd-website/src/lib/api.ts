@@ -165,6 +165,8 @@ export interface Invoice {
   stripeCheckoutSessionId: string | null;
   stripeHostedUrl: string | null;
   stripePdfUrl: string | null;
+  paymentLinkSentAt: string | null;
+  paymentLinkSentTo: string | null;
   createdAt: string;
 }
 
@@ -367,6 +369,10 @@ export const api = {
 
   sendInvoice: (id: string) =>
     apiFetch<Invoice>(`/invoices/${id}/send`, { method: "POST" }),
+
+  emailPaymentLink: (id: string) =>
+    apiFetch<Invoice>(`/invoices/${id}/email-payment-link`, { method: "POST" }),
+
 
   getDocuSignSigningUrl: (contractId: string) =>
     apiFetch<{ url: string }>(`/integrations/docusign/signing-url/${contractId}`),

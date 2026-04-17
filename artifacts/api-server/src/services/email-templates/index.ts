@@ -241,6 +241,53 @@ export function renderCommentResolvedEmail(
   });
 }
 
+export interface PaymentLinkTemplateInput {
+  recipientName: string | null;
+  projectName: string;
+  invoiceNumber: string | null;
+  description: string;
+  amountUsd: number;
+  dueDateLabel: string | null;
+  link: string;
+}
+
+export function renderPaymentLinkEmail(input: PaymentLinkTemplateInput): string {
+  const name = input.recipientName?.trim() || "there";
+  const amount = `$${input.amountUsd.toLocaleString("en-US")}`;
+  const numberLine = input.invoiceNumber
+    ? `<div style="font-family:${FONT_STACK};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${BRAND.subtle};margin-bottom:6px;">Invoice</div>
+       <div style="font-family:${FONT_STACK};font-weight:500;font-size:14px;color:${BRAND.text};margin-bottom:14px;">${escapeHtml(input.invoiceNumber)}</div>`
+    : "";
+  const dueLine = input.dueDateLabel
+    ? `<div style="font-family:${FONT_STACK};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${BRAND.subtle};margin-bottom:6px;">Due</div>
+       <div style="font-family:${FONT_STACK};font-weight:500;font-size:14px;color:${BRAND.text};margin-bottom:14px;">${escapeHtml(input.dueDateLabel)}</div>`
+    : "";
+  const bodyHtml = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px 0;border:1px solid ${BRAND.border};border-radius:6px;">
+      <tr>
+        <td style="padding:16px 18px;">
+          <div style="font-family:${FONT_STACK};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${BRAND.subtle};margin-bottom:6px;">Project</div>
+          <div style="font-family:${FONT_STACK};font-weight:500;font-size:14px;color:${BRAND.text};margin-bottom:14px;">${escapeHtml(input.projectName)}</div>
+          ${numberLine}
+          <div style="font-family:${FONT_STACK};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${BRAND.subtle};margin-bottom:6px;">For</div>
+          <div style="font-family:${FONT_STACK};font-weight:500;font-size:14px;color:${BRAND.text};margin-bottom:14px;">${escapeHtml(input.description)}</div>
+          <div style="font-family:${FONT_STACK};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${BRAND.subtle};margin-bottom:6px;">Amount</div>
+          <div style="font-family:${FONT_STACK};font-weight:700;font-size:20px;color:${BRAND.text};margin-bottom:14px;">${escapeHtml(amount)}</div>
+          ${dueLine}
+        </td>
+      </tr>
+    </table>`;
+
+  return layout({
+    previewText: `Pay ${amount} for ${input.projectName} securely with Stripe.`,
+    heading: "Your invoice is ready to pay",
+    intro: `Hi ${name}, here's a secure Stripe payment link for your ${input.projectName} invoice. Click the button below to pay by card.`,
+    bodyHtml,
+    ctaLabel: "Pay Invoice",
+    ctaUrl: input.link,
+  });
+}
+
 export interface PublicCommentTemplateInput {
   authorName: string;
   projectName: string;
