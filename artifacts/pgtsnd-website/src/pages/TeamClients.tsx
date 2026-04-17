@@ -696,6 +696,17 @@ export default function TeamClients() {
                 rows.push({ invoice: inv, clientName: client.company, projectName });
               }
             }
+            await Promise.all(
+              rows.map(async (row) => {
+                if (!row.invoice.stripePaymentIntentId) return;
+                try {
+                  const details = await getInvoicePaymentDetails(row.invoice.id);
+                  row.receiptUrl = details.receiptUrl ?? null;
+                } catch {
+                  row.receiptUrl = null;
+                }
+              }),
+            );
             const stamp = new Date().toISOString().slice(0, 10);
             const filename = `invoices-${stamp}.csv`;
 

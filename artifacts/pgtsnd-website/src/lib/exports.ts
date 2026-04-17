@@ -78,6 +78,7 @@ export interface TeamInvoiceExportRow {
   invoice: Invoice;
   clientName: string;
   projectName: string;
+  receiptUrl?: string | null;
 }
 
 export function buildTeamInvoicesCsv(rows: TeamInvoiceExportRow[]): string {
@@ -91,10 +92,11 @@ export function buildTeamInvoicesCsv(rows: TeamInvoiceExportRow[]): string {
     "Due Date",
     "Paid At",
     "Payment Method",
+    "Receipt URL",
     "Created At",
   ];
 
-  const csvRows = rows.map(({ invoice: inv, clientName, projectName }) => [
+  const csvRows = rows.map(({ invoice: inv, clientName, projectName, receiptUrl }) => [
     clientName,
     projectName,
     inv.invoiceNumber ?? inv.id.slice(0, 8),
@@ -104,6 +106,7 @@ export function buildTeamInvoicesCsv(rows: TeamInvoiceExportRow[]): string {
     formatDateForExport(inv.dueDate),
     formatDateForExport(inv.paidAt),
     inv.paymentMethod ?? "",
+    receiptUrl ?? "",
     formatDateForExport(inv.createdAt),
   ]);
 
