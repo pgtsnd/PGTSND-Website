@@ -25,6 +25,12 @@ export interface VideoComment {
   resolvedBy: string | null;
   resolvedByName: string | null;
   resolvedNote: string | null;
+  reopenedAt?: string | null;
+  reopenedBy?: string | null;
+  reopenedByName?: string | null;
+  previousResolvedAt?: string | null;
+  previousResolvedByName?: string | null;
+  previousResolvedNote?: string | null;
   replies: VideoCommentReply[];
 }
 
@@ -739,6 +745,24 @@ export default function VideoReviewPanel({
                     Resolved
                   </span>
                 )}
+                {!isResolved && comment.reopenedAt && (
+                  <span
+                    data-testid={`reopened-badge-${comment.id}`}
+                    title={
+                      `Reopened by ${comment.reopenedByName ?? "team"}` +
+                      (comment.reopenedAt
+                        ? ` ${timeAgo(comment.reopenedAt)}`
+                        : "")
+                    }
+                    style={f({
+                      fontWeight: 600, fontSize: "9px", color: "rgba(255,200,60,0.9)",
+                      background: "rgba(255,200,60,0.12)", padding: "2px 6px",
+                      borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.05em",
+                    })}
+                  >
+                    Reopened
+                  </span>
+                )}
               </div>
               <p style={f({
                 fontWeight: 400, fontSize: "12px", color: t.textSecondary,
@@ -765,6 +789,38 @@ export default function VideoReviewPanel({
                     marginTop: "4px", lineHeight: 1.4,
                   })}>
                     {comment.resolvedNote}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!isResolved && comment.reopenedAt && (
+              <div
+                data-testid={`reopened-activity-${comment.id}`}
+                style={{
+                  marginTop: "6px", marginLeft: "2px",
+                  padding: "6px 8px", background: "rgba(255,200,60,0.06)",
+                  border: "1px solid rgba(255,200,60,0.2)", borderRadius: "4px",
+                }}
+              >
+                <div style={f({ fontWeight: 600, fontSize: "10px", color: "rgba(255,200,60,0.9)" })}>
+                  Reopened by {comment.reopenedByName ?? "team"}
+                  {comment.reopenedAt && ` · ${timeAgo(comment.reopenedAt)}`}
+                </div>
+                {comment.previousResolvedAt && (
+                  <div style={f({
+                    fontWeight: 400, fontSize: "10px", color: t.textMuted,
+                    marginTop: "4px", lineHeight: 1.4,
+                  })}>
+                    Was previously resolved by {comment.previousResolvedByName ?? "team"} · {timeAgo(comment.previousResolvedAt)}
+                  </div>
+                )}
+                {comment.previousResolvedNote && (
+                  <div style={f({
+                    fontWeight: 400, fontSize: "11px", color: t.textSecondary,
+                    marginTop: "4px", lineHeight: 1.4, fontStyle: "italic",
+                  })}>
+                    “{comment.previousResolvedNote}”
                   </div>
                 )}
               </div>

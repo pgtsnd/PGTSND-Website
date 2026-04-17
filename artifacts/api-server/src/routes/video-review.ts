@@ -158,7 +158,7 @@ router.patch(
     }
 
     const [previous] = await db
-      .select({ resolvedAt: videoCommentsTable.resolvedAt })
+      .select()
       .from(videoCommentsTable)
       .where(eq(videoCommentsTable.id, req.params.commentId))
       .limit(1);
@@ -178,6 +178,19 @@ router.patch(
               resolvedBy: null,
               resolvedByName: null,
               resolvedNote: null,
+              // If we are unresolving a previously-resolved comment, capture
+              // who reopened it and preserve the prior resolution so the
+              // thread history stays visible.
+              ...(previous?.resolvedAt
+                ? {
+                    reopenedAt: new Date(),
+                    reopenedBy: req.user!.id,
+                    reopenedByName: req.user!.name,
+                    previousResolvedAt: previous.resolvedAt,
+                    previousResolvedByName: previous.resolvedByName,
+                    previousResolvedNote: previous.resolvedNote,
+                  }
+                : {}),
             },
       )
       .where(eq(videoCommentsTable.id, req.params.commentId))
@@ -248,6 +261,12 @@ router.post(
         resolvedBy: null,
         resolvedByName: null,
         resolvedNote: null,
+        reopenedAt: new Date(),
+        reopenedBy: req.user!.id,
+        reopenedByName: req.user!.name,
+        previousResolvedAt: comment.resolvedAt,
+        previousResolvedByName: comment.resolvedByName,
+        previousResolvedNote: comment.resolvedNote,
       })
       .where(eq(videoCommentsTable.id, req.params.commentId))
       .returning();

@@ -36,6 +36,12 @@ export const videoCommentsTable = pgTable(
     resolvedBy: text("resolved_by").references(() => usersTable.id),
     resolvedByName: text("resolved_by_name"),
     resolvedNote: text("resolved_note"),
+    reopenedAt: timestamp("reopened_at"),
+    reopenedBy: text("reopened_by").references(() => usersTable.id),
+    reopenedByName: text("reopened_by_name"),
+    previousResolvedAt: timestamp("previous_resolved_at"),
+    previousResolvedByName: text("previous_resolved_by_name"),
+    previousResolvedNote: text("previous_resolved_note"),
   },
   (table) => [
     index("video_comments_deliverable_idx").on(table.deliverableId),

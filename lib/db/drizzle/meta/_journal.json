@@ -78,6 +78,13 @@
       "when": 1776410712300,
       "tag": "0010_add_invoice_export_recipients",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1776412208376,
+      "tag": "0011_add_video_comment_reopen_history",
+      "breakpoints": true
     }
   ]
 }

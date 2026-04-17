@@ -265,6 +265,12 @@ export interface VideoCommentWithReplies {
   resolvedBy: string | null;
   resolvedByName: string | null;
   resolvedNote: string | null;
+  reopenedAt: string | null;
+  reopenedBy: string | null;
+  reopenedByName: string | null;
+  previousResolvedAt: string | null;
+  previousResolvedByName: string | null;
+  previousResolvedNote: string | null;
   replies: VideoCommentReplyData[];
 }
 
