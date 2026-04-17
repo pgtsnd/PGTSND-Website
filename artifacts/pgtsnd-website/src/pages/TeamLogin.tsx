@@ -55,7 +55,8 @@ export default function TeamLogin() {
       const result = await login(email);
 
       if (result.demo && result.redirect) {
-        navigate(result.redirect);
+        const saved = consumePostLoginRedirect();
+        navigate(saved || result.redirect);
         return;
       }
 

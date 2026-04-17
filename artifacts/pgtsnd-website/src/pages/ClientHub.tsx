@@ -70,7 +70,8 @@ export default function ClientHub() {
       const result = await login(email);
 
       if (result.demo) {
-        navigate("/client-hub/dashboard");
+        const saved = consumePostLoginRedirect();
+        navigate(saved || "/client-hub/dashboard");
         return;
       }
 
