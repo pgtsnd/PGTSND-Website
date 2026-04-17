@@ -406,6 +406,11 @@ export const api = {
       body: JSON.stringify({ resolved, note }),
     }),
 
+  reopenVideoComment: (commentId: string) =>
+    apiFetch<Omit<VideoCommentWithReplies, "replies">>(`/comments/${commentId}/reopen`, {
+      method: "POST",
+    }),
+
   addVideoCommentReply: (commentId: string, content: string) =>
     apiFetch<VideoCommentReplyData>(`/comments/${commentId}/replies`, {
       method: "POST",

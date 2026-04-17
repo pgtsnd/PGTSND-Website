@@ -184,6 +184,61 @@ router.patch(
   },
 );
 
+/**
+ * Reopen a previously-resolved comment.
+ *
+ * Permission: project access required (handled by middleware) AND the caller
+ * must either be on the team (owner/partner/crew) OR the original author of
+ * the comment. This lets a client whose feedback was marked resolved
+ * prematurely reopen their own comment from the resolution email, without
+ * granting them the broader team-only resolve/unresolve capability.
+ */
+router.post(
+  "/comments/:commentId/reopen",
+  requireProjectAccessViaEntity(resolveProjectFromVideoComment, "commentId"),
+  async (req, res) => {
+    const [comment] = await db
+      .select()
+      .from(videoCommentsTable)
+      .where(eq(videoCommentsTable.id, req.params.commentId))
+      .limit(1);
+
+    if (!comment) {
+      res.status(404).json({ error: "Comment not found" });
+      return;
+    }
+
+    const role = req.user!.role;
+    const isTeam = role === "owner" || role === "partner" || role === "crew";
+    const isAuthor = comment.authorId === req.user!.id;
+
+    if (!isTeam && !isAuthor) {
+      res
+        .status(403)
+        .json({ error: "Only the original author or team can reopen a comment" });
+      return;
+    }
+
+    if (!comment.resolvedAt) {
+      res.json(comment);
+      return;
+    }
+
+    const [updated] = await db
+      .update(videoCommentsTable)
+      .set({
+        resolvedAt: null,
+        resolvedBy: null,
+        resolvedByName: null,
+        resolvedNote: null,
+      })
+      .where(eq(videoCommentsTable.id, req.params.commentId))
+      .returning();
+
+    res.json(updated);
+  },
+);
+
 router.post(
   "/comments/:commentId/replies",
   async (req, res) => {

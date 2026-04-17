@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTheme } from "./ThemeContext";
 import { formatTime } from "./VideoPlayer";
 
@@ -41,6 +41,26 @@ interface VideoReviewPanelProps {
   versionLabelById?: Record<string, string>;
   previousVersionUploadedAt?: string | null;
   currentVersionLabel?: string | null;
+  /**
+   * If provided, called when the original-author wants to reopen their own
+   * resolved comment without team-level resolve permissions. When omitted,
+   * reopen falls back to onResolveComment(commentId, false).
+   */
+  onReopenComment?: (commentId: string) => Promise<void>;
+  /**
+   * Current viewer's user id, used to decide which resolved comments offer a
+   * "Reopen" affordance to non-team users (only their own).
+   */
+  currentUserId?: string | null;
+  /**
+   * Comment id to scroll into view and visually highlight (deep-link target
+   * from the resolved-comment email).
+   */
+  highlightCommentId?: string | null;
+  /**
+   * Comment id to auto-open the reply composer for after mount.
+   */
+  openReplyForCommentId?: string | null;
 }
 
 function timeAgo(date: string | Date) {
@@ -68,6 +88,10 @@ export default function VideoReviewPanel({
   versionLabelById,
   previousVersionUploadedAt = null,
   currentVersionLabel = null,
+  onReopenComment,
+  currentUserId,
+  highlightCommentId,
+  openReplyForCommentId,
 }: VideoReviewPanelProps) {
   const { t } = useTheme();
   const [newComment, setNewComment] = useState("");
@@ -88,6 +112,29 @@ export default function VideoReviewPanel({
   useEffect(() => {
     setResolvedScope(hasRoundBaseline ? "round" : "all");
   }, [previousVersionUploadedAt, currentVersionLabel, hasRoundBaseline]);
+
+  const commentRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // When the panel mounts (or props change) and a deep-link target is
+  // provided, expand the resolved-summary if needed, scroll the target into
+  // view and (optionally) open its reply composer.
+  useEffect(() => {
+    if (!highlightCommentId) return;
+    const target = comments.find((c) => c.id === highlightCommentId);
+    if (!target) return;
+    if (target.resolvedAt && hideResolved) setHideResolved(false);
+    if (target.resolvedAt) setShowResolvedSummary(true);
+    const node = commentRefs.current[highlightCommentId];
+    if (node) {
+      node.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlightCommentId, comments, hideResolved]);
+
+  useEffect(() => {
+    if (openReplyForCommentId) {
+      setReplyingTo(openReplyForCommentId);
+    }
+  }, [openReplyForCommentId]);
 
   const unresolvedCount = comments.filter((c) => !c.resolvedAt).length;
   const allResolvedComments = comments
@@ -148,13 +195,23 @@ export default function VideoReviewPanel({
   };
 
   const handleReopen = async (commentId: string) => {
-    if (!onResolveComment) return;
     setSubmitting(true);
     try {
-      await onResolveComment(commentId, false);
+      if (onReopenComment) {
+        await onReopenComment(commentId);
+      } else if (onResolveComment) {
+        await onResolveComment(commentId, false);
+      }
     } catch {
     }
     setSubmitting(false);
+  };
+
+  const canReopenComment = (comment: VideoComment): boolean => {
+    if (!comment.resolvedAt) return false;
+    if (onResolveComment) return true; // team has full resolve power
+    if (!onReopenComment) return false;
+    return !!currentUserId && comment.authorId === currentUserId;
   };
 
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
@@ -377,11 +434,22 @@ export default function VideoReviewPanel({
                 {resolvedComments.map((rc) => (
                   <div
                     key={rc.id}
+                    ref={(el) => { commentRefs.current[rc.id] = el; }}
                     onClick={() => onCommentClick(rc)}
                     style={{
                       padding: "8px 0",
                       borderTop: `1px solid ${t.borderSubtle}`,
                       cursor: "pointer",
+                      background:
+                        highlightCommentId === rc.id
+                          ? "rgba(255,200,60,0.08)"
+                          : "transparent",
+                      borderRadius: highlightCommentId === rc.id ? "4px" : 0,
+                      outline:
+                        highlightCommentId === rc.id
+                          ? "1px solid rgba(255,200,60,0.4)"
+                          : "none",
+                      transition: "background 0.2s ease",
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginBottom: "4px" }}>
@@ -417,6 +485,42 @@ export default function VideoReviewPanel({
                         {rc.resolvedNote}
                       </p>
                     )}
+                    {(canReopenComment(rc) || onAddReply) && (
+                      <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReplyingTo(rc.id);
+                          }}
+                          style={f({
+                            fontWeight: 500, fontSize: "10px", color: t.textMuted,
+                            background: "none", border: `1px solid ${t.border}`,
+                            borderRadius: "4px", padding: "3px 8px", cursor: "pointer",
+                          })}
+                        >
+                          Reply
+                        </button>
+                        {canReopenComment(rc) && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReopen(rc.id);
+                            }}
+                            disabled={submitting}
+                            style={f({
+                              fontWeight: 500, fontSize: "10px",
+                              color: "rgba(255,200,60,0.9)",
+                              background: "none",
+                              border: `1px solid rgba(255,200,60,0.5)`,
+                              borderRadius: "4px", padding: "3px 8px", cursor: "pointer",
+                              opacity: submitting ? 0.5 : 1,
+                            })}
+                          >
+                            Reopen
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -443,10 +547,22 @@ export default function VideoReviewPanel({
           return (
           <div
             key={comment.id}
+            ref={(el) => { commentRefs.current[comment.id] = el; }}
             style={{
-              padding: "12px 0",
+              padding: "12px 8px",
+              margin: "0 -8px",
               borderBottom: `1px solid ${t.borderSubtle}`,
               opacity: isResolved ? 0.55 : 1,
+              background:
+                highlightCommentId === comment.id
+                  ? "rgba(255,200,60,0.08)"
+                  : "transparent",
+              borderRadius: highlightCommentId === comment.id ? "4px" : 0,
+              outline:
+                highlightCommentId === comment.id
+                  ? "1px solid rgba(255,200,60,0.4)"
+                  : "none",
+              transition: "background 0.2s ease",
             }}
           >
             <div
@@ -656,32 +772,32 @@ export default function VideoReviewPanel({
                   >
                     Reply
                   </button>
-                  {onResolveComment && (
-                    isResolved ? (
-                      <button
-                        onClick={() => handleReopen(comment.id)}
-                        disabled={submitting}
-                        style={f({
-                          fontWeight: 500, fontSize: "10px", color: t.textMuted,
-                          background: "none", border: "none", cursor: "pointer",
-                          padding: "2px 0",
-                        })}
-                      >
-                        Reopen
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => { setResolvingId(comment.id); setResolveNote(""); }}
-                        style={f({
-                          fontWeight: 500, fontSize: "10px", color: "#0a0",
-                          background: "none", border: "none", cursor: "pointer",
-                          padding: "2px 0",
-                        })}
-                      >
-                        Resolve
-                      </button>
-                    )
-                  )}
+                  {isResolved
+                    ? canReopenComment(comment) && (
+                        <button
+                          onClick={() => handleReopen(comment.id)}
+                          disabled={submitting}
+                          style={f({
+                            fontWeight: 500, fontSize: "10px", color: t.textMuted,
+                            background: "none", border: "none", cursor: "pointer",
+                            padding: "2px 0",
+                          })}
+                        >
+                          Reopen
+                        </button>
+                      )
+                    : onResolveComment && (
+                        <button
+                          onClick={() => { setResolvingId(comment.id); setResolveNote(""); }}
+                          style={f({
+                            fontWeight: 500, fontSize: "10px", color: "#0a0",
+                            background: "none", border: "none", cursor: "pointer",
+                            padding: "2px 0",
+                          })}
+                        >
+                          Resolve
+                        </button>
+                      )}
                 </>
               )}
             </div>

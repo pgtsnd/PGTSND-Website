@@ -78,12 +78,25 @@ async function loadDeliverableContext(deliverableId: string) {
   return { deliverable, project };
 }
 
-function clientReviewLink(deliverableId: string): string {
-  return `${getAppBaseUrl()}/client-hub/review?deliverableId=${encodeURIComponent(deliverableId)}`;
+function clientReviewLink(
+  deliverableId: string,
+  opts?: { commentId?: string; action?: "reply" | "reopen" },
+): string {
+  const params = new URLSearchParams({ deliverableId });
+  if (opts?.commentId) params.set("commentId", opts.commentId);
+  if (opts?.action) params.set("action", opts.action);
+  return `${getAppBaseUrl()}/client-hub/review?${params.toString()}`;
 }
 
-function teamReviewLink(projectId: string, deliverableId: string): string {
-  return `${getAppBaseUrl()}/team/projects/${projectId}?tab=review&deliverableId=${encodeURIComponent(deliverableId)}`;
+function teamReviewLink(
+  projectId: string,
+  deliverableId: string,
+  opts?: { commentId?: string; action?: "reply" | "reopen" },
+): string {
+  const params = new URLSearchParams({ tab: "review", deliverableId });
+  if (opts?.commentId) params.set("commentId", opts.commentId);
+  if (opts?.action) params.set("action", opts.action);
+  return `${getAppBaseUrl()}/team/projects/${projectId}?${params.toString()}`;
 }
 
 /**
@@ -559,10 +572,14 @@ export async function notifyVideoCommentResolved(opts: {
     const allowed = await filterOutProjectMutes(project.id, [author.id]);
     if (allowed.length === 0) return;
 
-    const link =
+    const buildLink = (action?: "reply" | "reopen") =>
       author.role === "client"
-        ? clientReviewLink(deliverable.id)
-        : teamReviewLink(project.id, deliverable.id);
+        ? clientReviewLink(deliverable.id, { commentId: comment.id, action })
+        : teamReviewLink(project.id, deliverable.id, { commentId: comment.id, action });
+
+    const link = buildLink();
+    const replyLink = buildLink("reply");
+    const reopenLink = buildLink("reopen");
 
     const tsLabel = formatTimestamp(comment.timestampSeconds);
 
@@ -574,7 +591,10 @@ export async function notifyVideoCommentResolved(opts: {
         `${opts.resolverName} marked your comment at ${tsLabel} on "${deliverable.title}" (${project.name}) as resolved.\n\n` +
         `Your comment:\n"${comment.content}"\n\n` +
         (opts.resolutionNote ? `Resolution note:\n"${opts.resolutionNote}"\n\n` : "") +
-        `View the review: ${link}\n\n` +
+        `If this didn't fully address your feedback, you can reply or reopen the comment:\n` +
+        `Reply:  ${replyLink}\n` +
+        `Reopen: ${reopenLink}\n\n` +
+        `Otherwise, view the resolved thread: ${link}\n\n` +
         `— PGTSND Productions`,
       html: renderCommentResolvedEmail({
         recipientName: author.name,
@@ -585,6 +605,8 @@ export async function notifyVideoCommentResolved(opts: {
         timestampLabel: tsLabel,
         resolutionNote: opts.resolutionNote,
         link,
+        replyLink,
+        reopenLink,
       }),
     });
   } catch (err) {

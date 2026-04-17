@@ -199,6 +199,8 @@ export interface CommentResolvedTemplateInput {
   timestampLabel: string | null;
   resolutionNote: string | null;
   link: string;
+  replyLink?: string;
+  reopenLink?: string;
 }
 
 export function renderCommentResolvedEmail(
@@ -215,6 +217,36 @@ export function renderCommentResolvedEmail(
       </div>`
     : "";
 
+  const secondaryActions =
+    input.replyLink || input.reopenLink
+      ? `
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0 0 0;">
+      <tr>
+        ${
+          input.replyLink
+            ? `<td style="padding-right:8px;">
+              <a href="${escapeHtml(input.replyLink)}" style="display:inline-block;padding:10px 18px;font-family:${FONT_STACK};font-weight:600;font-size:12px;letter-spacing:0.04em;color:${BRAND.text};text-decoration:none;border:1px solid ${BRAND.border};border-radius:6px;">
+                Reply to comment
+              </a>
+            </td>`
+            : ""
+        }
+        ${
+          input.reopenLink
+            ? `<td>
+              <a href="${escapeHtml(input.reopenLink)}" style="display:inline-block;padding:10px 18px;font-family:${FONT_STACK};font-weight:600;font-size:12px;letter-spacing:0.04em;color:${BRAND.text};text-decoration:none;border:1px solid ${BRAND.border};border-radius:6px;">
+                Reopen comment
+              </a>
+            </td>`
+            : ""
+        }
+      </tr>
+    </table>
+    <p style="margin:10px 0 0 0;font-family:${FONT_STACK};font-weight:400;font-size:12px;line-height:1.5;color:${BRAND.subtle};">
+      If this didn't fully address your feedback, you can reply or reopen the comment in one click.
+    </p>`
+      : "";
+
   const bodyHtml = `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0;border:1px solid ${BRAND.border};border-radius:6px;">
       <tr>
@@ -229,14 +261,15 @@ export function renderCommentResolvedEmail(
           ${noteBlock}
         </td>
       </tr>
-    </table>`;
+    </table>
+    ${secondaryActions}`;
 
   return layout({
     previewText: `${input.resolverName} resolved your comment on ${input.deliverableTitle}.`,
     heading: "Your feedback has been addressed",
     intro: `Hi ${name}, ${input.resolverName} marked your comment${at} on "${input.deliverableTitle}" (${input.projectName}) as resolved.`,
     bodyHtml,
-    ctaLabel: "View Review",
+    ctaLabel: "View Comment",
     ctaUrl: input.link,
   });
 }

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
 import TeamLayout from "../components/TeamLayout";
@@ -38,8 +38,24 @@ export default function TeamProjectDetail() {
   const { t } = useTheme();
   const [, params] = useRoute("/team/projects/:id");
   const projectId = params?.id || "";
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
-  const [reviewDeliverableId, setReviewDeliverableId] = useState<string | null>(null);
+  // Read deep-link query params (?tab=review&deliverableId=...&commentId=...&action=reply|reopen)
+  // sent by the resolved-comment notification email so the team viewer lands
+  // on the right tab/deliverable/comment in one click.
+  const initialQuery = useMemo(() => {
+    const sp = new URLSearchParams(window.location.search);
+    return {
+      tab: sp.get("tab"),
+      deliverableId: sp.get("deliverableId"),
+      commentId: sp.get("commentId"),
+      action: sp.get("action") as "reply" | "reopen" | null,
+    };
+  }, []);
+  const [activeTab, setActiveTab] = useState<Tab>(
+    initialQuery.tab === "review" ? "review" : "overview",
+  );
+  const [reviewDeliverableId, setReviewDeliverableId] = useState<string | null>(
+    initialQuery.deliverableId,
+  );
   const { isLoading: authLoading } = useTeamAuth();
   const [showHeaderImageModal, setShowHeaderImageModal] = useState(false);
   const [headerImageUrl, setHeaderImageUrl] = useState("");
@@ -49,7 +65,14 @@ export default function TeamProjectDetail() {
   const { project, members, tasks, deliverables, contracts, isLoading, isError, refetch } =
     useProjectWithDetails(projectId);
 
+  // Reset to overview when navigating between projects, but preserve the
+  // deep-linked tab from the URL on first mount.
+  const didMountRef = useRef(false);
   useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
     setActiveTab("overview");
   }, [projectId]);
 
@@ -307,6 +330,8 @@ export default function TeamProjectDetail() {
             projectId={projectId}
             initialDeliverableId={reviewDeliverableId}
             onInitialDeliverableConsumed={() => setReviewDeliverableId(null)}
+            initialCommentId={initialQuery.commentId}
+            initialAction={initialQuery.action}
           />
         )}
         </div>
@@ -1890,13 +1915,27 @@ function AssetsTab({ projectId, projectName, driveFolderId, onJumpToSettings }: 
   );
 }
 
-function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitialDeliverableConsumed }: { deliverables: Deliverable[]; projectId: string; initialDeliverableId?: string | null; onInitialDeliverableConsumed?: () => void }) {
+function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitialDeliverableConsumed, initialCommentId, initialAction }: { deliverables: Deliverable[]; projectId: string; initialDeliverableId?: string | null; onInitialDeliverableConsumed?: () => void; initialCommentId?: string | null; initialAction?: "reply" | "reopen" | null }) {
   const { t } = useTheme();
   const { toast } = useToast();
+  const { currentUser } = useTeamAuth();
   const [selectedDeliverable, setSelectedDeliverable] = useState<Deliverable | null>(null);
   const [comments, setComments] = useState<VideoCommentWithReplies[]>([]);
   const [activeTimestamp, setActiveTimestamp] = useState<number | null>(null);
   const [seekTo, setSeekTo] = useState<number | null>(null);
+  // Deep-link state mirrors the email's commentId/action params. We hold them
+  // locally so we can clear the auto-reply hint after the user replies and so
+  // we only auto-trigger the reopen action once. We also remember the
+  // originally deep-linked deliverableId so the highlight stays anchored even
+  // after the parent clears `initialDeliverableId`.
+  const [deepLinkDeliverableId] = useState<string | null>(initialDeliverableId ?? null);
+  const [highlightCommentId] = useState<string | null>(initialCommentId ?? null);
+  const [openReplyForCommentId, setOpenReplyForCommentId] = useState<string | null>(
+    initialAction === "reply" ? (initialCommentId ?? null) : null,
+  );
+  const [pendingReopenId, setPendingReopenId] = useState<string | null>(
+    initialAction === "reopen" ? (initialCommentId ?? null) : null,
+  );
   const [reviewLinks, setReviewLinks] = useState<ReviewLinkData[]>([]);
   const [showShareLink, setShowShareLink] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -1985,6 +2024,7 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
       setComments((prev) =>
         prev.map((c) => (c.id === commentId ? { ...c, replies: [...c.replies, reply] } : c)),
       );
+      setOpenReplyForCommentId(null);
     },
     [],
   );
@@ -1998,6 +2038,51 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
     },
     [],
   );
+
+  const handleReopenComment = useCallback(
+    async (commentId: string) => {
+      try {
+        const updated = await api.reopenVideoComment(commentId);
+        setComments((prev) =>
+          prev.map((c) => (c.id === commentId ? { ...c, ...updated } : c)),
+        );
+        toast("Comment reopened", "success");
+      } catch (err: unknown) {
+        toast(
+          err instanceof Error ? err.message : "Failed to reopen comment",
+          "error",
+        );
+      }
+    },
+    [toast],
+  );
+
+  // Auto-execute the deep-linked reopen action once comments load.
+  useEffect(() => {
+    if (!pendingReopenId) return;
+    const target = comments.find((c) => c.id === pendingReopenId);
+    if (!target) return;
+    if (!target.resolvedAt) {
+      setPendingReopenId(null);
+      return;
+    }
+    const id = pendingReopenId;
+    setPendingReopenId(null);
+    void (async () => {
+      try {
+        const updated = await api.reopenVideoComment(id);
+        setComments((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, ...updated } : c)),
+        );
+        toast("Comment reopened", "success");
+      } catch (err: unknown) {
+        toast(
+          err instanceof Error ? err.message : "Failed to reopen comment",
+          "error",
+        );
+      }
+    })();
+  }, [pendingReopenId, comments, toast]);
 
   const handleCommentClick = useCallback((comment: VideoComment) => {
     setSeekTo(comment.timestampSeconds);
@@ -2325,6 +2410,18 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
             versionLabelById={versionLabelById}
             previousVersionUploadedAt={previousVersionUploadedAt}
             currentVersionLabel={activeVersionLabel}
+            onReopenComment={handleReopenComment}
+            currentUserId={currentUser?.id ?? null}
+            highlightCommentId={
+              selectedDeliverable && deepLinkDeliverableId === selectedDeliverable.id
+                ? highlightCommentId
+                : null
+            }
+            openReplyForCommentId={
+              selectedDeliverable && deepLinkDeliverableId === selectedDeliverable.id
+                ? openReplyForCommentId
+                : null
+            }
           />
         </div>
       )}

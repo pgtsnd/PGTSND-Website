@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 import VideoPlayer from "../components/VideoPlayer";
@@ -8,10 +8,12 @@ import { api, type Deliverable, type DeliverableVersion, type VideoCommentWithRe
 import UploaderBadge from "../components/UploaderBadge";
 import { ClientVideoReviewSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import { useToast } from "../components/Toast";
+import { useTeamAuth } from "../contexts/TeamAuthContext";
 
 export default function ClientVideoReview() {
   const { t } = useTheme();
   const { toast } = useToast();
+  const { currentUser } = useTeamAuth();
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [selectedDeliverable, setSelectedDeliverable] = useState<Deliverable | null>(null);
   const [comments, setComments] = useState<VideoCommentWithReplies[]>([]);
@@ -22,6 +24,24 @@ export default function ClientVideoReview() {
   const [activeTimestamp, setActiveTimestamp] = useState<number | null>(null);
   const [seekTo, setSeekTo] = useState<number | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+
+  // Deep-link query params from the resolved-comment email:
+  // ?deliverableId=...&commentId=...&action=reply|reopen
+  const deepLink = useMemo(() => {
+    const sp = new URLSearchParams(window.location.search);
+    return {
+      deliverableId: sp.get("deliverableId"),
+      commentId: sp.get("commentId"),
+      action: sp.get("action") as "reply" | "reopen" | null,
+    };
+  }, []);
+  const [highlightCommentId] = useState<string | null>(deepLink.commentId);
+  const [openReplyForCommentId, setOpenReplyForCommentId] = useState<string | null>(
+    deepLink.action === "reply" ? deepLink.commentId : null,
+  );
+  const [pendingReopenId, setPendingReopenId] = useState<string | null>(
+    deepLink.action === "reopen" ? deepLink.commentId : null,
+  );
   const refetch = () => {
     setError(null);
     setLoading(true);
@@ -44,7 +64,14 @@ export default function ClientVideoReview() {
           ),
         ];
         setDeliverables(allDeliverables);
-        if (pendingOrReview.length > 0) {
+        // Prefer the deep-linked deliverable from the email, falling back to
+        // the first pending/in-review item, then anything available.
+        const deepLinked = deepLink.deliverableId
+          ? allDeliverables.find((d) => d.id === deepLink.deliverableId)
+          : null;
+        if (deepLinked) {
+          setSelectedDeliverable(deepLinked);
+        } else if (pendingOrReview.length > 0) {
           setSelectedDeliverable(pendingOrReview[0]);
         } else if (allDeliverables.length > 0) {
           setSelectedDeliverable(allDeliverables[0]);
@@ -127,8 +154,59 @@ export default function ClientVideoReview() {
           c.id === commentId ? { ...c, replies: [...c.replies, reply] } : c,
         ),
       );
+      // Clear the deep-link auto-open hint once the user has replied so we
+      // don't keep re-opening the composer if they navigate back.
+      setOpenReplyForCommentId(null);
     },
     [],
+  );
+
+  // Auto-execute the deep-linked reopen action once comments load.
+  useEffect(() => {
+    if (!pendingReopenId) return;
+    const target = comments.find((c) => c.id === pendingReopenId);
+    if (!target || !target.resolvedAt) return;
+    const isMine =
+      currentUser?.id && target.authorId === currentUser.id ? true : false;
+    if (!isMine) {
+      toast("Only the original author can reopen this comment", "error");
+      setPendingReopenId(null);
+      return;
+    }
+    const id = pendingReopenId;
+    setPendingReopenId(null);
+    void (async () => {
+      try {
+        const updated = await api.reopenVideoComment(id);
+        setComments((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, ...updated } : c)),
+        );
+        toast("Comment reopened", "success");
+      } catch (err: unknown) {
+        toast(
+          err instanceof Error ? err.message : "Failed to reopen comment",
+          "error",
+        );
+      }
+    })();
+  }, [pendingReopenId, comments, currentUser?.id, toast]);
+
+  const handleReopenComment = useCallback(
+    async (commentId: string) => {
+      try {
+        const updated = await api.reopenVideoComment(commentId);
+        setComments((prev) =>
+          prev.map((c) => (c.id === commentId ? { ...c, ...updated } : c)),
+        );
+        toast("Comment reopened", "success");
+      } catch (err: unknown) {
+        toast(
+          err instanceof Error ? err.message : "Failed to reopen comment",
+          "error",
+        );
+      }
+    },
+    [toast],
   );
 
   const handleCommentClick = useCallback((comment: VideoComment) => {
@@ -766,6 +844,18 @@ export default function ClientVideoReview() {
                 hideTimestamps={!isVideo}
                 previousVersionUploadedAt={previousVersionUploadedAt}
                 currentVersionLabel={selectedDeliverable.version ?? null}
+                onReopenComment={handleReopenComment}
+                currentUserId={currentUser?.id ?? null}
+                highlightCommentId={
+                  selectedDeliverable && deepLink.deliverableId === selectedDeliverable.id
+                    ? highlightCommentId
+                    : null
+                }
+                openReplyForCommentId={
+                  selectedDeliverable && deepLink.deliverableId === selectedDeliverable.id
+                    ? openReplyForCommentId
+                    : null
+                }
               />
             </div>
           </div>
