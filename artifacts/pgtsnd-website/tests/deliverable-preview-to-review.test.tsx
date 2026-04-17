@@ -126,8 +126,8 @@ function ProjectShell() {
         <TeamReviewTab
           deliverables={deliverables}
           projectId={projectId}
-          initialDeliverableId={reviewDeliverableId}
-          onInitialDeliverableConsumed={() => setReviewDeliverableId(null)}
+          deliverableId={reviewDeliverableId}
+          onSelectDeliverable={(id) => setReviewDeliverableId(id)}
         />
       )}
     </div>

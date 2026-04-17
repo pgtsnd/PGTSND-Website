@@ -160,7 +160,7 @@ function Router() {
           </ProtectedRoute>
         )}
       </Route>
-      <Route path="/team/projects/:id">
+      <Route path="/team/projects/:id/:tab?">
         {() => (
           <ProtectedRoute allowedRoles={TEAM_ROLES} redirectTo="/team">
             <TeamProjectDetail />

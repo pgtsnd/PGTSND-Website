@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useRoute } from "wouter";
+import { Link, useRoute, useLocation, useSearch } from "wouter";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
@@ -40,28 +40,83 @@ import {
 
 type Tab = "overview" | "milestones" | "deliverables" | "assets" | "review" | "messages";
 
+const VALID_TABS: readonly Tab[] = [
+  "overview",
+  "milestones",
+  "deliverables",
+  "assets",
+  "review",
+  "messages",
+];
+
+function isTab(value: string | undefined | null): value is Tab {
+  return !!value && (VALID_TABS as readonly string[]).includes(value);
+}
+
 export default function TeamProjectDetail() {
   const { t } = useTheme();
-  const [, params] = useRoute("/team/projects/:id");
+  const [, params] = useRoute("/team/projects/:id/:tab?");
   const projectId = params?.id || "";
-  // Read deep-link query params (?tab=review&deliverableId=...&commentId=...&action=reply|reopen)
-  // sent by the resolved-comment notification email so the team viewer lands
-  // on the right tab/deliverable/comment in one click.
-  const initialQuery = useMemo(() => {
+  const pathTab = params?.tab;
+  const activeTab: Tab = isTab(pathTab) ? pathTab : "overview";
+
+  const [, setLocation] = useLocation();
+  const searchString = useSearch();
+  const searchParams = useMemo(
+    () => new URLSearchParams(searchString),
+    [searchString],
+  );
+  const reviewDeliverableId = searchParams.get("deliverable");
+  const initialCommentId = searchParams.get("commentId");
+  const initialActionParam = searchParams.get("action");
+  const initialAction: "reply" | "reopen" | null =
+    initialActionParam === "reply" || initialActionParam === "reopen"
+      ? initialActionParam
+      : null;
+
+  const buildTabUrl = useCallback(
+    (tab: Tab, opts?: { deliverableId?: string | null }) => {
+      const path = `/team/projects/${projectId}/${tab}`;
+      const sp = new URLSearchParams();
+      if (opts?.deliverableId) sp.set("deliverable", opts.deliverableId);
+      const qs = sp.toString();
+      return qs ? `${path}?${qs}` : path;
+    },
+    [projectId],
+  );
+
+  const navigateToTab = useCallback(
+    (tab: Tab, opts?: { deliverableId?: string | null }) => {
+      setLocation(buildTabUrl(tab, opts));
+    },
+    [buildTabUrl, setLocation],
+  );
+
+  // Backwards-compat: legacy email links use
+  // `/team/projects/:id?tab=review&deliverableId=...&commentId=...&action=...`.
+  // Rewrite them to the canonical path-based URL on first mount so the rest of
+  // the page works off the new format.
+  useEffect(() => {
+    if (!projectId) return;
+    if (pathTab) return;
     const sp = new URLSearchParams(window.location.search);
-    return {
-      tab: sp.get("tab"),
-      deliverableId: sp.get("deliverableId"),
-      commentId: sp.get("commentId"),
-      action: sp.get("action") as "reply" | "reopen" | null,
-    };
-  }, []);
-  const [activeTab, setActiveTab] = useState<Tab>(
-    initialQuery.tab === "review" ? "review" : "overview",
-  );
-  const [reviewDeliverableId, setReviewDeliverableId] = useState<string | null>(
-    initialQuery.deliverableId,
-  );
+    const legacyTab = sp.get("tab");
+    const legacyDeliverable = sp.get("deliverableId");
+    if (!legacyTab && !legacyDeliverable) return;
+    const targetTab: Tab = isTab(legacyTab) ? legacyTab : "overview";
+    const out = new URLSearchParams();
+    if (legacyDeliverable) out.set("deliverable", legacyDeliverable);
+    const commentId = sp.get("commentId");
+    const action = sp.get("action");
+    if (commentId) out.set("commentId", commentId);
+    if (action) out.set("action", action);
+    const qs = out.toString();
+    setLocation(
+      `/team/projects/${projectId}/${targetTab}${qs ? `?${qs}` : ""}`,
+      { replace: true },
+    );
+  }, [projectId, pathTab, setLocation]);
+
   const { isLoading: authLoading } = useTeamAuth();
   const [showHeaderImageModal, setShowHeaderImageModal] = useState(false);
   const [headerImageUrl, setHeaderImageUrl] = useState("");
@@ -70,17 +125,6 @@ export default function TeamProjectDetail() {
 
   const { project, members, tasks, deliverables, contracts, isLoading, isError, refetch } =
     useProjectWithDetails(projectId);
-
-  // Reset to overview when navigating between projects, but preserve the
-  // deep-linked tab from the URL on first mount.
-  const didMountRef = useRef(false);
-  useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true;
-      return;
-    }
-    setActiveTab("overview");
-  }, [projectId]);
 
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
@@ -272,7 +316,7 @@ export default function TeamProjectDetail() {
 
         <div style={{ display: "flex", gap: "0", borderBottom: `1px solid ${t.border}`, marginBottom: "28px" }}>
           {tabs.map((tab) => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
+            <button key={tab.key} onClick={() => navigateToTab(tab.key)} style={{
               ...f({
                 fontWeight: activeTab === tab.key ? 600 : 400, fontSize: "13px",
                 color: activeTab === tab.key ? t.text : t.textMuted,
@@ -318,7 +362,7 @@ export default function TeamProjectDetail() {
           <DeliverablesTab
             deliverables={deliverables}
             onRefresh={refetch}
-            onOpenReview={(id) => { setReviewDeliverableId(id); setActiveTab("review"); }}
+            onOpenReview={(id) => navigateToTab("review", { deliverableId: id })}
           />
         )}
 
@@ -327,7 +371,7 @@ export default function TeamProjectDetail() {
             projectId={projectId}
             projectName={project.name}
             driveFolderId={project.driveFolderId ?? null}
-            onJumpToSettings={() => setActiveTab("overview")}
+            onJumpToSettings={() => navigateToTab("overview")}
           />
         )}
 
@@ -335,10 +379,10 @@ export default function TeamProjectDetail() {
           <TeamReviewTab
             deliverables={deliverables}
             projectId={projectId}
-            initialDeliverableId={reviewDeliverableId}
-            onInitialDeliverableConsumed={() => setReviewDeliverableId(null)}
-            initialCommentId={initialQuery.commentId}
-            initialAction={initialQuery.action}
+            deliverableId={reviewDeliverableId}
+            onSelectDeliverable={(id) => navigateToTab("review", { deliverableId: id })}
+            initialCommentId={initialCommentId}
+            initialAction={initialAction}
           />
         )}
         {activeTab === "messages" && (
@@ -2053,7 +2097,7 @@ function AssetsTab({ projectId, projectName, driveFolderId, onJumpToSettings }: 
   );
 }
 
-export function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitialDeliverableConsumed, initialCommentId, initialAction }: { deliverables: Deliverable[]; projectId: string; initialDeliverableId?: string | null; onInitialDeliverableConsumed?: () => void; initialCommentId?: string | null; initialAction?: "reply" | "reopen" | null }) {
+export function TeamReviewTab({ deliverables, projectId, deliverableId, onSelectDeliverable, initialCommentId, initialAction }: { deliverables: Deliverable[]; projectId: string; deliverableId?: string | null; onSelectDeliverable?: (id: string) => void; initialCommentId?: string | null; initialAction?: "reply" | "reopen" | null }) {
   const { t } = useTheme();
   const { toast } = useToast();
   const { currentUser } = useTeamAuth();
@@ -2067,8 +2111,8 @@ export function TeamReviewTab({ deliverables, projectId, initialDeliverableId, o
   // locally so we can clear the auto-reply hint after the user replies and so
   // we only auto-trigger the reopen action once. We also remember the
   // originally deep-linked deliverableId so the highlight stays anchored even
-  // after the parent clears `initialDeliverableId`.
-  const [deepLinkDeliverableId] = useState<string | null>(initialDeliverableId ?? null);
+  // if the URL's `deliverable` param changes.
+  const [deepLinkDeliverableId] = useState<string | null>(deliverableId ?? null);
   const [highlightCommentId] = useState<string | null>(initialCommentId ?? null);
   const [openReplyForCommentId, setOpenReplyForCommentId] = useState<string | null>(
     initialAction === "reply" ? (initialCommentId ?? null) : null,
@@ -2106,13 +2150,13 @@ export function TeamReviewTab({ deliverables, projectId, initialDeliverableId, o
   }, [reviewableDeliverables.length]);
 
   useEffect(() => {
-    if (!initialDeliverableId) return;
-    const match = deliverables.find((d) => d.id === initialDeliverableId);
+    if (!deliverableId) return;
+    if (selectedDeliverable?.id === deliverableId) return;
+    const match = deliverables.find((d) => d.id === deliverableId);
     if (match) {
       setSelectedDeliverable(match);
-      onInitialDeliverableConsumed?.();
     }
-  }, [initialDeliverableId, deliverables]);
+  }, [deliverableId, deliverables, selectedDeliverable?.id]);
 
   useEffect(() => {
     if (!selectedDeliverable) return;
@@ -2490,6 +2534,7 @@ export function TeamReviewTab({ deliverables, projectId, initialDeliverableId, o
               setSelectedDeliverable(d);
               setActiveTimestamp(null);
               setActionMsg(null);
+              onSelectDeliverable?.(d.id);
             }}
             style={ff({
               fontWeight: selectedDeliverable?.id === d.id ? 600 : 400,
