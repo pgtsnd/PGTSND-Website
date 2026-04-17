@@ -7,6 +7,7 @@ import { useTeamAuth } from "../contexts/TeamAuthContext";
 import { ProjectDetailSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import { useToast } from "../components/Toast";
 import VideoPlayer, { type VideoPlayerHandle } from "../components/VideoPlayer";
+import CompareDiffStrip from "../components/CompareDiffStrip";
 import VideoReviewPanel from "../components/VideoReviewPanel";
 import ProjectMuteToggle from "../components/ProjectMuteToggle";
 import UploaderBadge from "../components/UploaderBadge";
@@ -2710,6 +2711,25 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
                       onMarkerClick={handleMarkerClick}
                       onPlayingChange={(p) => mirrorPlay("B", p)}
                       onUserSeek={(s) => mirrorSeek("B", s)}
+                    />
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <CompareDiffStrip
+                      key={`diff-${activeFileUrl}-${compareFileUrl}`}
+                      srcA={activeFileUrl}
+                      srcB={compareFileUrl}
+                      labelA={activeVersionLabel}
+                      labelB={compareVersionLabel}
+                      onSeek={(ts) => {
+                        setSeekTo(ts);
+                        setTimeout(() => setSeekTo(null), 100);
+                        if (syncPlayheads) {
+                          setSeekToB(ts);
+                          setTimeout(() => setSeekToB(null), 100);
+                        } else {
+                          playerBRef.current?.seek(ts);
+                        }
+                      }}
                     />
                   </div>
                 </div>
