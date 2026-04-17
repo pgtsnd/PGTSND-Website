@@ -19,6 +19,8 @@ import {
   useCreateInvoiceCheckoutSession,
   getListOrganizationsQueryKey,
   getListUsersQueryKey,
+  getInvoicePaymentDetails,
+  type PaymentDetails,
 } from "@workspace/api-client-react";
 import {
   api,
@@ -896,6 +898,19 @@ function ClientInvoices({ client, t, f, statusColor, stripeStatus, showNewInvoic
   const pendingInvoices = allInvoices.filter((i) => i.status === "sent" || i.status === "draft");
   const overdueInvoices = allInvoices.filter((i) => i.status === "overdue");
 
+  const [paymentDetails, setPaymentDetails] = useState<Record<string, PaymentDetails>>({});
+  const stripePaidIds = paidInvoices.filter((i) => i.stripePaymentIntentId).map((i) => i.id).join(",");
+  useEffect(() => {
+    if (!stripePaidIds) return;
+    const ids = stripePaidIds.split(",");
+    ids.forEach((id) => {
+      if (paymentDetails[id]) return;
+      getInvoicePaymentDetails(id)
+        .then((details) => setPaymentDetails((prev) => ({ ...prev, [id]: details })))
+        .catch(() => {});
+    });
+  }, [stripePaidIds]);
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
@@ -1149,6 +1164,24 @@ function ClientInvoices({ client, t, f, statusColor, stripeStatus, showNewInvoic
                       Void
                     </button>
                   )}
+                  {inv.status === "paid" && inv.paymentMethod && (() => {
+                    const receiptUrl = paymentDetails[inv.id]?.receiptUrl;
+                    return (
+                      <span style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, width: "100%", display: "flex", alignItems: "center", gap: "8px", marginTop: "2px" })}>
+                        <span>{inv.paymentMethod}</span>
+                        {receiptUrl && (
+                          <a
+                            href={receiptUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ ...f({ fontWeight: 500, fontSize: "10px", color: "rgba(120,180,255,0.95)" }), textDecoration: "underline", textUnderlineOffset: "2px" }}
+                          >
+                            View receipt
+                          </a>
+                        )}
+                      </span>
+                    );
+                  })()}
                 </div>
               </div>
             );
