@@ -4,9 +4,10 @@ import { useTheme } from "./ThemeContext";
 
 interface Props {
   projectId: string;
+  onChange?: (muted: boolean) => void;
 }
 
-export default function ProjectMuteToggle({ projectId }: Props) {
+export default function ProjectMuteToggle({ projectId, onChange }: Props) {
   const { t } = useTheme();
   const [muted, setMuted] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
@@ -22,7 +23,9 @@ export default function ProjectMuteToggle({ projectId }: Props) {
       .getProjectMutes()
       .then((res) => {
         if (cancelled) return;
-        setMuted(res.projectIds.includes(projectId));
+        const isMuted = res.projectIds.includes(projectId);
+        setMuted(isMuted);
+        onChange?.(isMuted);
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -48,6 +51,7 @@ export default function ProjectMuteToggle({ projectId }: Props) {
       if (next) await api.muteProject(projectId);
       else await api.unmuteProject(projectId);
       setMuted(next);
+      onChange?.(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update");
     } finally {

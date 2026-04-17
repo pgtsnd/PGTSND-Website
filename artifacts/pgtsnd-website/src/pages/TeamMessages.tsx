@@ -28,6 +28,8 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useIntegrationStatus, useSlackChannels } from "../hooks/useIntegrations";
+import ProjectMuteToggle from "../components/ProjectMuteToggle";
+import { api } from "../lib/api";
 
 type Mode = "groups" | "dms";
 
@@ -66,6 +68,9 @@ export default function TeamMessages() {
   const [showCompose, setShowCompose] = useState(false);
   const [composeSearch, setComposeSearch] = useState("");
   const [searchFilter, setSearchFilter] = useState("");
+  const [mutedProjectIds, setMutedProjectIds] = useState<Set<string>>(new Set());
+  const mutedProjectIdsRef = useRef(mutedProjectIds);
+  mutedProjectIdsRef.current = mutedProjectIds;
 
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -112,6 +117,23 @@ export default function TeamMessages() {
   }, [sortedMessages.length]);
 
   useEffect(() => {
+    let cancelled = false;
+    api
+      .getProjectMutes()
+      .then((res) => {
+        if (cancelled) return;
+        setMutedProjectIds(new Set(res.projectIds));
+      })
+      .catch(() => {
+        // If the preload fails, ProjectMuteToggle will still update state
+        // for the selected project on its own load.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof Notification === "undefined") return;
     if (Notification.permission === "default") {
       Notification.requestPermission().catch(() => {
@@ -154,6 +176,7 @@ export default function TeamMessages() {
 
     for (const msg of incoming) {
       const projectId = msg.projectId;
+      if (mutedProjectIdsRef.current.has(projectId)) continue;
       try {
         const notification = new Notification(
           `New message from ${msg.senderName ?? "client"}`,
@@ -457,6 +480,20 @@ export default function TeamMessages() {
                 </p>
               )}
             </div>
+            {mode === "groups" && selectedProjectId && (
+              <ProjectMuteToggle
+                key={selectedProjectId}
+                projectId={selectedProjectId}
+                onChange={(isMuted) =>
+                  setMutedProjectIds((prev) => {
+                    const next = new Set(prev);
+                    if (isMuted) next.add(selectedProjectId);
+                    else next.delete(selectedProjectId);
+                    return next;
+                  })
+                }
+              />
+            )}
           </div>
 
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
