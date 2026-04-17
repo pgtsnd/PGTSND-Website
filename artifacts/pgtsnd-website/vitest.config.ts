@@ -9,12 +9,16 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "src"),
       "@assets": path.resolve(import.meta.dirname, "src", "assets"),
     },
+    dedupe: ["react", "react-dom"],
   },
   test: {
     environment: "jsdom",
     globals: true,
-    setupFiles: ["./tests/setup.ts"],
-    include: ["tests/**/*.test.{ts,tsx}"],
+    include: [
+      "tests/**/*.test.{ts,tsx}",
+      "src/**/*.test.{ts,tsx}",
+    ],
+    setupFiles: ["./tests/setup.ts", "./src/__tests__/setup.ts"],
     css: false,
   },
 });
