@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
@@ -71,6 +71,23 @@ export default function TeamAccess() {
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
   const [sortBy, setSortBy] = useState<"created" | "lastUsed" | "dormant">("dormant");
+
+  // Tick every 30s so relative timestamps ("5 minutes ago") and the
+  // dormant-first sort order stay fresh while the page sits open.
+  const [, setNowTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setNowTick((n) => n + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+  // Also refetch the tokens query every 2 minutes so newly recorded
+  // server-side last-used times appear without a manual reload.
+  useEffect(() => {
+    if (!isOwner) return;
+    const id = window.setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: getListAccessTokensQueryKey() });
+    }, 120_000);
+    return () => window.clearInterval(id);
+  }, [isOwner, queryClient]);
 
   const rawTokens = tokensQuery.data ?? [];
   const tokens = [...rawTokens].sort((a, b) => {
