@@ -59,6 +59,7 @@ export interface Message {
   createdAt: string;
   senderName: string;
   senderInitials?: string;
+  senderAvatarUrl?: string;
   senderRole?: string;
   projectName?: string;
   isTeam?: boolean;

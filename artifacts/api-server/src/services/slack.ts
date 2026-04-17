@@ -117,6 +117,7 @@ export interface SlackUserInfo {
   id: string;
   name: string;
   initials: string;
+  imageUrl?: string;
 }
 
 const userInfoCache = new Map<string, { info: SlackUserInfo; expiresAt: number }>();
@@ -143,7 +144,13 @@ export async function getUserInfo(userId: string): Promise<SlackUserInfo | null>
         id: string;
         name?: string;
         real_name?: string;
-        profile?: { real_name?: string; display_name?: string };
+        profile?: {
+          real_name?: string;
+          display_name?: string;
+          image_192?: string;
+          image_72?: string;
+          image_48?: string;
+        };
       };
     };
     const u = data.user;
@@ -153,10 +160,16 @@ export async function getUserInfo(userId: string): Promise<SlackUserInfo | null>
       u.profile?.display_name ||
       u.name ||
       userId;
+    const imageUrl =
+      u.profile?.image_192 ||
+      u.profile?.image_72 ||
+      u.profile?.image_48 ||
+      undefined;
     const info: SlackUserInfo = {
       id: u.id,
       name: displayName,
       initials: computeInitials(displayName),
+      imageUrl,
     };
     userInfoCache.set(userId, { info, expiresAt: Date.now() + USER_CACHE_TTL_MS });
     return info;

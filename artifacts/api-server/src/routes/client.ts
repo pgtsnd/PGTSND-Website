@@ -282,10 +282,10 @@ router.get(
           const userInfos = await Promise.all(
             uniqueUserIds.map((uid) => slackService.getUserInfo(uid)),
           );
-          const userInfoMap = new Map<string, { name: string; initials: string }>();
+          const userInfoMap = new Map<string, { name: string; initials: string; imageUrl?: string }>();
           uniqueUserIds.forEach((uid, idx) => {
             const info = userInfos[idx];
-            if (info) userInfoMap.set(uid, { name: info.name, initials: info.initials });
+            if (info) userInfoMap.set(uid, { name: info.name, initials: info.initials, imageUrl: info.imageUrl });
           });
 
           const slackMsgs = slackHistory.map((m) => {
@@ -295,6 +295,7 @@ router.get(
               senderId: m.user || "slack",
               senderName: info?.name ?? "Slack",
               senderInitials: info?.initials ?? "SL",
+              senderAvatarUrl: info?.imageUrl,
               senderRole: "owner",
               content: m.text,
               read: true,

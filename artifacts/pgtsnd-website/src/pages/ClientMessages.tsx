@@ -239,7 +239,15 @@ export default function ClientMessages() {
                 )}
                 {activeConvo.messages?.map((msg, i) => (
                   <div key={msg.id || i} style={{ display: "flex", gap: "12px", marginBottom: "24px", flexDirection: msg.isTeam ? "row" : "row-reverse" }}>
-                    <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: msg.isTeam ? t.teamBubble : t.clientBubble, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: t.textSecondary, flexShrink: 0 }}>
+                    {msg.senderAvatarUrl ? (
+                      <img
+                        src={msg.senderAvatarUrl}
+                        alt={msg.senderName}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; const sib = (e.currentTarget as HTMLImageElement).nextElementSibling as HTMLElement | null; if (sib) sib.style.display = "flex"; }}
+                        style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                      />
+                    ) : null}
+                    <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: msg.isTeam ? t.teamBubble : t.clientBubble, display: msg.senderAvatarUrl ? "none" : "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: t.textSecondary, flexShrink: 0 }}>
                       {msg.senderInitials || "??"}
                     </div>
                     <div style={{ maxWidth: "65%" }}>
