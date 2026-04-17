@@ -274,6 +274,57 @@ export function renderCommentResolvedEmail(
   });
 }
 
+export interface CommentReopenedTemplateInput {
+  recipientName: string | null;
+  reopenerName: string;
+  projectName: string;
+  deliverableTitle: string;
+  originalComment: string;
+  timestampLabel: string | null;
+  resolutionNote: string | null;
+  link: string;
+}
+
+export function renderCommentReopenedEmail(
+  input: CommentReopenedTemplateInput,
+): string {
+  const name = input.recipientName?.trim() || "there";
+  const at = input.timestampLabel ? ` at ${input.timestampLabel}` : "";
+
+  const noteBlock = input.resolutionNote
+    ? `
+      <div style="margin-top:14px;font-family:${FONT_STACK};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${BRAND.subtle};margin-bottom:6px;">Previous resolution note</div>
+      <div style="border-left:3px solid ${BRAND.quoteBar};padding:4px 0 4px 14px;font-family:${FONT_STACK};font-weight:400;font-size:14px;line-height:1.6;color:${BRAND.muted};">
+        ${nl2br(input.resolutionNote)}
+      </div>`
+    : "";
+
+  const bodyHtml = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0;border:1px solid ${BRAND.border};border-radius:6px;">
+      <tr>
+        <td style="padding:16px 18px;">
+          <div style="font-family:${FONT_STACK};font-weight:600;font-size:11px;color:${BRAND.muted};margin-bottom:10px;">
+            ${escapeHtml(input.reopenerName)} &middot; ${escapeHtml(input.deliverableTitle)} &middot; ${escapeHtml(input.projectName)}
+          </div>
+          <div style="font-family:${FONT_STACK};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${BRAND.subtle};margin-bottom:6px;">Reopened comment${at}</div>
+          <div style="border-left:3px solid ${BRAND.quoteBar};padding:4px 0 4px 14px;font-family:${FONT_STACK};font-weight:400;font-size:14px;line-height:1.6;color:${BRAND.text};">
+            ${nl2br(input.originalComment)}
+          </div>
+          ${noteBlock}
+        </td>
+      </tr>
+    </table>`;
+
+  return layout({
+    previewText: `${input.reopenerName} reopened a comment on ${input.deliverableTitle}.`,
+    heading: "A resolved comment was reopened",
+    intro: `Hi ${name}, ${input.reopenerName} reopened a previously resolved comment${at} on "${input.deliverableTitle}" (${input.projectName}). It needs another look.`,
+    bodyHtml,
+    ctaLabel: "View Comment",
+    ctaUrl: input.link,
+  });
+}
+
 export interface PaymentLinkTemplateInput {
   recipientName: string | null;
   projectName: string;

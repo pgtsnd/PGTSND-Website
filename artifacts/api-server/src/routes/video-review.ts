@@ -21,6 +21,7 @@ import {
 import {
   notifyNewVideoComment,
   notifyVideoCommentResolved,
+  notifyVideoCommentReopened,
 } from "../services/notifications";
 
 const router = Router();
@@ -238,6 +239,8 @@ router.post(
       return;
     }
 
+    const previousResolutionNote = comment.resolvedNote;
+
     const [updated] = await db
       .update(videoCommentsTable)
       .set({
@@ -248,6 +251,13 @@ router.post(
       })
       .where(eq(videoCommentsTable.id, req.params.commentId))
       .returning();
+
+    void notifyVideoCommentReopened({
+      commentId: comment.id,
+      reopenerUserId: req.user!.id,
+      reopenerName: req.user!.name ?? "A collaborator",
+      previousResolutionNote,
+    });
 
     res.json(updated);
   },

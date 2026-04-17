@@ -16,6 +16,7 @@ import {
   renderNewCommentEmail,
   renderPublicCommentEmail,
   renderCommentResolvedEmail,
+  renderCommentReopenedEmail,
   renderClientWelcomeEmail,
 } from "./email-templates";
 
@@ -698,6 +699,103 @@ export async function notifyClientWelcomeIfFirstProject(opts: {
     logger.error(
       { err, userId: opts.userId, projectId: opts.projectId },
       "notifyClientWelcomeIfFirstProject failed",
+    );
+  }
+}
+
+/**
+ * Sent when a previously-resolved video review comment is reopened (typically
+ * by a client from the resolution email or review player). Notifies the
+ * project's team members (owner/partner/crew) — i.e. non-client project
+ * members — so a reopened comment doesn't sit unaddressed.
+ *
+ * Excludes the actor that performed the reopen, respects per-project mute
+ * preferences, and honors each recipient's `emailNotifyComments` setting.
+ */
+export async function notifyVideoCommentReopened(opts: {
+  commentId: string;
+  reopenerUserId: string | null;
+  reopenerName: string;
+  previousResolutionNote: string | null;
+}): Promise<void> {
+  try {
+    const [comment] = await db
+      .select()
+      .from(videoCommentsTable)
+      .where(eq(videoCommentsTable.id, opts.commentId))
+      .limit(1);
+    if (!comment) return;
+
+    const ctx = await loadDeliverableContext(comment.deliverableId);
+    if (!ctx) return;
+    const { deliverable, project } = ctx;
+
+    const recipientIds = new Set<string>();
+    const teamMembers = await db
+      .select({ userId: projectMembersTable.userId })
+      .from(projectMembersTable)
+      .innerJoin(usersTable, eq(usersTable.id, projectMembersTable.userId))
+      .where(
+        and(
+          eq(projectMembersTable.projectId, project.id),
+          ne(usersTable.role, "client"),
+        ),
+      );
+    for (const m of teamMembers) {
+      if (m.userId !== opts.reopenerUserId) recipientIds.add(m.userId);
+    }
+
+    if (recipientIds.size === 0) {
+      logger.info(
+        { commentId: opts.commentId, projectId: project.id },
+        "No team recipients for comment-reopened notification",
+      );
+      return;
+    }
+
+    const filteredIds = await filterOutProjectMutes(project.id, [
+      ...recipientIds,
+    ]);
+    if (filteredIds.length === 0) return;
+    const recipients = await loadUsersByIds(filteredIds);
+    const link = teamReviewLink(project.id, deliverable.id, {
+      commentId: comment.id,
+    });
+    const tsLabel = formatTimestamp(comment.timestampSeconds);
+
+    await Promise.all(
+      recipients
+        .filter((u) => u.emailNotifyComments && u.email)
+        .map((u) =>
+          sendEmail({
+            to: u.email,
+            subject: `Reopened: comment on "${deliverable.title}" (${project.name})`,
+            text:
+              `Hi ${u.name ?? "there"},\n\n` +
+              `${opts.reopenerName} reopened a previously resolved comment at ${tsLabel} on "${deliverable.title}" (${project.name}).\n\n` +
+              `Original comment:\n"${comment.content}"\n\n` +
+              (opts.previousResolutionNote
+                ? `Previous resolution note:\n"${opts.previousResolutionNote}"\n\n`
+                : "") +
+              `View the comment: ${link}\n\n` +
+              `— PGTSND Productions`,
+            html: renderCommentReopenedEmail({
+              recipientName: u.name,
+              reopenerName: opts.reopenerName,
+              projectName: project.name,
+              deliverableTitle: deliverable.title,
+              originalComment: comment.content,
+              timestampLabel: tsLabel,
+              resolutionNote: opts.previousResolutionNote,
+              link,
+            }),
+          }),
+        ),
+    );
+  } catch (err) {
+    logger.error(
+      { err, commentId: opts.commentId },
+      "notifyVideoCommentReopened failed",
     );
   }
 }
