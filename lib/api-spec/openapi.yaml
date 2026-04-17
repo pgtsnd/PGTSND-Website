@@ -2094,6 +2094,9 @@ components:
           type: integer
           format: int64
           nullable: true
+        uploadedBy:
+          type: string
+          nullable: true
         version:
           type: string
           nullable: true

@@ -464,6 +464,7 @@ export interface Deliverable {
   status: DeliverableStatus;
   fileUrl?: string | null;
   fileSize?: number | null;
+  uploadedBy?: string | null;
   version?: string | null;
   submittedAt?: string | null;
   createdAt: string;

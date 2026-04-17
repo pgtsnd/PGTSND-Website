@@ -9,6 +9,7 @@ import { useToast } from "../components/Toast";
 import VideoPlayer from "../components/VideoPlayer";
 import VideoReviewPanel from "../components/VideoReviewPanel";
 import ProjectMuteToggle from "../components/ProjectMuteToggle";
+import UploaderBadge from "../components/UploaderBadge";
 import type { VideoComment } from "../components/VideoReviewPanel";
 import { api, type VideoCommentWithReplies, type ReviewLinkData, type DeliverableVersion } from "../lib/api";
 import { csrfHeaders } from "../lib/csrf";
@@ -1268,6 +1269,7 @@ function formatFileSize(bytes: number): string {
 
 function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverables: Deliverable[]; onRefresh: () => void; onOpenReview: (id: string) => void }) {
   const { t } = useTheme();
+  const { userMap } = useTeamAuth();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
@@ -1474,22 +1476,30 @@ function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverabl
                       {typeIcons[d.type] ?? typeIcons.other}
                     </div>
                   )}
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text })}>{d.title}</p>
-                    <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
-                      {[
-                        d.type,
-                        d.version || null,
-                        d.type === "video" && durationsByDeliverable[d.id]
-                          ? formatDuration(durationsByDeliverable[d.id])
-                          : null,
-                        typeof d.fileSize === "number" && d.fileSize > 0
-                          ? formatFileSize(d.fileSize)
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginTop: "2px" }}>
+                      <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+                        {[
+                          d.type,
+                          d.version || null,
+                          d.type === "video" && durationsByDeliverable[d.id]
+                            ? formatDuration(durationsByDeliverable[d.id])
+                            : null,
+                          typeof d.fileSize === "number" && d.fileSize > 0
+                            ? formatFileSize(d.fileSize)
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                      <UploaderBadge
+                        name={d.uploadedBy ? userMap.get(d.uploadedBy)?.name ?? null : null}
+                        avatarUrl={d.uploadedBy ? userMap.get(d.uploadedBy)?.avatarUrl ?? null : null}
+                        size={16}
+                        fontSize={11}
+                      />
+                    </div>
                   </div>
                   <span style={f({
                     fontWeight: 500, fontSize: "10px", textTransform: "uppercase",
@@ -1518,7 +1528,7 @@ function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverabl
                         </p>
                       )}
 
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "16px" }}>
                         <div>
                           <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" })}>Type</p>
                           <p style={f({ fontWeight: 500, fontSize: "12px", color: t.text, textTransform: "capitalize" })}>{d.type}</p>
@@ -1532,6 +1542,16 @@ function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverabl
                           <p style={f({ fontWeight: 500, fontSize: "12px", color: t.text })}>
                             {d.submittedAt ? new Date(d.submittedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Not yet"}
                           </p>
+                        </div>
+                        <div>
+                          <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" })}>Uploaded by</p>
+                          <UploaderBadge
+                            name={d.uploadedBy ? userMap.get(d.uploadedBy)?.name ?? null : null}
+                            avatarUrl={d.uploadedBy ? userMap.get(d.uploadedBy)?.avatarUrl ?? null : null}
+                            size={18}
+                            fontSize={12}
+                            prefix=""
+                          />
                         </div>
                       </div>
 

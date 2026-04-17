@@ -5,6 +5,7 @@ import VideoPlayer from "../components/VideoPlayer";
 import VideoReviewPanel from "../components/VideoReviewPanel";
 import type { VideoComment } from "../components/VideoReviewPanel";
 import { api, type Deliverable, type VideoCommentWithReplies } from "../lib/api";
+import UploaderBadge from "../components/UploaderBadge";
 import { ClientVideoReviewSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import { useToast } from "../components/Toast";
 
@@ -404,6 +405,12 @@ export default function ClientVideoReview() {
                 >
                   {kind === "other" ? "File" : kind}
                 </span>
+                <UploaderBadge
+                  name={selectedDeliverable.uploadedByName ?? null}
+                  avatarUrl={selectedDeliverable.uploadedByAvatarUrl ?? null}
+                  size={18}
+                  fontSize={11}
+                />
               </div>
               {versions.length > 1 && (
                 <select

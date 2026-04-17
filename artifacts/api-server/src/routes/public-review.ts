@@ -5,6 +5,7 @@ import {
   deliverablesTable,
   deliverableVersionsTable,
   projectsTable,
+  usersTable,
   videoCommentsTable,
   videoCommentRepliesTable,
 } from "@workspace/db";
@@ -65,10 +66,24 @@ router.get(
       commentsWithReplies.push({ ...comment, replies });
     }
 
+    let uploaderName: string | null = null;
+    let uploaderAvatarUrl: string | null = null;
+    if (deliverable.uploadedBy) {
+      const [uploader] = await db
+        .select({ name: usersTable.name, avatarUrl: usersTable.avatarUrl })
+        .from(usersTable)
+        .where(eq(usersTable.id, deliverable.uploadedBy))
+        .limit(1);
+      uploaderName = uploader?.name ?? null;
+      uploaderAvatarUrl = uploader?.avatarUrl ?? null;
+    }
+
     res.json({
       deliverable: {
         ...deliverable,
         projectName: project?.name ?? "",
+        uploadedByName: uploaderName,
+        uploadedByAvatarUrl: uploaderAvatarUrl,
       },
       comments: commentsWithReplies,
     });

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
+import UploaderBadge from "../components/UploaderBadge";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
 import { AssetsSkeleton, ErrorState, SkeletonCard } from "../components/TeamLoadingStates";
 import {
@@ -32,6 +33,7 @@ export default function TeamAssets() {
   const { t } = useTheme();
   const { isLoading: authLoading } = useTeamAuth();
   const { projects, isLoading: dashLoading, isError: dashError, refetch: refetchDash } = useDashboardData();
+  const { userMap } = useTeamAuth();
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
@@ -144,11 +146,17 @@ export default function TeamAssets() {
                         {typeIcon(d.type)}
                         <p style={f({ fontWeight: 600, fontSize: "13px", color: t.text })}>{d.title}</p>
                       </div>
-                      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                      <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "8px" }}>
                         <span style={f({ fontWeight: 500, fontSize: "10px", color: t.textTertiary, background: t.hoverBg, padding: "2px 8px", borderRadius: "3px", textTransform: "uppercase" })}>{d.status.replace("_", " ")}</span>
                         {d.version && <span style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>{d.version}</span>}
                         <span style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>{timeAgo(d.updatedAt)}</span>
                       </div>
+                      <UploaderBadge
+                        name={d.uploadedBy ? userMap.get(d.uploadedBy)?.name ?? null : null}
+                        avatarUrl={d.uploadedBy ? userMap.get(d.uploadedBy)?.avatarUrl ?? null : null}
+                        size={16}
+                        fontSize={10}
+                      />
                     </div>
                   ))}
                 </div>
@@ -168,6 +176,12 @@ export default function TeamAssets() {
                     <p style={f({ fontWeight: 500, fontSize: "13px", color: t.text })}>{d.title}</p>
                     <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>{d.projectName}</p>
                   </div>
+                  <UploaderBadge
+                    name={d.uploadedBy ? userMap.get(d.uploadedBy)?.name ?? null : null}
+                    avatarUrl={d.uploadedBy ? userMap.get(d.uploadedBy)?.avatarUrl ?? null : null}
+                    size={16}
+                    fontSize={10}
+                  />
                   <span style={f({ fontWeight: 500, fontSize: "10px", color: t.textTertiary, background: t.hoverBg, padding: "2px 8px", borderRadius: "3px", textTransform: "uppercase" })}>{d.status.replace("_", " ")}</span>
                   <span style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, minWidth: "70px", textAlign: "right" })}>{timeAgo(d.updatedAt)}</span>
                 </div>

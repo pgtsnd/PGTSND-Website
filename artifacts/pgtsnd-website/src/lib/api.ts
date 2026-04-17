@@ -108,6 +108,9 @@ export interface Deliverable {
   status: string;
   fileUrl: string | null;
   fileSize: number | null;
+  uploadedBy: string | null;
+  uploadedByName?: string | null;
+  uploadedByAvatarUrl?: string | null;
   version: string | null;
   submittedAt: string | null;
   createdAt: string;

@@ -3,6 +3,7 @@ import { useRoute } from "wouter";
 import { useTheme } from "../components/ThemeContext";
 import VideoPlayer from "../components/VideoPlayer";
 import VideoReviewPanel from "../components/VideoReviewPanel";
+import UploaderBadge from "../components/UploaderBadge";
 import type { VideoComment } from "../components/VideoReviewPanel";
 import { api, type PublicReviewData, type VideoCommentWithReplies } from "../lib/api";
 
@@ -333,6 +334,12 @@ export default function SharedReview() {
                 {deliverable.type}
               </span>
             </div>
+            <UploaderBadge
+              name={deliverable.uploadedByName ?? null}
+              avatarUrl={deliverable.uploadedByAvatarUrl ?? null}
+              size={18}
+              fontSize={11}
+            />
           </div>
         </div>
 

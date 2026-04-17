@@ -18,6 +18,7 @@ export interface Deliverable {
   status: DeliverableStatus;
   fileUrl?: string | null;
   fileSize?: bigint | null;
+  uploadedBy?: string | null;
   version?: string | null;
   submittedAt?: Date | null;
   createdAt: Date;

@@ -656,11 +656,25 @@ router.get(
       .where(inArray(deliverablesTable.projectId, projectIds))
       .orderBy(desc(deliverablesTable.createdAt));
 
+    const uploaderIds = Array.from(
+      new Set(deliverables.map((d) => d.uploadedBy).filter((id): id is string => !!id)),
+    );
+    const uploaders = uploaderIds.length
+      ? await db
+          .select({ id: usersTable.id, name: usersTable.name, avatarUrl: usersTable.avatarUrl })
+          .from(usersTable)
+          .where(inArray(usersTable.id, uploaderIds))
+      : [];
+    const uploaderMap = new Map(uploaders.map((u) => [u.id, u]));
+
     const deliverablesWithProject = deliverables.map((d) => {
       const project = projects.find((p) => p.id === d.projectId);
+      const uploader = d.uploadedBy ? uploaderMap.get(d.uploadedBy) : undefined;
       return {
         ...d,
         projectName: project?.name ?? "",
+        uploadedByName: uploader?.name ?? null,
+        uploadedByAvatarUrl: uploader?.avatarUrl ?? null,
       };
     });
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ClientLayout from "../components/ClientLayout";
 import { useTheme } from "../components/ThemeContext";
 import { api, type Deliverable, type Project, type DriveFolderGroup, type DriveFile } from "../lib/api";
+import UploaderBadge from "../components/UploaderBadge";
 import { AssetsSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import { useToast } from "../components/Toast";
 
@@ -237,6 +238,14 @@ export default function ClientAssets() {
                     <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.tagText, background: t.tagBg, padding: "2px 8px", borderRadius: "4px" }}>
                       {item.projectName}
                     </span>
+                    <div style={{ marginTop: "8px" }}>
+                      <UploaderBadge
+                        name={item.uploadedByName ?? null}
+                        avatarUrl={item.uploadedByAvatarUrl ?? null}
+                        size={16}
+                        fontSize={10}
+                      />
+                    </div>
                   </div>
                 </div>
               );
@@ -273,7 +282,15 @@ export default function ClientAssets() {
                 <div key={item.id} style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 100px 40px", padding: "14px 20px", borderBottom: `1px solid ${t.borderSubtle}`, alignItems: "center" }}>
                   <div>
                     <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, marginBottom: "2px" }}>{item.title}</p>
-                    <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.tagText, background: t.tagBg, padding: "2px 8px", borderRadius: "4px" }}>{item.projectName}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                      <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "10px", color: t.tagText, background: t.tagBg, padding: "2px 8px", borderRadius: "4px" }}>{item.projectName}</span>
+                      <UploaderBadge
+                        name={item.uploadedByName ?? null}
+                        avatarUrl={item.uploadedByAvatarUrl ?? null}
+                        size={14}
+                        fontSize={10}
+                      />
+                    </div>
                   </div>
                   <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "11px", color: t.textTertiary }}>{getTypeLabel(item.type)}</span>
                   <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "10px", color: sd.color, background: sd.bg, padding: "3px 10px", borderRadius: "4px", display: "inline-block", textAlign: "center" }}>{sd.label}</span>
