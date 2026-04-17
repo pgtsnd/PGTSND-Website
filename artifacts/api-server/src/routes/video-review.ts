@@ -5,12 +5,13 @@ import {
   videoCommentRepliesTable,
   reviewLinksTable,
   deliverablesTable,
+  deliverableVersionsTable,
   projectsTable,
   selectVideoCommentSchema,
   selectVideoCommentReplySchema,
   selectReviewLinkSchema,
 } from "@workspace/db";
-import { eq, and, asc } from "drizzle-orm";
+import { eq, and, asc, desc } from "drizzle-orm";
 import { requireRole } from "../middleware/auth";
 import {
   requireProjectAccessViaEntity,
@@ -23,6 +24,18 @@ import {
 } from "../services/notifications";
 
 const router = Router();
+
+async function resolveCurrentDeliverableVersionId(
+  deliverableId: string,
+): Promise<string | null> {
+  const [latest] = await db
+    .select({ id: deliverableVersionsTable.id })
+    .from(deliverableVersionsTable)
+    .where(eq(deliverableVersionsTable.deliverableId, deliverableId))
+    .orderBy(desc(deliverableVersionsTable.createdAt))
+    .limit(1);
+  return latest?.id ?? null;
+}
 
 router.get(
   "/deliverables/:deliverableId/comments",
@@ -59,10 +72,39 @@ router.post(
       return;
     }
 
+    const requestedVersionId =
+      typeof req.body.deliverableVersionId === "string" && req.body.deliverableVersionId.length > 0
+        ? req.body.deliverableVersionId
+        : null;
+
+    let deliverableVersionId: string | null = null;
+    if (requestedVersionId) {
+      const [version] = await db
+        .select({ id: deliverableVersionsTable.id })
+        .from(deliverableVersionsTable)
+        .where(
+          and(
+            eq(deliverableVersionsTable.id, requestedVersionId),
+            eq(deliverableVersionsTable.deliverableId, req.params.deliverableId),
+          ),
+        )
+        .limit(1);
+      if (!version) {
+        res.status(400).json({ error: "deliverableVersionId does not belong to this deliverable" });
+        return;
+      }
+      deliverableVersionId = version.id;
+    } else {
+      deliverableVersionId = await resolveCurrentDeliverableVersionId(
+        req.params.deliverableId,
+      );
+    }
+
     const [comment] = await db
       .insert(videoCommentsTable)
       .values({
         deliverableId: req.params.deliverableId,
+        deliverableVersionId,
         authorId: req.user!.id,
         authorName: req.user!.name,
         timestampSeconds: Number(timestampSeconds),

@@ -9,6 +9,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { randomUUID } from "crypto";
 import { deliverablesTable } from "./deliverables";
+import { deliverableVersionsTable } from "./deliverable-versions";
 import { usersTable } from "./users";
 
 export const videoCommentsTable = pgTable(
@@ -20,6 +21,8 @@ export const videoCommentsTable = pgTable(
     deliverableId: text("deliverable_id")
       .notNull()
       .references(() => deliverablesTable.id, { onDelete: "cascade" }),
+    deliverableVersionId: text("deliverable_version_id")
+      .references(() => deliverableVersionsTable.id, { onDelete: "set null" }),
     authorId: text("author_id")
       .references(() => usersTable.id),
     authorName: text("author_name").notNull(),

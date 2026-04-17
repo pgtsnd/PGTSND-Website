@@ -219,6 +219,7 @@ export interface VideoCommentReplyData {
 export interface VideoCommentWithReplies {
   id: string;
   deliverableId: string;
+  deliverableVersionId: string | null;
   authorId: string | null;
   authorName: string;
   timestampSeconds: number;
@@ -384,10 +385,15 @@ export const api = {
   getVideoComments: (deliverableId: string) =>
     apiFetch<VideoCommentWithReplies[]>(`/deliverables/${deliverableId}/comments`),
 
-  addVideoComment: (deliverableId: string, timestampSeconds: number, content: string) =>
+  addVideoComment: (
+    deliverableId: string,
+    timestampSeconds: number,
+    content: string,
+    deliverableVersionId?: string | null,
+  ) =>
     apiFetch<VideoCommentWithReplies>(`/deliverables/${deliverableId}/comments`, {
       method: "POST",
-      body: JSON.stringify({ timestampSeconds, content }),
+      body: JSON.stringify({ timestampSeconds, content, deliverableVersionId: deliverableVersionId ?? undefined }),
     }),
 
   resolveVideoComment: (commentId: string, resolved: boolean, note?: string) =>

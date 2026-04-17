@@ -3,11 +3,12 @@ import {
   db,
   reviewLinksTable,
   deliverablesTable,
+  deliverableVersionsTable,
   projectsTable,
   videoCommentsTable,
   videoCommentRepliesTable,
 } from "@workspace/db";
-import { eq, asc } from "drizzle-orm";
+import { eq, and, asc, desc } from "drizzle-orm";
 import { notifyPublicReviewComment } from "../services/notifications";
 
 const router = Router();
@@ -100,10 +101,43 @@ router.post(
       return;
     }
 
+    const requestedVersionId =
+      typeof req.body.deliverableVersionId === "string" && req.body.deliverableVersionId.length > 0
+        ? req.body.deliverableVersionId
+        : null;
+
+    let resolvedVersionId: string | null = null;
+    if (requestedVersionId) {
+      const [version] = await db
+        .select({ id: deliverableVersionsTable.id })
+        .from(deliverableVersionsTable)
+        .where(
+          and(
+            eq(deliverableVersionsTable.id, requestedVersionId),
+            eq(deliverableVersionsTable.deliverableId, link.deliverableId),
+          ),
+        )
+        .limit(1);
+      if (!version) {
+        res.status(400).json({ error: "deliverableVersionId does not belong to this deliverable" });
+        return;
+      }
+      resolvedVersionId = version.id;
+    } else {
+      const [latestVersion] = await db
+        .select({ id: deliverableVersionsTable.id })
+        .from(deliverableVersionsTable)
+        .where(eq(deliverableVersionsTable.deliverableId, link.deliverableId))
+        .orderBy(desc(deliverableVersionsTable.createdAt))
+        .limit(1);
+      resolvedVersionId = latestVersion?.id ?? null;
+    }
+
     const [comment] = await db
       .insert(videoCommentsTable)
       .values({
         deliverableId: link.deliverableId,
+        deliverableVersionId: resolvedVersionId,
         authorId: null,
         authorName: authorName.trim(),
         timestampSeconds: Number(timestampSeconds),

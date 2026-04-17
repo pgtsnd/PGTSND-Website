@@ -14,6 +14,7 @@ export interface VideoCommentReply {
 export interface VideoComment {
   id: string;
   deliverableId: string;
+  deliverableVersionId: string | null;
   authorId: string | null;
   authorName: string;
   timestampSeconds: number;
@@ -37,6 +38,7 @@ interface VideoReviewPanelProps {
   onPublicAuthorNameChange?: (name: string) => void;
   onResolveComment?: (commentId: string, resolved: boolean, note?: string) => Promise<void>;
   hideTimestamps?: boolean;
+  versionLabelById?: Record<string, string>;
 }
 
 function timeAgo(date: string | Date) {
@@ -61,6 +63,7 @@ export default function VideoReviewPanel({
   onPublicAuthorNameChange,
   onResolveComment,
   hideTimestamps = false,
+  versionLabelById,
 }: VideoReviewPanelProps) {
   const { t } = useTheme();
   const [newComment, setNewComment] = useState("");
@@ -382,6 +385,20 @@ export default function VideoReviewPanel({
                   >
                     {formatTime(comment.timestampSeconds)}
                   </button>
+                )}
+                {versionLabelById && comment.deliverableVersionId && versionLabelById[comment.deliverableVersionId] && (
+                  <span
+                    data-testid={`comment-version-tag-${comment.id}`}
+                    title={`Left on ${versionLabelById[comment.deliverableVersionId]}`}
+                    style={f({
+                      fontWeight: 600, fontSize: "9px", color: t.textSecondary,
+                      background: t.hoverBg, border: `1px solid ${t.borderSubtle}`,
+                      padding: "1px 6px", borderRadius: "4px",
+                      letterSpacing: "0.04em",
+                    })}
+                  >
+                    {versionLabelById[comment.deliverableVersionId]}
+                  </span>
                 )}
                 <span style={f({ fontWeight: 600, fontSize: "11px", color: t.text })}>
                   {comment.authorName}

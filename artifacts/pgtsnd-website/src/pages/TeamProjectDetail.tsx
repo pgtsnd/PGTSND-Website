@@ -1884,6 +1884,7 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
   const [actionMsg, setActionMsg] = useState<string | null>(null);
   const [versions, setVersions] = useState<DeliverableVersion[]>([]);
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+  const [showAllVersionComments, setShowAllVersionComments] = useState(false);
 
   const ff = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
@@ -1909,6 +1910,7 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
   useEffect(() => {
     if (!selectedDeliverable) return;
     setSelectedVersionId(null);
+    setShowAllVersionComments(false);
     api.getVideoComments(selectedDeliverable.id).then(setComments).catch(() => setComments([]));
     api.getReviewLinks(selectedDeliverable.id).then(setReviewLinks).catch(() => setReviewLinks([]));
     api.getDeliverableVersions(selectedDeliverable.id).then(setVersions).catch(() => setVersions([]));
@@ -1921,14 +1923,27 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
   const activeVersionLabel = activeVersion?.version ?? selectedDeliverable?.version ?? "v1";
   const isViewingPreviousCut = !!activeVersion && activeVersion.fileUrl !== selectedDeliverable?.fileUrl;
 
+  const versionLabelById: Record<string, string> = {};
+  for (const v of versions) versionLabelById[v.id] = v.version;
+
+  const visibleComments =
+    isViewingPreviousCut && !showAllVersionComments && activeVersion
+      ? comments.filter((c) => c.deliverableVersionId === activeVersion.id)
+      : comments;
+
   const handleAddComment = useCallback(
     async (timestampSeconds: number, content: string) => {
       if (!selectedDeliverable) return;
-      const comment = await api.addVideoComment(selectedDeliverable.id, timestampSeconds, content);
+      const comment = await api.addVideoComment(
+        selectedDeliverable.id,
+        timestampSeconds,
+        content,
+        activeVersion?.id ?? null,
+      );
       setComments((prev) => [...prev, comment].sort((a, b) => a.timestampSeconds - b.timestampSeconds));
       setActiveTimestamp(null);
     },
-    [selectedDeliverable],
+    [selectedDeliverable, activeVersion?.id],
   );
 
   const handleAddReply = useCallback(
@@ -2206,22 +2221,39 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
                 style={{
                   padding: "8px 12px", marginBottom: "10px", borderRadius: "6px",
                   background: "rgba(255,200,60,0.08)", border: "1px solid rgba(255,200,60,0.2)",
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px",
                 }}
               >
                 <p style={ff({ fontWeight: 500, fontSize: "11px", color: "rgba(255,200,60,0.9)" })}>
                   Viewing previous cut {activeVersionLabel} (latest is {selectedDeliverable.version || "v1"})
+                  {" · "}
+                  {showAllVersionComments
+                    ? "showing comments from all versions"
+                    : `showing comments left on ${activeVersionLabel}`}
                 </p>
-                <button
-                  onClick={() => setSelectedVersionId(null)}
-                  style={ff({
-                    fontWeight: 600, fontSize: "10px", color: t.text,
-                    background: "transparent", border: `1px solid ${t.border}`,
-                    borderRadius: "4px", padding: "4px 8px", cursor: "pointer",
-                  })}
-                >
-                  Back to latest
-                </button>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button
+                    data-testid="review-toggle-all-version-comments"
+                    onClick={() => setShowAllVersionComments((v) => !v)}
+                    style={ff({
+                      fontWeight: 600, fontSize: "10px", color: t.text,
+                      background: "transparent", border: `1px solid ${t.border}`,
+                      borderRadius: "4px", padding: "4px 8px", cursor: "pointer",
+                    })}
+                  >
+                    {showAllVersionComments ? `Only ${activeVersionLabel}` : "Show all"}
+                  </button>
+                  <button
+                    onClick={() => setSelectedVersionId(null)}
+                    style={ff({
+                      fontWeight: 600, fontSize: "10px", color: t.text,
+                      background: "transparent", border: `1px solid ${t.border}`,
+                      borderRadius: "4px", padding: "4px 8px", cursor: "pointer",
+                    })}
+                  >
+                    Back to latest
+                  </button>
+                </div>
               </div>
             )}
 
@@ -2231,7 +2263,7 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
                 src={activeFileUrl}
                 onTimeClick={(ts) => setActiveTimestamp(ts)}
                 seekTo={seekTo ?? undefined}
-                markers={comments.map((c) => ({
+                markers={visibleComments.map((c) => ({
                   id: c.id,
                   timestampSeconds: c.timestampSeconds,
                   label: c.content.slice(0, 30),
@@ -2251,12 +2283,13 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
           </div>
 
           <VideoReviewPanel
-            comments={comments as VideoComment[]}
+            comments={visibleComments as VideoComment[]}
             onAddComment={handleAddComment}
             onAddReply={handleAddReply}
             onCommentClick={handleCommentClick}
             activeTimestamp={activeTimestamp}
             onResolveComment={handleResolveComment}
+            versionLabelById={versionLabelById}
           />
         </div>
       )}
