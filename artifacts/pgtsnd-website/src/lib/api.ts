@@ -237,6 +237,16 @@ export interface UserProfile {
   emailNotifyComments?: boolean;
 }
 
+export interface DistributionList {
+  id: string;
+  userId: string;
+  name: string;
+  toRecipients: string[];
+  ccRecipients: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface NotificationPreferences {
   emailNotifyReviews?: boolean;
   emailNotifyComments?: boolean;
@@ -474,6 +484,33 @@ export const api = {
       "/integrations/invoices/email-export",
       { method: "POST", body: JSON.stringify(data) },
     ),
+
+  listDistributionLists: () =>
+    apiFetch<DistributionList[]>("/users/me/distribution-lists"),
+
+  createDistributionList: (data: {
+    name: string;
+    toRecipients: string[];
+    ccRecipients?: string[];
+  }) =>
+    apiFetch<DistributionList>("/users/me/distribution-lists", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateDistributionList: (
+    id: string,
+    data: { name?: string; toRecipients?: string[]; ccRecipients?: string[] },
+  ) =>
+    apiFetch<DistributionList>(`/users/me/distribution-lists/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  deleteDistributionList: (id: string) =>
+    apiFetch<{ message: string }>(`/users/me/distribution-lists/${id}`, {
+      method: "DELETE",
+    }),
 
   updateBookkeeperEmail: (bookkeeperEmail: string | null) =>
     apiFetch<{ id: string; bookkeeperEmail: string | null }>(

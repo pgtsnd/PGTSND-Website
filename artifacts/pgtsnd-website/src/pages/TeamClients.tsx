@@ -29,6 +29,7 @@ import {
   type Contract,
   type ScheduledInvoiceExport,
   type InvoiceExportRunSummary,
+  type DistributionList,
 } from "../lib/api";
 import { exportTeamInvoicesToCsv, buildTeamInvoicesCsv, type TeamInvoiceExportRow } from "../lib/exports";
 
@@ -1412,9 +1413,36 @@ function ExportInvoicesModal({
   const [ccRecipients, setCcRecipients] = useState<string>("");
   const [subject, setSubject] = useState<string>("");
   const [message, setMessage] = useState<string>("");
+  const [distLists, setDistLists] = useState<DistributionList[]>([]);
+  const [listsLoaded, setListsLoaded] = useState(false);
+  const [selectedListId, setSelectedListId] = useState<string>("");
+  const [showSaveList, setShowSaveList] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [savingList, setSavingList] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
+  const [listMessage, setListMessage] = useState<string | null>(null);
   useEffect(() => {
     setRecipient(defaultBookkeeperEmail || "");
   }, [defaultBookkeeperEmail]);
+  useEffect(() => {
+    if (!listsLoaded) {
+      api
+        .listDistributionLists()
+        .then((rows) => {
+          setDistLists(rows);
+          setListsLoaded(true);
+        })
+        .catch(() => setListsLoaded(true));
+    }
+  }, [listsLoaded]);
+  const refreshDistLists = async () => {
+    try {
+      const rows = await api.listDistributionLists();
+      setDistLists(rows);
+    } catch {
+      // ignore
+    }
+  };
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const parseEmails = (s: string): { valid: string[]; invalid: string[] } => {
@@ -1569,6 +1597,87 @@ function ExportInvoicesModal({
 
         {mode === "email" && (
           <div style={{ marginBottom: "16px" }}>
+            {distLists.length > 0 && (
+              <div style={{ marginBottom: "14px", padding: "10px 12px", background: t.hoverBg, borderRadius: "8px" }}>
+                <label style={labelStyle}>Saved distribution list</label>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <select
+                    value={selectedListId}
+                    onChange={(e: any) => setSelectedListId(e.target.value)}
+                    style={{ ...inputStyle, cursor: "pointer", flex: 1 }}
+                  >
+                    <option value="">Choose a list…</option>
+                    {distLists.map((l) => (
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={!selectedListId}
+                    onClick={() => {
+                      const list = distLists.find((l) => l.id === selectedListId);
+                      if (!list) return;
+                      setRecipient(list.toRecipients.join(", "));
+                      setCcRecipients(list.ccRecipients.join(", "));
+                      setListMessage(`Applied "${list.name}"`);
+                      setListError(null);
+                      setTimeout(() => setListMessage(null), 2000);
+                    }}
+                    style={f({
+                      fontWeight: 600, fontSize: "11px", color: t.accentText, background: t.accent,
+                      border: "none", borderRadius: "6px", padding: "8px 12px",
+                      cursor: selectedListId ? "pointer" : "not-allowed",
+                      opacity: selectedListId ? 1 : 0.5,
+                    })}
+                  >
+                    Replace
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!selectedListId}
+                    onClick={() => {
+                      const list = distLists.find((l) => l.id === selectedListId);
+                      if (!list) return;
+                      const mergeEmails = (current: string, additions: string[]) => {
+                        const seen = new Set<string>();
+                        const out: string[] = [];
+                        for (const raw of current.split(",")) {
+                          const trimmed = raw.trim();
+                          if (!trimmed) continue;
+                          const key = trimmed.toLowerCase();
+                          if (seen.has(key)) continue;
+                          seen.add(key);
+                          out.push(trimmed);
+                        }
+                        for (const e of additions) {
+                          const key = e.toLowerCase();
+                          if (seen.has(key)) continue;
+                          seen.add(key);
+                          out.push(e);
+                        }
+                        return out.join(", ");
+                      };
+                      setRecipient(mergeEmails(recipient, list.toRecipients));
+                      setCcRecipients(mergeEmails(ccRecipients, list.ccRecipients));
+                      setListMessage(`Appended "${list.name}"`);
+                      setListError(null);
+                      setTimeout(() => setListMessage(null), 2000);
+                    }}
+                    style={f({
+                      fontWeight: 600, fontSize: "11px", color: t.text, background: "transparent",
+                      border: `1px solid ${t.border}`, borderRadius: "6px", padding: "8px 12px",
+                      cursor: selectedListId ? "pointer" : "not-allowed",
+                      opacity: selectedListId ? 1 : 0.5,
+                    })}
+                  >
+                    Append
+                  </button>
+                </div>
+                <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, marginTop: "6px" })}>
+                  Manage saved lists in Settings → Distribution Lists.
+                </p>
+              </div>
+            )}
             <label style={labelStyle}>Send to</label>
             <input
               type="text"
@@ -1610,6 +1719,100 @@ function ExportInvoicesModal({
                 {ccDeduped.length > 0 ? ` + ${ccDeduped.length} CC` : ""}
               </p>
             )}
+
+            {listMessage && (
+              <p style={f({ fontWeight: 500, fontSize: "11px", color: t.accent, marginTop: "6px" })}>
+                {listMessage}
+              </p>
+            )}
+            {listError && (
+              <p style={f({ fontWeight: 500, fontSize: "11px", color: "#e26060", marginTop: "6px" })}>
+                {listError}
+              </p>
+            )}
+
+            <div style={{ marginTop: "10px" }}>
+              {showSaveList ? (
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <input
+                    type="text"
+                    value={newListName}
+                    onChange={(e: any) => setNewListName(e.target.value)}
+                    placeholder="List name (e.g. Q1 Accountants)"
+                    maxLength={100}
+                    style={{ ...inputStyle, flex: 1 }}
+                  />
+                  <button
+                    type="button"
+                    disabled={savingList || !newListName.trim() || toParsed.valid.length === 0}
+                    onClick={async () => {
+                      setListError(null);
+                      setListMessage(null);
+                      setSavingList(true);
+                      try {
+                        const created = await api.createDistributionList({
+                          name: newListName.trim(),
+                          toRecipients: toParsed.valid,
+                          ccRecipients: ccDeduped,
+                        });
+                        await refreshDistLists();
+                        setSelectedListId(created.id);
+                        setShowSaveList(false);
+                        setNewListName("");
+                        setListMessage(`Saved "${created.name}"`);
+                        setTimeout(() => setListMessage(null), 2000);
+                      } catch (err: any) {
+                        setListError(err?.message || "Couldn't save list");
+                      } finally {
+                        setSavingList(false);
+                      }
+                    }}
+                    style={f({
+                      fontWeight: 600, fontSize: "11px", color: t.accentText, background: t.accent,
+                      border: "none", borderRadius: "6px", padding: "8px 12px",
+                      cursor: savingList || !newListName.trim() || toParsed.valid.length === 0 ? "not-allowed" : "pointer",
+                      opacity: savingList || !newListName.trim() || toParsed.valid.length === 0 ? 0.5 : 1,
+                    })}
+                  >
+                    {savingList ? "Saving..." : "Save list"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSaveList(false);
+                      setNewListName("");
+                      setListError(null);
+                    }}
+                    style={f({
+                      fontWeight: 600, fontSize: "11px", color: t.textSecondary,
+                      background: "transparent", border: `1px solid ${t.border}`,
+                      borderRadius: "6px", padding: "8px 12px", cursor: "pointer",
+                    })}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  disabled={toParsed.valid.length === 0 || toParsed.invalid.length > 0 || ccParsed.invalid.length > 0}
+                  onClick={() => {
+                    setShowSaveList(true);
+                    setListError(null);
+                    setListMessage(null);
+                  }}
+                  style={f({
+                    fontWeight: 600, fontSize: "11px", color: t.text,
+                    background: "transparent", border: `1px solid ${t.border}`,
+                    borderRadius: "6px", padding: "8px 12px",
+                    cursor: toParsed.valid.length === 0 ? "not-allowed" : "pointer",
+                    opacity: toParsed.valid.length === 0 ? 0.5 : 1,
+                  })}
+                >
+                  Save these recipients as a list
+                </button>
+              )}
+            </div>
 
             <div style={{ marginTop: "12px" }}>
               <label style={labelStyle}>Subject (optional)</label>

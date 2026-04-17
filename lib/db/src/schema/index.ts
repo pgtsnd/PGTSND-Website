@@ -20,3 +20,4 @@ export * from "./review-links";
 export * from "./project-notification-mutes";
 export * from "./media-uploads";
 export * from "./scheduled-invoice-exports";
+export * from "./distribution-lists";

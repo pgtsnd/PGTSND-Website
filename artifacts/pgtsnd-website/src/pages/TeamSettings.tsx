@@ -5,7 +5,7 @@ import { useTeamAuth } from "../contexts/TeamAuthContext";
 import { SettingsSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import { useToast } from "../components/Toast";
 import { useUpdateProfile } from "../hooks/useTeamData";
-import { api } from "../lib/api";
+import { api, type DistributionList } from "../lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUpdateMyNotificationPreferences } from "@workspace/api-client-react";
 import {
@@ -22,7 +22,7 @@ import MutedProjectsList from "../components/MutedProjectsList";
 export default function TeamSettings() {
   const { t } = useTheme();
   const { currentUser, isLoading: authLoading } = useTeamAuth();
-  const [activeSection, setActiveSection] = useState<"profile" | "notifications" | "integrations">("profile");
+  const [activeSection, setActiveSection] = useState<"profile" | "notifications" | "distribution-lists" | "integrations">("profile");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [title, setTitle] = useState("");
@@ -95,6 +95,7 @@ export default function TeamSettings() {
   const sections = [
     { key: "profile" as const, label: "My Profile" },
     { key: "notifications" as const, label: "Notifications" },
+    { key: "distribution-lists" as const, label: "Distribution Lists" },
     { key: "integrations" as const, label: "Integrations" },
   ];
 
@@ -282,6 +283,10 @@ export default function TeamSettings() {
 
                 <MutedProjectsList variant="team" />
               </div>
+            )}
+
+            {activeSection === "distribution-lists" && (
+              <DistributionListsPanel t={t} f={f} />
             )}
 
             {activeSection === "integrations" && (
@@ -811,5 +816,378 @@ function ToggleSwitch({ defaultOn, t, label }: { defaultOn: boolean; t: any; lab
         transition: "transform 0.2s",
       }} />
     </button>
+  );
+}
+
+function DistributionListsPanel({ t, f }: { t: any; f: any }) {
+  const { toast } = useToast();
+  const [lists, setLists] = useState<DistributionList[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editTo, setEditTo] = useState("");
+  const [editCc, setEditCc] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newTo, setNewTo] = useState("");
+  const [newCc, setNewCc] = useState("");
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const parseEmails = (s: string): { valid: string[]; invalid: string[] } => {
+    const valid: string[] = [];
+    const invalid: string[] = [];
+    const seen = new Set<string>();
+    for (const raw of s.split(",")) {
+      const trimmed = raw.trim();
+      if (!trimmed) continue;
+      const key = trimmed.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (EMAIL_RE.test(trimmed)) valid.push(trimmed);
+      else invalid.push(trimmed);
+    }
+    return { valid, invalid };
+  };
+
+  const refresh = async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const rows = await api.listDistributionLists();
+      setLists(rows);
+    } catch (err: any) {
+      setLoadError(err?.message || "Couldn't load distribution lists");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void refresh();
+  }, []);
+
+  const beginEdit = (list: DistributionList) => {
+    setEditingId(list.id);
+    setEditName(list.name);
+    setEditTo(list.toRecipients.join(", "));
+    setEditCc(list.ccRecipients.join(", "));
+    setEditError(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditError(null);
+  };
+
+  const saveEdit = async (id: string) => {
+    setEditError(null);
+    const name = editName.trim();
+    if (!name) { setEditError("Name is required"); return; }
+    const to = parseEmails(editTo);
+    const cc = parseEmails(editCc);
+    if (to.invalid.length > 0) { setEditError(`Invalid To: ${to.invalid.join(", ")}`); return; }
+    if (cc.invalid.length > 0) { setEditError(`Invalid CC: ${cc.invalid.join(", ")}`); return; }
+    if (to.valid.length === 0) { setEditError("At least one To recipient is required"); return; }
+    setSaving(true);
+    try {
+      await api.updateDistributionList(id, {
+        name,
+        toRecipients: to.valid,
+        ccRecipients: cc.valid,
+      });
+      await refresh();
+      setEditingId(null);
+      toast("Distribution list updated", "success");
+    } catch (err: any) {
+      setEditError(err?.message || "Couldn't save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (list: DistributionList) => {
+    if (!confirm(`Delete distribution list "${list.name}"?`)) return;
+    setDeletingId(list.id);
+    try {
+      await api.deleteDistributionList(list.id);
+      await refresh();
+      toast("Distribution list deleted", "info");
+    } catch (err: any) {
+      toast(err?.message || "Couldn't delete list", "error");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleCreate = async () => {
+    setCreateError(null);
+    const name = newName.trim();
+    if (!name) { setCreateError("Name is required"); return; }
+    const to = parseEmails(newTo);
+    const cc = parseEmails(newCc);
+    if (to.invalid.length > 0) { setCreateError(`Invalid To: ${to.invalid.join(", ")}`); return; }
+    if (cc.invalid.length > 0) { setCreateError(`Invalid CC: ${cc.invalid.join(", ")}`); return; }
+    if (to.valid.length === 0) { setCreateError("At least one To recipient is required"); return; }
+    setCreating(true);
+    try {
+      await api.createDistributionList({
+        name,
+        toRecipients: to.valid,
+        ccRecipients: cc.valid,
+      });
+      setShowCreate(false);
+      setNewName(""); setNewTo(""); setNewCc("");
+      await refresh();
+      toast("Distribution list created", "success");
+    } catch (err: any) {
+      setCreateError(err?.message || "Couldn't create list");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const inputStyle = f({
+    fontWeight: 400, fontSize: "13px", color: t.text,
+    background: t.bgCard, border: `1px solid ${t.border}`,
+    borderRadius: "6px", padding: "10px 14px", width: "100%",
+    outline: "none", boxSizing: "border-box" as const,
+  });
+  const labelStyle = f({
+    fontWeight: 500, fontSize: "11px", color: t.textMuted,
+    textTransform: "uppercase", letterSpacing: "0.06em",
+    display: "block", marginBottom: "6px",
+  });
+
+  return (
+    <div>
+      <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Distribution Lists</h2>
+      <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "20px" })}>
+        Save named recipient groups (To + CC) to apply quickly when emailing invoice exports.
+      </p>
+
+      {loading ? (
+        <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>Loading...</p>
+      ) : loadError ? (
+        <ErrorState message={loadError} onRetry={refresh} />
+      ) : (
+        <>
+          {lists.length === 0 && !showCreate && (
+            <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "16px" })}>
+              No saved lists yet. Create one below or save a list from the invoice export modal on the Clients page.
+            </p>
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
+            {lists.map((list) => {
+              const isEditing = editingId === list.id;
+              return (
+                <div
+                  key={list.id}
+                  style={{
+                    background: t.bgCard, border: `1px solid ${t.border}`,
+                    borderRadius: "8px", padding: "14px 16px",
+                  }}
+                >
+                  {isEditing ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <div>
+                        <label style={labelStyle}>Name</label>
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          maxLength={100}
+                          style={inputStyle}
+                        />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>To recipients (comma-separated)</label>
+                        <input
+                          type="text"
+                          value={editTo}
+                          onChange={(e) => setEditTo(e.target.value)}
+                          style={inputStyle}
+                        />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>CC recipients (comma-separated)</label>
+                        <input
+                          type="text"
+                          value={editCc}
+                          onChange={(e) => setEditCc(e.target.value)}
+                          style={inputStyle}
+                        />
+                      </div>
+                      {editError && (
+                        <p style={f({ fontWeight: 500, fontSize: "11px", color: "#e26060" })}>{editError}</p>
+                      )}
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                          type="button"
+                          onClick={() => saveEdit(list.id)}
+                          disabled={saving}
+                          style={f({
+                            fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent,
+                            border: "none", borderRadius: "6px", padding: "8px 14px",
+                            cursor: "pointer", opacity: saving ? 0.6 : 1,
+                          })}
+                        >
+                          {saving ? "Saving..." : "Save"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelEdit}
+                          style={f({
+                            fontWeight: 600, fontSize: "12px", color: t.textSecondary,
+                            background: "transparent", border: `1px solid ${t.border}`,
+                            borderRadius: "6px", padding: "8px 14px", cursor: "pointer",
+                          })}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={f({ fontWeight: 700, fontSize: "13px", color: t.text, marginBottom: "4px" })}>
+                          {list.name}
+                        </p>
+                        <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, marginBottom: "2px", wordBreak: "break-word" as const })}>
+                          To: {list.toRecipients.join(", ") || "(none)"}
+                        </p>
+                        {list.ccRecipients.length > 0 && (
+                          <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, wordBreak: "break-word" as const })}>
+                            CC: {list.ccRecipients.join(", ")}
+                          </p>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+                        <button
+                          type="button"
+                          onClick={() => beginEdit(list)}
+                          style={f({
+                            fontWeight: 600, fontSize: "11px", color: t.text,
+                            background: "transparent", border: `1px solid ${t.border}`,
+                            borderRadius: "6px", padding: "6px 12px", cursor: "pointer",
+                          })}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(list)}
+                          disabled={deletingId === list.id}
+                          style={f({
+                            fontWeight: 600, fontSize: "11px", color: "#e26060",
+                            background: "transparent", border: `1px solid ${t.border}`,
+                            borderRadius: "6px", padding: "6px 12px",
+                            cursor: deletingId === list.id ? "not-allowed" : "pointer",
+                            opacity: deletingId === list.id ? 0.6 : 1,
+                          })}
+                        >
+                          {deletingId === list.id ? "Deleting..." : "Delete"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {showCreate ? (
+            <div
+              style={{
+                background: t.bgCard, border: `1px solid ${t.border}`,
+                borderRadius: "8px", padding: "14px 16px",
+                display: "flex", flexDirection: "column", gap: "10px",
+              }}
+            >
+              <p style={f({ fontWeight: 700, fontSize: "13px", color: t.text })}>New distribution list</p>
+              <div>
+                <label style={labelStyle}>Name</label>
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="e.g. Q1 Accountants"
+                  maxLength={100}
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>To recipients (comma-separated)</label>
+                <input
+                  type="text"
+                  value={newTo}
+                  onChange={(e) => setNewTo(e.target.value)}
+                  placeholder="bookkeeper@accounting.com, finance@studio.com"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>CC recipients (optional)</label>
+                <input
+                  type="text"
+                  value={newCc}
+                  onChange={(e) => setNewCc(e.target.value)}
+                  placeholder="admin@studio.com"
+                  style={inputStyle}
+                />
+              </div>
+              {createError && (
+                <p style={f({ fontWeight: 500, fontSize: "11px", color: "#e26060" })}>{createError}</p>
+              )}
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  type="button"
+                  onClick={handleCreate}
+                  disabled={creating}
+                  style={f({
+                    fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent,
+                    border: "none", borderRadius: "6px", padding: "8px 14px",
+                    cursor: "pointer", opacity: creating ? 0.6 : 1,
+                  })}
+                >
+                  {creating ? "Creating..." : "Create list"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreate(false);
+                    setCreateError(null);
+                  }}
+                  style={f({
+                    fontWeight: 600, fontSize: "12px", color: t.textSecondary,
+                    background: "transparent", border: `1px solid ${t.border}`,
+                    borderRadius: "6px", padding: "8px 14px", cursor: "pointer",
+                  })}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowCreate(true)}
+              style={f({
+                fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent,
+                border: "none", borderRadius: "6px", padding: "10px 16px", cursor: "pointer",
+              })}
+            >
+              + New distribution list
+            </button>
+          )}
+        </>
+      )}
+    </div>
   );
 }

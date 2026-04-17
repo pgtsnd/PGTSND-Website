@@ -1,10 +1,111 @@
 import { Router } from "express";
-import { db, usersTable, insertUserSchema, updateUserSchema, selectUserSchema } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import {
+  db,
+  usersTable,
+  insertUserSchema,
+  updateUserSchema,
+  selectUserSchema,
+  distributionListsTable,
+  selectDistributionListSchema,
+  insertDistributionListBodySchema,
+  patchDistributionListBodySchema,
+} from "@workspace/db";
+import { and, asc, eq } from "drizzle-orm";
 import { requireRole } from "../middleware/auth";
 import { validateAndSend, validateAndSendArray } from "../middleware/validate-response";
 
 const router = Router();
+
+router.get("/users/me/distribution-lists", async (req, res) => {
+  const lists = await db
+    .select()
+    .from(distributionListsTable)
+    .where(eq(distributionListsTable.userId, req.user!.id))
+    .orderBy(asc(distributionListsTable.name));
+  validateAndSendArray(res, selectDistributionListSchema, lists);
+});
+
+router.post("/users/me/distribution-lists", async (req, res) => {
+  const parsed = insertDistributionListBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.issues });
+    return;
+  }
+  if (parsed.data.toRecipients.length === 0) {
+    res.status(400).json({ error: "At least one To recipient is required" });
+    return;
+  }
+  try {
+    const [list] = await db
+      .insert(distributionListsTable)
+      .values({
+        userId: req.user!.id,
+        name: parsed.data.name,
+        toRecipients: parsed.data.toRecipients,
+        ccRecipients: parsed.data.ccRecipients ?? [],
+      })
+      .returning();
+    validateAndSend(res, selectDistributionListSchema, list, 201);
+  } catch (err: any) {
+    if (err?.message?.includes("duplicate") || err?.message?.includes("unique")) {
+      res.status(409).json({ error: "A list with that name already exists" });
+      return;
+    }
+    throw err;
+  }
+});
+
+router.patch("/users/me/distribution-lists/:id", async (req, res) => {
+  const parsed = patchDistributionListBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Validation failed", details: parsed.error.issues });
+    return;
+  }
+  if (parsed.data.toRecipients && parsed.data.toRecipients.length === 0) {
+    res.status(400).json({ error: "At least one To recipient is required" });
+    return;
+  }
+  try {
+    const [list] = await db
+      .update(distributionListsTable)
+      .set(parsed.data)
+      .where(
+        and(
+          eq(distributionListsTable.id, req.params.id),
+          eq(distributionListsTable.userId, req.user!.id),
+        ),
+      )
+      .returning();
+    if (!list) {
+      res.status(404).json({ error: "Distribution list not found" });
+      return;
+    }
+    validateAndSend(res, selectDistributionListSchema, list);
+  } catch (err: any) {
+    if (err?.message?.includes("duplicate") || err?.message?.includes("unique")) {
+      res.status(409).json({ error: "A list with that name already exists" });
+      return;
+    }
+    throw err;
+  }
+});
+
+router.delete("/users/me/distribution-lists/:id", async (req, res) => {
+  const [list] = await db
+    .delete(distributionListsTable)
+    .where(
+      and(
+        eq(distributionListsTable.id, req.params.id),
+        eq(distributionListsTable.userId, req.user!.id),
+      ),
+    )
+    .returning();
+  if (!list) {
+    res.status(404).json({ error: "Distribution list not found" });
+    return;
+  }
+  res.json({ message: "Distribution list deleted" });
+});
 
 const NOTIFICATION_PREF_KEYS = ["emailNotifyReviews", "emailNotifyComments"] as const;
 type NotificationPrefKey = (typeof NOTIFICATION_PREF_KEYS)[number];
