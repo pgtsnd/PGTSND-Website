@@ -44,3 +44,7 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Local user uploads / reference snapshots — kept on disk but not tracked
+attached_assets/
+_reference/

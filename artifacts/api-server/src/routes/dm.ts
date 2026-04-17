@@ -4,9 +4,10 @@ import {
   messagesTable,
   selectMessageSchema,
   usersTable,
+  projectsTable,
+  projectMembersTable,
 } from "@workspace/db";
 import { and, desc, eq, isNull, or, inArray, sql } from "drizzle-orm";
-import { z } from "zod/v4";
 import { validateAndSendArray, validateAndSend } from "../middleware/validate-response";
 
 const router = Router();
@@ -118,8 +119,6 @@ router.get("/dm/threads/:userId", async (req, res) => {
   validateAndSendArray(res, selectMessageSchema, messages);
 });
 
-const sendDmSchema = z.object({ content: z.string().min(1) });
-
 router.post("/dm/threads/:userId", async (req, res) => {
   const me = req.user!;
   const otherId = req.params.userId;
@@ -132,9 +131,9 @@ router.post("/dm/threads/:userId", async (req, res) => {
     res.status(403).json({ error: "Direct messages with this user are not allowed for your role" });
     return;
   }
-  const parsed = sendDmSchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Validation failed", details: parsed.error.issues });
+  const content = typeof req.body?.content === "string" ? req.body.content.trim() : "";
+  if (!content) {
+    res.status(400).json({ error: "Validation failed", details: "content is required" });
     return;
   }
   const [message] = await db
@@ -142,7 +141,7 @@ router.post("/dm/threads/:userId", async (req, res) => {
     .values({
       senderId: me.id,
       recipientId: otherId,
-      content: parsed.data.content,
+      content,
       projectId: null,
     })
     .returning();
@@ -180,23 +179,55 @@ router.get("/messages/unread-summary", async (req, res) => {
       ),
     );
 
-  // Project group messages: not authored by me, unread, in projects I have access to
-  // Owner/partner: all projects. Crew: project_members. Client: their projects.
-  // For simplicity, count any project-group unread messages where senderId != me.
-  // (Access boundaries are still enforced when fetching messages themselves.)
-  const [pgRow] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(messagesTable)
-    .where(
-      and(
-        sql`${messagesTable.projectId} is not null`,
-        sql`${messagesTable.senderId} <> ${me.id}`,
-        eq(messagesTable.read, false),
-      ),
-    );
+  // Project group messages: not authored by me, unread, in projects I have access to.
+  // Access rules: owner/partner -> all projects; crew -> via project_members;
+  // client -> projects.client_id = me.id.
+  let accessibleProjectIds: string[] | null = null;
+  if (me.role === "owner" || me.role === "partner") {
+    accessibleProjectIds = null; // all projects
+  } else if (me.role === "crew") {
+    const rows = await db
+      .select({ id: projectMembersTable.projectId })
+      .from(projectMembersTable)
+      .where(eq(projectMembersTable.userId, me.id));
+    accessibleProjectIds = rows.map((r) => r.id);
+  } else {
+    const rows = await db
+      .select({ id: projectsTable.id })
+      .from(projectsTable)
+      .where(eq(projectsTable.clientId, me.id));
+    accessibleProjectIds = rows.map((r) => r.id);
+  }
+
+  let pgCount = 0;
+  if (accessibleProjectIds === null) {
+    const [pgRow] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(messagesTable)
+      .where(
+        and(
+          sql`${messagesTable.projectId} is not null`,
+          sql`${messagesTable.senderId} <> ${me.id}`,
+          eq(messagesTable.read, false),
+        ),
+      );
+    pgCount = pgRow?.n ?? 0;
+  } else if (accessibleProjectIds.length > 0) {
+    const [pgRow] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(messagesTable)
+      .where(
+        and(
+          inArray(messagesTable.projectId, accessibleProjectIds),
+          sql`${messagesTable.senderId} <> ${me.id}`,
+          eq(messagesTable.read, false),
+        ),
+      );
+    pgCount = pgRow?.n ?? 0;
+  }
 
   res.json({
-    projectGroups: pgRow?.n ?? 0,
+    projectGroups: pgCount,
     directMessages: dmRow?.n ?? 0,
   });
 });
