@@ -2051,6 +2051,7 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
   const [versions, setVersions] = useState<DeliverableVersion[]>([]);
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
   const [showAllVersionComments, setShowAllVersionComments] = useState(false);
+  const [commentVersionFilter, setCommentVersionFilter] = useState<string | null>(null);
   const [compareMode, setCompareMode] = useState(false);
   const [compareVersionId, setCompareVersionId] = useState<string | null>(null);
   const [syncPlayheads, setSyncPlayheads] = useState(true);
@@ -2084,6 +2085,7 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
     if (!selectedDeliverable) return;
     setSelectedVersionId(null);
     setShowAllVersionComments(false);
+    setCommentVersionFilter(null);
     setCompareMode(false);
     setCompareVersionId(null);
     setAbShowingB(false);
@@ -2686,6 +2688,7 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
                       seekTo={seekTo ?? undefined}
                       markers={comments
                         .filter((c) => !c.deliverableVersionId || c.deliverableVersionId === (activeVersion?.id ?? null))
+                        .filter((c) => commentVersionFilter ? c.deliverableVersionId === commentVersionFilter : true)
                         .map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
                       onMarkerClick={handleMarkerClick}
                       onPlayingChange={(p) => mirrorPlay("A", p)}
@@ -2707,6 +2710,7 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
                       seekTo={seekToB ?? undefined}
                       markers={comments
                         .filter((c) => c.deliverableVersionId === (compareVersion?.id ?? null))
+                        .filter((c) => commentVersionFilter ? c.deliverableVersionId === commentVersionFilter : true)
                         .map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
                       onMarkerClick={handleMarkerClick}
                       onPlayingChange={(p) => mirrorPlay("B", p)}
@@ -2747,6 +2751,7 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
                       .filter((c) => abShowingB
                         ? c.deliverableVersionId === (compareVersion?.id ?? null)
                         : !c.deliverableVersionId || c.deliverableVersionId === (activeVersion?.id ?? null))
+                      .filter((c) => commentVersionFilter ? c.deliverableVersionId === commentVersionFilter : true)
                       .map((c) => ({ id: c.id, timestampSeconds: c.timestampSeconds }))}
                     onMarkerClick={handleMarkerClick}
                   />
@@ -2758,11 +2763,17 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
                 src={activeFileUrl}
                 onTimeClick={(ts) => setActiveTimestamp(ts)}
                 seekTo={seekTo ?? undefined}
-                markers={visibleComments.map((c) => ({
-                  id: c.id,
-                  timestampSeconds: c.timestampSeconds,
-                  label: c.content.slice(0, 30),
-                }))}
+                markers={visibleComments
+                  .filter((c) =>
+                    commentVersionFilter
+                      ? c.deliverableVersionId === commentVersionFilter
+                      : true,
+                  )
+                  .map((c) => ({
+                    id: c.id,
+                    timestampSeconds: c.timestampSeconds,
+                    label: c.content.slice(0, 30),
+                  }))}
                 onMarkerClick={handleMarkerClick}
               />
             )
@@ -2786,6 +2797,17 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
             activeTimestamp={activeTimestamp}
             onResolveComment={handleResolveComment}
             versionLabelById={versionLabelById}
+            versionOptions={(() => {
+              const presentIds = new Set(
+                visibleComments
+                  .map((c) => c.deliverableVersionId)
+                  .filter((x): x is string => !!x),
+              );
+              return sortedVersionsAsc
+                .filter((v) => presentIds.has(v.id))
+                .map((v) => ({ id: v.id, label: v.version }));
+            })()}
+            onVersionFilterChange={setCommentVersionFilter}
             previousVersionUploadedAt={previousVersionUploadedAt}
             currentVersionLabel={activeVersionLabel}
             onReopenComment={handleReopenComment}

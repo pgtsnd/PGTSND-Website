@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "./ThemeContext";
 import { formatTime } from "./VideoPlayer";
 
@@ -62,6 +62,18 @@ interface VideoReviewPanelProps {
    * Comment id to auto-open the reply composer for after mount.
    */
   openReplyForCommentId?: string | null;
+  /**
+   * Ordered list of versions available for this deliverable. When provided
+   * (and there are 2+ entries), the panel shows a version filter that scopes
+   * both the comment list and (via onVersionFilterChange) the timeline
+   * markers to the chosen version.
+   */
+  versionOptions?: { id: string; label: string }[];
+  /**
+   * Called when the user changes the version filter. Pass null for "All".
+   * Parents can use this to scope timeline markers in sync with the panel.
+   */
+  onVersionFilterChange?: (versionId: string | null) => void;
 }
 
 function timeAgo(date: string | Date) {
@@ -93,6 +105,8 @@ export default function VideoReviewPanel({
   currentUserId,
   highlightCommentId,
   openReplyForCommentId,
+  versionOptions,
+  onVersionFilterChange,
 }: VideoReviewPanelProps) {
   const { t } = useTheme();
   const [newComment, setNewComment] = useState("");
@@ -137,8 +151,47 @@ export default function VideoReviewPanel({
     }
   }, [openReplyForCommentId]);
 
-  const unresolvedCount = comments.filter((c) => !c.resolvedAt).length;
-  const allResolvedComments = comments
+  const availableVersions = useMemo<{ id: string; label: string }[]>(() => {
+    if (versionOptions && versionOptions.length > 0) return versionOptions;
+    const seen = new Set<string>();
+    const list: { id: string; label: string }[] = [];
+    for (const c of comments) {
+      const vid = c.deliverableVersionId;
+      if (vid && !seen.has(vid)) {
+        seen.add(vid);
+        const label =
+          (versionLabelById && versionLabelById[vid]) ||
+          c.versionLabel ||
+          vid;
+        list.push({ id: vid, label });
+      }
+    }
+    return list;
+  }, [versionOptions, comments, versionLabelById]);
+
+  const [versionFilter, setVersionFilter] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (
+      versionFilter &&
+      !availableVersions.some((v) => v.id === versionFilter)
+    ) {
+      setVersionFilter(null);
+      onVersionFilterChange?.(null);
+    }
+  }, [availableVersions, versionFilter, onVersionFilterChange]);
+
+  const setFilter = (id: string | null) => {
+    setVersionFilter(id);
+    onVersionFilterChange?.(id);
+  };
+
+  const filteredComments = versionFilter
+    ? comments.filter((c) => c.deliverableVersionId === versionFilter)
+    : comments;
+
+  const unresolvedCount = filteredComments.filter((c) => !c.resolvedAt).length;
+  const allResolvedComments = filteredComments
     .filter((c) => !!c.resolvedAt)
     .sort((a, b) => new Date(b.resolvedAt!).getTime() - new Date(a.resolvedAt!).getTime());
   const baselineMs = previousVersionUploadedAt
@@ -155,8 +208,8 @@ export default function VideoReviewPanel({
   const resolvedCount = resolvedComments.length;
   const totalResolvedCount = allResolvedComments.length;
   const visibleComments = hideResolved
-    ? comments.filter((c) => !c.resolvedAt)
-    : comments;
+    ? filteredComments.filter((c) => !c.resolvedAt)
+    : filteredComments;
 
   const handleSubmitComment = async () => {
     if (!newComment.trim() || composerTimestamp === null) return;
@@ -261,10 +314,10 @@ export default function VideoReviewPanel({
             marginLeft: "6px", fontWeight: 400, fontSize: "10px",
             color: t.textMuted, textTransform: "none", letterSpacing: 0,
           })}>
-            of {comments.length}
+            of {filteredComments.length}
           </span>
         </h3>
-        {comments.some((c) => c.resolvedAt) && (
+        {filteredComments.some((c) => c.resolvedAt) && (
           <button
             onClick={() => setHideResolved((v) => !v)}
             style={f({
@@ -279,6 +332,48 @@ export default function VideoReviewPanel({
           </button>
         )}
       </div>
+
+      {availableVersions.length >= 2 && (
+        <div
+          data-testid="comment-version-filter"
+          style={{
+            display: "flex", alignItems: "center", gap: "6px",
+            flexWrap: "wrap", marginBottom: "12px",
+          }}
+        >
+          <span style={f({
+            fontWeight: 600, fontSize: "10px", color: t.textTertiary,
+            textTransform: "uppercase", letterSpacing: "0.06em",
+            marginRight: "2px",
+          })}>
+            Version
+          </span>
+          {[{ id: null as string | null, label: "All" }, ...availableVersions].map((opt) => {
+            const active = versionFilter === opt.id;
+            const key = opt.id ?? "__all__";
+            return (
+              <button
+                key={key}
+                onClick={() => setFilter(opt.id)}
+                data-testid={`comment-version-filter-${key}`}
+                aria-pressed={active}
+                style={f({
+                  fontWeight: 600, fontSize: "10px",
+                  color: active ? "#000" : t.textSecondary,
+                  background: active ? "rgba(255,200,60,0.9)" : "transparent",
+                  border: `1px solid ${active ? "rgba(255,200,60,0.9)" : t.border}`,
+                  borderRadius: "10px",
+                  padding: "3px 9px",
+                  cursor: "pointer",
+                  letterSpacing: 0,
+                })}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {composerOpen && (
         <div style={{
@@ -565,7 +660,9 @@ export default function VideoReviewPanel({
                 ? hideTimestamps
                   ? "No comments yet. Use the box above to leave feedback."
                   : "No comments yet. Click the Comment button on the video player to add one."
-                : "All comments are resolved."}
+                : versionFilter && filteredComments.length === 0
+                  ? "No comments on this version yet."
+                  : "All comments are resolved."}
             </p>
           </div>
         )}
