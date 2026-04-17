@@ -16,6 +16,7 @@ import {
   renderNewCommentEmail,
   renderPublicCommentEmail,
   renderCommentResolvedEmail,
+  renderClientWelcomeEmail,
 } from "./email-templates";
 
 async function filterOutProjectMutes(
@@ -590,6 +591,91 @@ export async function notifyVideoCommentResolved(opts: {
     logger.error(
       { err, commentId: opts.commentId },
       "notifyVideoCommentResolved failed",
+    );
+  }
+}
+
+/**
+ * Sent when a client user is added to a project for the first time.
+ * Detects "first invite" by counting all distinct projects the user is
+ * associated with (as project.clientId or via projectMembers). If the only
+ * association is the just-added project, a branded welcome email is sent.
+ *
+ * Safe to call from project create, project patch (clientId set), and project
+ * member-add routes — it self-deduplicates by association count.
+ */
+export async function notifyClientWelcomeIfFirstProject(opts: {
+  userId: string;
+  projectId: string;
+  inviterName: string | null;
+}): Promise<void> {
+  try {
+    const [user] = await db
+      .select({
+        id: usersTable.id,
+        email: usersTable.email,
+        name: usersTable.name,
+        role: usersTable.role,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.id, opts.userId))
+      .limit(1);
+
+    if (!user || user.role !== "client" || !user.email) return;
+
+    const ownedProjects = await db
+      .select({ id: projectsTable.id })
+      .from(projectsTable)
+      .where(eq(projectsTable.clientId, user.id));
+
+    const memberProjects = await db
+      .select({ id: projectMembersTable.projectId })
+      .from(projectMembersTable)
+      .where(eq(projectMembersTable.userId, user.id));
+
+    const projectIds = new Set<string>();
+    for (const p of ownedProjects) projectIds.add(p.id);
+    for (const p of memberProjects) projectIds.add(p.id);
+
+    // Only send when this is the user's first (and only) project association.
+    if (projectIds.size !== 1 || !projectIds.has(opts.projectId)) return;
+
+    const [project] = await db
+      .select()
+      .from(projectsTable)
+      .where(eq(projectsTable.id, opts.projectId))
+      .limit(1);
+    if (!project) return;
+
+    const link = `${getAppBaseUrl()}/client-hub`;
+    const recipientName = user.name;
+
+    await sendEmail({
+      to: user.email,
+      subject: `Welcome to PGTSND Productions — ${project.name}`,
+      text:
+        `Hi ${recipientName ?? "there"},\n\n` +
+        (opts.inviterName
+          ? `${opts.inviterName} invited you to collaborate on "${project.name}" `
+          : `You've been invited to collaborate on "${project.name}" `) +
+        `in the PGTSND Productions client hub.\n\n` +
+        `Here's what you can do in the client hub:\n` +
+        `  • Watch new cuts as soon as they're ready for review\n` +
+        `  • Leave timestamped feedback right on the video\n` +
+        `  • Approve deliverables and track project progress\n\n` +
+        `Open the client hub: ${link}\n\n` +
+        `— PGTSND Productions`,
+      html: renderClientWelcomeEmail({
+        recipientName,
+        projectName: project.name,
+        inviterName: opts.inviterName,
+        link,
+      }),
+    });
+  } catch (err) {
+    logger.error(
+      { err, userId: opts.userId, projectId: opts.projectId },
+      "notifyClientWelcomeIfFirstProject failed",
     );
   }
 }

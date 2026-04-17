@@ -288,6 +288,50 @@ export function renderPaymentLinkEmail(input: PaymentLinkTemplateInput): string 
   });
 }
 
+export interface ClientWelcomeTemplateInput {
+  recipientName: string | null;
+  projectName: string;
+  inviterName: string | null;
+  link: string;
+}
+
+export function renderClientWelcomeEmail(
+  input: ClientWelcomeTemplateInput,
+): string {
+  const name = input.recipientName?.trim() || "there";
+  const inviter = input.inviterName?.trim();
+  const introInviter = inviter
+    ? `${inviter} invited you to collaborate on "${input.projectName}" in the PGTSND Productions client hub.`
+    : `You've been invited to collaborate on "${input.projectName}" in the PGTSND Productions client hub.`;
+
+  const bodyHtml = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px 0;border:1px solid ${BRAND.border};border-radius:6px;">
+      <tr>
+        <td style="padding:16px 18px;">
+          <div style="font-family:${FONT_STACK};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${BRAND.subtle};margin-bottom:6px;">Project</div>
+          <div style="font-family:${FONT_STACK};font-weight:500;font-size:14px;color:${BRAND.text};">${escapeHtml(input.projectName)}</div>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:20px 0 8px 0;font-family:${FONT_STACK};font-weight:600;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.muted};">
+      What you can do here
+    </p>
+    <ul style="margin:0;padding:0 0 0 18px;font-family:${FONT_STACK};font-weight:400;font-size:14px;line-height:1.7;color:${BRAND.muted};">
+      <li>Watch new cuts as soon as they're ready for review.</li>
+      <li>Leave timestamped feedback right on the video.</li>
+      <li>Approve deliverables and track project progress.</li>
+    </ul>`;
+
+  return layout({
+    previewText: `Welcome to ${input.projectName} on the PGTSND client hub.`,
+    heading: `Welcome to PGTSND Productions, ${name}`,
+    intro: `Hi ${name}, ${introInviter} This is your home for reviewing cuts, leaving feedback, and approving deliverables.`,
+    bodyHtml,
+    ctaLabel: "Open Client Hub",
+    ctaUrl: input.link,
+  });
+}
+
 export interface PublicCommentTemplateInput {
   authorName: string;
   projectName: string;

@@ -13,6 +13,7 @@ import { eq, and, inArray } from "drizzle-orm";
 import { requireRole } from "../middleware/auth";
 import { requireProjectAccess } from "../middleware/project-access";
 import { validateAndSend, validateAndSendArray } from "../middleware/validate-response";
+import { notifyClientWelcomeIfFirstProject } from "../services/notifications";
 
 const router = Router();
 
@@ -95,6 +96,15 @@ router.post(
       .insert(projectsTable)
       .values(parsed.data)
       .returning();
+
+    if (project?.clientId) {
+      void notifyClientWelcomeIfFirstProject({
+        userId: project.clientId,
+        projectId: project.id,
+        inviterName: req.user?.name ?? null,
+      });
+    }
+
     validateAndSend(res, selectProjectSchema, project, 201);
   },
 );
@@ -114,6 +124,12 @@ router.patch(
       return;
     }
 
+    const [previous] = await db
+      .select({ clientId: projectsTable.clientId })
+      .from(projectsTable)
+      .where(eq(projectsTable.id, req.params.id))
+      .limit(1);
+
     const [project] = await db
       .update(projectsTable)
       .set(parsed.data)
@@ -123,6 +139,17 @@ router.patch(
     if (!project) {
       res.status(404).json({ error: "Project not found" });
       return;
+    }
+
+    if (
+      project.clientId &&
+      previous?.clientId !== project.clientId
+    ) {
+      void notifyClientWelcomeIfFirstProject({
+        userId: project.clientId,
+        projectId: project.id,
+        inviterName: req.user?.name ?? null,
+      });
     }
 
     validateAndSend(res, selectProjectSchema, project);
@@ -176,6 +203,15 @@ router.post(
       .insert(projectMembersTable)
       .values(parsed.data)
       .returning();
+
+    if (member?.userId && member?.projectId) {
+      void notifyClientWelcomeIfFirstProject({
+        userId: member.userId,
+        projectId: member.projectId,
+        inviterName: req.user?.name ?? null,
+      });
+    }
+
     validateAndSend(res, selectProjectMemberSchema, member, 201);
   },
 );
