@@ -4,6 +4,7 @@ import { useTheme } from "../components/ThemeContext";
 import { api, type UserProfile } from "../lib/api";
 import { ClientAccountSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import { useToast } from "../components/Toast";
+import MutedProjectsList from "../components/MutedProjectsList";
 
 export default function ClientAccount() {
   const { t } = useTheme();
@@ -240,6 +241,7 @@ export default function ClientAccount() {
                 </div>
               );
             })}
+            <MutedProjectsList variant="client" />
           </div>
         )}
 

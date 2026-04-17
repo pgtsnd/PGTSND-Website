@@ -16,6 +16,7 @@ import {
   useRotateVault,
   type IntegrationSetting,
 } from "../hooks/useIntegrations";
+import MutedProjectsList from "../components/MutedProjectsList";
 
 export default function TeamSettings() {
   const { t } = useTheme();
@@ -209,6 +210,8 @@ export default function TeamSettings() {
                     );
                   })}
                 </div>
+
+                <MutedProjectsList variant="team" />
               </div>
             )}
 
