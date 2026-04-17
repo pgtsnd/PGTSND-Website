@@ -38,6 +38,12 @@ interface MockComment {
   resolvedBy: string | null;
   resolvedByName: string | null;
   resolvedNote: string | null;
+  reopenedAt?: Date | null;
+  reopenedBy?: string | null;
+  reopenedByName?: string | null;
+  previousResolvedAt?: Date | null;
+  previousResolvedByName?: string | null;
+  previousResolvedNote?: string | null;
 }
 
 interface MockProjectMember {
@@ -459,5 +465,175 @@ describe("POST /api/comments/:commentId/reopen", () => {
     // The handler short-circuits before issuing an update, so state is the
     // same object reference we observed beforehand.
     expect(state.comments.get(commentId)).toBe(before);
+    // Importantly: a no-op must NOT manufacture a fake reopen audit trail.
+    expect(res.body.reopenedAt ?? null).toBeNull();
+    expect(res.body.reopenedBy ?? null).toBeNull();
+    expect(res.body.reopenedByName ?? null).toBeNull();
+    expect(res.body.previousResolvedAt ?? null).toBeNull();
+    expect(res.body.previousResolvedByName ?? null).toBeNull();
+    expect(res.body.previousResolvedNote ?? null).toBeNull();
+  });
+
+  it("populates reopenedAt/reopenedBy/reopenedByName and previous-resolution snapshot fields", async () => {
+    const priorResolvedAt = new Date("2026-01-02T00:00:00Z");
+    seedResolvedComment({
+      resolvedAt: priorResolvedAt,
+      resolvedBy: "user-owner-prior",
+      resolvedByName: "Prior Owner",
+      resolvedNote: "looked good to me",
+    });
+    seedUser(authorId, "client", "Client Author");
+    const partner = seedUser("user-partner", "partner", "Pat Partner");
+
+    const before = Date.now();
+    const res = await request(app)
+      .post(`/api/comments/${commentId}/reopen`)
+      .set("Cookie", sessionCookieFor(partner));
+    const after = Date.now();
+
+    expect(res.status).toBe(200);
+    // Current resolution cleared.
+    expect(res.body.resolvedAt).toBeNull();
+    expect(res.body.resolvedBy).toBeNull();
+    expect(res.body.resolvedByName).toBeNull();
+    expect(res.body.resolvedNote).toBeNull();
+    // Reopen actor recorded.
+    expect(res.body.reopenedBy).toBe(partner.id);
+    expect(res.body.reopenedByName).toBe(partner.name);
+    expect(typeof res.body.reopenedAt).toBe("string");
+    const reopenedAtMs = new Date(res.body.reopenedAt as string).getTime();
+    expect(reopenedAtMs).toBeGreaterThanOrEqual(before);
+    expect(reopenedAtMs).toBeLessThanOrEqual(after);
+    // Prior resolution snapshot preserved verbatim.
+    expect(new Date(res.body.previousResolvedAt as string).toISOString()).toBe(
+      priorResolvedAt.toISOString(),
+    );
+    expect(res.body.previousResolvedByName).toBe("Prior Owner");
+    expect(res.body.previousResolvedNote).toBe("looked good to me");
+
+    // And the same is persisted to "the database".
+    const persisted = state.comments.get(commentId)!;
+    expect(persisted.resolvedAt).toBeNull();
+    expect(persisted.reopenedBy).toBe(partner.id);
+    expect(persisted.reopenedByName).toBe(partner.name);
+    expect(persisted.previousResolvedAt?.toISOString()).toBe(
+      priorResolvedAt.toISOString(),
+    );
+    expect(persisted.previousResolvedByName).toBe("Prior Owner");
+    expect(persisted.previousResolvedNote).toBe("looked good to me");
+  });
+
+  it("preserves a null previous resolution note in the snapshot when the prior resolve had no note", async () => {
+    seedResolvedComment({
+      resolvedAt: new Date("2026-01-02T00:00:00Z"),
+      resolvedBy: "user-owner-prior",
+      resolvedByName: "Prior Owner",
+      resolvedNote: null,
+    });
+    seedUser(authorId, "client", "Client Author");
+    const owner = seedUser("user-owner", "owner");
+
+    const res = await request(app)
+      .post(`/api/comments/${commentId}/reopen`)
+      .set("Cookie", sessionCookieFor(owner));
+
+    expect(res.status).toBe(200);
+    expect(res.body.previousResolvedByName).toBe("Prior Owner");
+    expect(res.body.previousResolvedNote).toBeNull();
+  });
+});
+
+describe("PATCH /api/comments/:commentId/resolve with resolved=false", () => {
+  it("captures the reopen actor and the prior-resolution snapshot when toggling a resolved comment back to unresolved", async () => {
+    const priorResolvedAt = new Date("2026-01-02T00:00:00Z");
+    seedResolvedComment({
+      resolvedAt: priorResolvedAt,
+      resolvedBy: "user-owner-prior",
+      resolvedByName: "Prior Owner",
+      resolvedNote: "approved on first pass",
+    });
+    seedUser(authorId, "client", "Client Author");
+    const owner = seedUser("user-owner", "owner", "Olivia Owner");
+
+    const before = Date.now();
+    const res = await request(app)
+      .patch(`/api/comments/${commentId}/resolve`)
+      .set("Cookie", sessionCookieFor(owner))
+      .send({ resolved: false });
+    const after = Date.now();
+
+    expect(res.status).toBe(200);
+    expect(res.body.resolvedAt).toBeNull();
+    expect(res.body.resolvedBy).toBeNull();
+    expect(res.body.resolvedByName).toBeNull();
+    expect(res.body.resolvedNote).toBeNull();
+    expect(res.body.reopenedBy).toBe(owner.id);
+    expect(res.body.reopenedByName).toBe(owner.name);
+    const reopenedAtMs = new Date(res.body.reopenedAt as string).getTime();
+    expect(reopenedAtMs).toBeGreaterThanOrEqual(before);
+    expect(reopenedAtMs).toBeLessThanOrEqual(after);
+    expect(new Date(res.body.previousResolvedAt as string).toISOString()).toBe(
+      priorResolvedAt.toISOString(),
+    );
+    expect(res.body.previousResolvedByName).toBe("Prior Owner");
+    expect(res.body.previousResolvedNote).toBe("approved on first pass");
+  });
+
+  it("does NOT manufacture a reopen snapshot when the comment was not previously resolved (no false history)", async () => {
+    // Seed an unresolved comment.
+    seedResolvedComment({
+      resolvedAt: null,
+      resolvedBy: null,
+      resolvedByName: null,
+      resolvedNote: null,
+    });
+    seedUser(authorId, "client", "Client Author");
+    const owner = seedUser("user-owner", "owner");
+
+    const res = await request(app)
+      .patch(`/api/comments/${commentId}/resolve`)
+      .set("Cookie", sessionCookieFor(owner))
+      .send({ resolved: false });
+
+    expect(res.status).toBe(200);
+    expect(res.body.resolvedAt).toBeNull();
+    // No prior resolution existed, so no audit trail should be stamped.
+    expect(res.body.reopenedAt ?? null).toBeNull();
+    expect(res.body.reopenedBy ?? null).toBeNull();
+    expect(res.body.reopenedByName ?? null).toBeNull();
+    expect(res.body.previousResolvedAt ?? null).toBeNull();
+    expect(res.body.previousResolvedByName ?? null).toBeNull();
+    expect(res.body.previousResolvedNote ?? null).toBeNull();
+
+    const persisted = state.comments.get(commentId)!;
+    expect(persisted.reopenedAt ?? null).toBeNull();
+    expect(persisted.reopenedBy ?? null).toBeNull();
+    expect(persisted.previousResolvedAt ?? null).toBeNull();
+    expect(persisted.previousResolvedByName ?? null).toBeNull();
+    expect(persisted.previousResolvedNote ?? null).toBeNull();
+  });
+
+  it("does not stamp reopen fields when re-resolving an already-resolved comment (resolved=true is unaffected)", async () => {
+    seedResolvedComment({
+      resolvedAt: new Date("2026-01-02T00:00:00Z"),
+      resolvedBy: "user-owner-prior",
+      resolvedByName: "Prior Owner",
+      resolvedNote: "first pass",
+    });
+    seedUser(authorId, "client", "Client Author");
+    const owner = seedUser("user-owner", "owner", "Olivia Owner");
+
+    const res = await request(app)
+      .patch(`/api/comments/${commentId}/resolve`)
+      .set("Cookie", sessionCookieFor(owner))
+      .send({ resolved: true, note: "still good" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.resolvedBy).toBe(owner.id);
+    expect(res.body.resolvedByName).toBe(owner.name);
+    expect(res.body.resolvedNote).toBe("still good");
+    // Resolving must never touch the reopen audit trail.
+    expect(res.body.reopenedAt ?? null).toBeNull();
+    expect(res.body.previousResolvedAt ?? null).toBeNull();
   });
 });
