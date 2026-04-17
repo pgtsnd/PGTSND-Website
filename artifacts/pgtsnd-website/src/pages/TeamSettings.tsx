@@ -285,7 +285,10 @@ export default function TeamSettings() {
                 </div>
 
                 {currentUser?.role === "owner" && (
-                  <DormantTokensEmailCard t={t} f={f} />
+                  <>
+                    <DormantTokensEmailCard t={t} f={f} />
+                    <DormantTokensSubscribersCard t={t} f={f} />
+                  </>
                 )}
 
                 <MutedProjectsList variant="team" />
@@ -1346,6 +1349,282 @@ function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) 
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+interface DormantTokensSubscriberRow {
+  id: string;
+  name: string | null;
+  email: string;
+  emailNotifyDormantTokens: boolean;
+  snoozeUntil: string | null;
+  unsubscribedAt: string | null;
+  status: "subscribed" | "snoozed" | "unsubscribed";
+}
+
+function DormantTokensSubscribersCard({
+  t,
+  f,
+}: {
+  t: any;
+  f: (s: object) => object;
+}) {
+  const [rows, setRows] = useState<DormantTokensSubscriberRow[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = () => {
+    setLoading(true);
+    setError(null);
+    fetch("/api/admin/dormant-tokens-subscribers", { credentials: "include" })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`Request failed (${r.status})`);
+        return r.json() as Promise<{ owners: DormantTokensSubscriberRow[] }>;
+      })
+      .then((data) => setRows(data.owners))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : "Failed to load"),
+      )
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const formatDateTime = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleString() : "—";
+  const formatDate = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString() : "—";
+
+  const statusStyle = (status: DormantTokensSubscriberRow["status"]) => {
+    if (status === "subscribed") {
+      return { color: "#3fbf6f", label: "Subscribed" };
+    }
+    if (status === "snoozed") {
+      return { color: "#e6b15a", label: "Snoozed" };
+    }
+    return { color: "#e26060", label: "Unsubscribed" };
+  };
+
+  const subscribedCount = rows?.filter((r) => r.status === "subscribed").length ?? 0;
+  const snoozedCount = rows?.filter((r) => r.status === "snoozed").length ?? 0;
+  const unsubscribedCount =
+    rows?.filter((r) => r.status === "unsubscribed").length ?? 0;
+
+  return (
+    <div
+      style={f({
+        background: t.cardBackground,
+        borderRadius: "12px",
+        padding: "20px",
+        border: `1px solid ${t.borderLight}`,
+        marginTop: "16px",
+      })}
+      data-testid="dormant-tokens-subscribers-card"
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: "12px",
+          marginBottom: "4px",
+        }}
+      >
+        <h3 style={f({ margin: 0, color: t.textPrimary, fontSize: "16px" })}>
+          Owner subscriptions to the dormant-tokens email
+        </h3>
+        <button
+          type="button"
+          onClick={load}
+          disabled={loading}
+          data-testid="dormant-tokens-subscribers-refresh"
+          style={f({
+            padding: "6px 12px",
+            borderRadius: "6px",
+            border: `1px solid ${t.borderLight}`,
+            background: "transparent",
+            color: t.textPrimary,
+            fontSize: "12px",
+            cursor: loading ? "wait" : "pointer",
+            opacity: loading ? 0.6 : 1,
+          })}
+        >
+          {loading ? "Loading…" : "Refresh"}
+        </button>
+      </div>
+      <p style={f({ margin: "0 0 16px 0", color: t.textSecondary, fontSize: "13px" })}>
+        Audit which owners are still receiving the weekly summary, who has
+        snoozed it, and who has opted out — including when they unsubscribed.
+      </p>
+
+      {rows && (
+        <p
+          style={f({
+            margin: "0 0 12px 0",
+            color: t.textSecondary,
+            fontSize: "12px",
+          })}
+        >
+          {subscribedCount} subscribed · {snoozedCount} snoozed ·{" "}
+          {unsubscribedCount} unsubscribed
+        </p>
+      )}
+
+      {error && (
+        <div
+          style={f({
+            padding: "10px 12px",
+            border: `1px solid ${t.borderLight}`,
+            borderRadius: "6px",
+            color: t.textPrimary,
+            fontSize: "12px",
+            marginBottom: "12px",
+          })}
+        >
+          {error}
+        </div>
+      )}
+
+      {rows && rows.length === 0 && !loading && !error && (
+        <p style={f({ color: t.textSecondary, fontSize: "13px", margin: 0 })}>
+          No owner accounts found.
+        </p>
+      )}
+
+      {rows && rows.length > 0 && (
+        <div
+          style={{
+            border: `1px solid ${t.borderLight}`,
+            borderRadius: "8px",
+            overflow: "hidden",
+          }}
+        >
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: "12px",
+            }}
+          >
+            <thead>
+              <tr style={{ background: t.bgCard }}>
+                <th
+                  style={f({
+                    textAlign: "left",
+                    padding: "10px 12px",
+                    color: t.textSecondary,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    fontSize: "10px",
+                    letterSpacing: "0.06em",
+                    borderBottom: `1px solid ${t.borderLight}`,
+                  })}
+                >
+                  Owner
+                </th>
+                <th
+                  style={f({
+                    textAlign: "left",
+                    padding: "10px 12px",
+                    color: t.textSecondary,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    fontSize: "10px",
+                    letterSpacing: "0.06em",
+                    borderBottom: `1px solid ${t.borderLight}`,
+                  })}
+                >
+                  Status
+                </th>
+                <th
+                  style={f({
+                    textAlign: "left",
+                    padding: "10px 12px",
+                    color: t.textSecondary,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    fontSize: "10px",
+                    letterSpacing: "0.06em",
+                    borderBottom: `1px solid ${t.borderLight}`,
+                  })}
+                >
+                  Snoozed Until
+                </th>
+                <th
+                  style={f({
+                    textAlign: "left",
+                    padding: "10px 12px",
+                    color: t.textSecondary,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    fontSize: "10px",
+                    letterSpacing: "0.06em",
+                    borderBottom: `1px solid ${t.borderLight}`,
+                  })}
+                >
+                  Last Unsubscribed
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                const meta = statusStyle(row.status);
+                return (
+                  <tr
+                    key={row.id}
+                    data-testid={`dormant-tokens-subscriber-row-${row.id}`}
+                    style={{ borderBottom: `1px solid ${t.borderLight}` }}
+                  >
+                    <td style={f({ padding: "10px 12px", color: t.textPrimary })}>
+                      <div style={{ fontWeight: 600 }}>
+                        {row.name ?? row.email}
+                      </div>
+                      {row.name && (
+                        <div
+                          style={f({
+                            color: t.textSecondary,
+                            fontSize: "11px",
+                            marginTop: "2px",
+                          })}
+                        >
+                          {row.email}
+                        </div>
+                      )}
+                    </td>
+                    <td
+                      style={f({
+                        padding: "10px 12px",
+                        color: meta.color,
+                        fontWeight: 600,
+                      })}
+                      data-testid={`dormant-tokens-subscriber-status-${row.id}`}
+                    >
+                      {meta.label}
+                    </td>
+                    <td
+                      style={f({ padding: "10px 12px", color: t.textPrimary })}
+                    >
+                      {row.status === "snoozed"
+                        ? formatDate(row.snoozeUntil)
+                        : "—"}
+                    </td>
+                    <td
+                      style={f({ padding: "10px 12px", color: t.textPrimary })}
+                    >
+                      {formatDateTime(row.unsubscribedAt)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

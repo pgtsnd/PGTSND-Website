@@ -55,6 +55,7 @@ router.get("/unsubscribe/dormant-tokens", async (req, res) => {
       .set({
         emailNotifyDormantTokens: false,
         dormantTokensSnoozeUntil: null,
+        dormantTokensUnsubscribedAt: new Date(),
       })
       .where(eq(usersTable.id, verified.userId))
       .returning({ email: usersTable.email });
@@ -112,7 +113,11 @@ router.post("/unsubscribe/dormant-tokens", async (req, res) => {
   }
   await db
     .update(usersTable)
-    .set({ emailNotifyDormantTokens: false, dormantTokensSnoozeUntil: null })
+    .set({
+      emailNotifyDormantTokens: false,
+      dormantTokensSnoozeUntil: null,
+      dormantTokensUnsubscribedAt: new Date(),
+    })
     .where(eq(usersTable.id, verified.userId));
   res.json({ ok: true });
 });

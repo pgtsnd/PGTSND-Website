@@ -1606,6 +1606,10 @@ components:
           type: string
           format: date-time
           nullable: true
+        dormantTokensUnsubscribedAt:
+          type: string
+          format: date-time
+          nullable: true
         bookkeeperEmail:
           type: string
           nullable: true

@@ -170,6 +170,7 @@ router.patch("/users/me/dormant-tokens-email", async (req, res) => {
   const updates: {
     emailNotifyDormantTokens?: boolean;
     dormantTokensSnoozeUntil?: Date | null;
+    dormantTokensUnsubscribedAt?: Date | null;
   } = {};
 
   if ("emailNotifyDormantTokens" in body) {
@@ -180,6 +181,9 @@ router.patch("/users/me/dormant-tokens-email", async (req, res) => {
       return;
     }
     updates.emailNotifyDormantTokens = body.emailNotifyDormantTokens;
+    if (body.emailNotifyDormantTokens === false) {
+      updates.dormantTokensUnsubscribedAt = new Date();
+    }
   }
 
   if ("snoozeUntil" in body) {

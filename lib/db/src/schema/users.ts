@@ -54,6 +54,7 @@ export const usersTable = pgTable("users", {
     .notNull()
     .default(true),
   dormantTokensSnoozeUntil: timestamp("dormant_tokens_snooze_until"),
+  dormantTokensUnsubscribedAt: timestamp("dormant_tokens_unsubscribed_at"),
 
   bookkeeperEmail: varchar("bookkeeper_email", { length: 255 }),
 

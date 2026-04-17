@@ -16,6 +16,7 @@ import integrationsRouter from "./integrations";
 import videoReviewRouter from "./video-review";
 import projectMutesRouter from "./project-mutes";
 import adminEmailPreviewsRouter from "./admin-email-previews";
+import adminEmailSubscribersRouter from "./admin-email-subscribers";
 import publicReviewRouter from "./public-review";
 import storageRouter from "./storage";
 import accessTokensRouter from "./access-tokens";
@@ -55,6 +56,7 @@ router.use(integrationsRouter);
 router.use(videoReviewRouter);
 router.use(projectMutesRouter);
 router.use(adminEmailPreviewsRouter);
+router.use(adminEmailSubscribersRouter);
 router.use(accessTokensRouter);
 
 export default router;

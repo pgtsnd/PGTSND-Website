@@ -81,6 +81,7 @@ export interface User {
   emailNotifyComments: boolean;
   emailNotifyDormantTokens: boolean;
   dormantTokensSnoozeUntil?: string | null;
+  dormantTokensUnsubscribedAt?: string | null;
   bookkeeperEmail?: string | null;
   createdAt: string;
   updatedAt: string;
