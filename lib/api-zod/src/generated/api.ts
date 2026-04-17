@@ -1262,6 +1262,24 @@ export const MarkDmThreadReadResponse = zod.object({
 });
 
 /**
+ * Returns up to 50 of the most recent client-authored messages from the last hour, across every project the requesting team member can access. Used by the team UI to surface desktop notifications for new client messages in any project (not just the currently selected one) with a single batched poll.
+
+ * @summary Recent client messages across all accessible projects
+ */
+export const GetRecentClientActivityResponseItem = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  projectName: zod.string(),
+  senderId: zod.string(),
+  senderName: zod.string().nullish(),
+  content: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const GetRecentClientActivityResponse = zod.array(
+  GetRecentClientActivityResponseItem,
+);
+
+/**
  * @summary Unread counts split by project groups vs DMs
  */
 export const GetUnreadSummaryResponse = zod.object({

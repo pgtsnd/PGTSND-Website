@@ -1064,6 +1064,27 @@ paths:
                   ok:
                     type: boolean
 
+  /messages/recent-client-activity:
+    get:
+      operationId: getRecentClientActivity
+      tags: [messages]
+      summary: Recent client messages across all accessible projects
+      description: >
+        Returns up to 50 of the most recent client-authored messages from the
+        last hour, across every project the requesting team member can access.
+        Used by the team UI to surface desktop notifications for new client
+        messages in any project (not just the currently selected one) with a
+        single batched poll.
+      responses:
+        "200":
+          description: Recent client messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecentClientMessage"
+
   /messages/unread-summary:
     get:
       operationId: getUnreadSummary
@@ -2477,6 +2498,33 @@ components:
         - lastMessageAt
         - lastMessageFromMe
         - unreadCount
+
+    RecentClientMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        projectName:
+          type: string
+        senderId:
+          type: string
+        senderName:
+          type: string
+          nullable: true
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - projectId
+        - projectName
+        - senderId
+        - content
+        - createdAt
 
     UnreadSummary:
       type: object

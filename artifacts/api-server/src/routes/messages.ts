@@ -3,12 +3,14 @@ import {
   db,
   messagesTable,
   projectsTable,
+  projectMembersTable,
   usersTable,
   insertMessageSchema,
   selectMessageSchema,
   enrichedMessageSchema,
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNotNull, sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import { requireRole } from "../middleware/auth";
 import {
   requireProjectAccess,
@@ -190,5 +192,69 @@ router.delete(
     res.json({ message: "Message deleted" });
   },
 );
+
+const recentClientMessageSchema = z.object({
+  id: z.string(),
+  projectId: z.string(),
+  projectName: z.string(),
+  senderId: z.string(),
+  senderName: z.string().nullable(),
+  content: z.string(),
+  createdAt: z.date(),
+});
+
+router.get("/messages/recent-client-activity", async (req, res) => {
+  const me = req.user!;
+
+  // Clients don't get team-side notifications.
+  if (me.role === "client") {
+    res.json([]);
+    return;
+  }
+
+  // Determine accessible projects. Owners/partners see every project.
+  // Crew see only projects they're a member of.
+  let restrictToProjectIds: string[] | null = null;
+  if (me.role === "crew") {
+    const memberships = await db
+      .select({ id: projectMembersTable.projectId })
+      .from(projectMembersTable)
+      .where(eq(projectMembersTable.userId, me.id));
+    restrictToProjectIds = memberships.map((m) => m.id);
+    if (restrictToProjectIds.length === 0) {
+      res.json([]);
+      return;
+    }
+  }
+
+  const cutoff = new Date(Date.now() - 60 * 60 * 1000);
+  const conditions = [
+    isNotNull(messagesTable.projectId),
+    eq(usersTable.role, "client"),
+    gt(messagesTable.createdAt, cutoff),
+  ];
+  if (restrictToProjectIds) {
+    conditions.push(inArray(messagesTable.projectId, restrictToProjectIds));
+  }
+
+  const rows = await db
+    .select({
+      id: messagesTable.id,
+      projectId: messagesTable.projectId,
+      projectName: projectsTable.name,
+      senderId: messagesTable.senderId,
+      senderName: usersTable.name,
+      content: messagesTable.content,
+      createdAt: messagesTable.createdAt,
+    })
+    .from(messagesTable)
+    .innerJoin(usersTable, eq(messagesTable.senderId, usersTable.id))
+    .innerJoin(projectsTable, eq(messagesTable.projectId, projectsTable.id))
+    .where(and(...conditions))
+    .orderBy(desc(messagesTable.createdAt))
+    .limit(50);
+
+  validateAndSendArray(res, recentClientMessageSchema, rows);
+});
 
 export default router;

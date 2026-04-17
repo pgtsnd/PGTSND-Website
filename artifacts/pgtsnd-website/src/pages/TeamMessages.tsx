@@ -14,9 +14,11 @@ import {
   useSendDirectMessage,
   useMarkDmRead,
   useUnreadSummary,
+  useRecentClientActivity,
   timeAgo,
   type Project,
   type Message,
+  type RecentClientMessage,
 } from "../hooks/useTeamData";
 import {
   getListDmConversationsQueryKey,
@@ -55,6 +57,7 @@ export default function TeamMessages() {
   const { data: contacts } = useDmContacts();
   const { data: conversations } = useDmConversations();
   const { data: unread } = useUnreadSummary();
+  const { data: recentClientMessages } = useRecentClientActivity();
 
   const [mode, setMode] = useState<Mode>("groups");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -67,7 +70,7 @@ export default function TeamMessages() {
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const seenClientMessageIdsRef = useRef<Set<string>>(new Set());
-  const baselineLoadedProjectRef = useRef<string | null>(null);
+  const notificationBaselineLoadedRef = useRef<boolean>(false);
   const { toast } = useToast();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
@@ -117,30 +120,29 @@ export default function TeamMessages() {
     }
   }, []);
 
+  // Surface desktop notifications for new client messages across every project
+  // the team member can access (not just the currently selected one). The
+  // recent-client-activity endpoint batches this into a single poll regardless
+  // of how many projects exist.
   useEffect(() => {
-    if (!selectedProjectId || !groupMessages) return;
-    const projectName =
-      activeProjects.find((p: Project) => p.id === selectedProjectId)?.name ?? "Project";
+    if (!recentClientMessages) return;
 
-    const isNewProject = baselineLoadedProjectRef.current !== selectedProjectId;
-    const seen = isNewProject ? new Set<string>() : seenClientMessageIdsRef.current;
+    const isFirstLoad = !notificationBaselineLoadedRef.current;
+    const seen = seenClientMessageIdsRef.current;
     const nextSeen = new Set<string>();
-    const incoming: Message[] = [];
+    const incoming: RecentClientMessage[] = [];
 
-    for (const msg of groupMessages) {
-      if (!msg.id) continue;
+    for (const msg of recentClientMessages) {
       nextSeen.add(msg.id);
-      const sender = userMap.get(msg.senderId);
-      if (sender?.role !== "client") continue;
-      if (!isNewProject && !seen.has(msg.id)) {
+      if (!isFirstLoad && !seen.has(msg.id)) {
         incoming.push(msg);
       }
     }
 
     seenClientMessageIdsRef.current = nextSeen;
-    baselineLoadedProjectRef.current = selectedProjectId;
+    notificationBaselineLoadedRef.current = true;
 
-    if (isNewProject) return;
+    if (isFirstLoad) return;
     if (
       typeof window === "undefined" ||
       typeof Notification === "undefined" ||
@@ -150,14 +152,13 @@ export default function TeamMessages() {
     }
     if (document.visibilityState === "visible" && document.hasFocus()) return;
 
-    const projectId = selectedProjectId;
     for (const msg of incoming) {
-      const sender = userMap.get(msg.senderId);
+      const projectId = msg.projectId;
       try {
         const notification = new Notification(
-          `New message from ${sender?.name ?? "client"}`,
+          `New message from ${msg.senderName ?? "client"}`,
           {
-            body: `${projectName}: ${msg.content}`,
+            body: `${msg.projectName}: ${msg.content}`,
             tag: `pgtsnd-team-msg-${projectId}`,
           },
         );
@@ -171,8 +172,7 @@ export default function TeamMessages() {
         // Ignore notification errors (some browsers throw on unsupported configs)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupMessages, selectedProjectId, userMap]);
+  }, [recentClientMessages]);
 
   // mark DMs read when opening
   useEffect(() => {

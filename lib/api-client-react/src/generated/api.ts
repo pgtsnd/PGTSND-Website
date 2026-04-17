@@ -49,6 +49,7 @@ import type {
   PaymentDetails,
   Project,
   ProjectMember,
+  RecentClientMessage,
   Review,
   SendDm,
   Task,
@@ -4669,6 +4670,84 @@ export const useMarkDmThreadRead = <
 > => {
   return useMutation(getMarkDmThreadReadMutationOptions(options));
 };
+
+/**
+ * Returns up to 50 of the most recent client-authored messages from the last hour, across every project the requesting team member can access. Used by the team UI to surface desktop notifications for new client messages in any project (not just the currently selected one) with a single batched poll.
+
+ * @summary Recent client messages across all accessible projects
+ */
+export const getGetRecentClientActivityUrl = () => {
+  return `/api/messages/recent-client-activity`;
+};
+
+export const getRecentClientActivity = async (
+  options?: RequestInit,
+): Promise<RecentClientMessage[]> => {
+  return customFetch<RecentClientMessage[]>(getGetRecentClientActivityUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetRecentClientActivityQueryKey = () => {
+  return [`/api/messages/recent-client-activity`] as const;
+};
+
+export const getGetRecentClientActivityQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRecentClientActivity>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getRecentClientActivity>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetRecentClientActivityQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getRecentClientActivity>>
+  > = ({ signal }) => getRecentClientActivity({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getRecentClientActivity>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetRecentClientActivityQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getRecentClientActivity>>
+>;
+export type GetRecentClientActivityQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Recent client messages across all accessible projects
+ */
+
+export function useGetRecentClientActivity<
+  TData = Awaited<ReturnType<typeof getRecentClientActivity>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getRecentClientActivity>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetRecentClientActivityQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Unread counts split by project groups vs DMs

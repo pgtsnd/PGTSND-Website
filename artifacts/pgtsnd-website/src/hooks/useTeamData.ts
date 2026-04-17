@@ -17,6 +17,7 @@ import {
   useSendDm,
   useMarkDmThreadRead,
   useGetUnreadSummary,
+  useGetRecentClientActivity,
   useListAccessTokens,
   useCreateAccessToken,
   useRevokeAccessToken,
@@ -30,11 +31,12 @@ import type {
   Message,
   Contract,
   ProjectMember,
+  RecentClientMessage,
   AccessToken,
 } from "@workspace/api-client-react";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
 
-export type { Project, Organization, User, Task, Deliverable, Message, Contract, ProjectMember, AccessToken };
+export type { Project, Organization, User, Task, Deliverable, Message, Contract, ProjectMember, RecentClientMessage, AccessToken };
 
 export function useProjects() {
   const { userId } = useTeamAuth();
@@ -122,6 +124,14 @@ export function useSendDirectMessage() {
 
 export function useMarkDmRead() {
   return useMarkDmThreadRead();
+}
+
+export function useRecentClientActivity() {
+  const { userId, currentUser } = useTeamAuth();
+  const isTeamMember = currentUser?.role && currentUser.role !== "client";
+  return useGetRecentClientActivity({
+    query: { enabled: !!userId && !!isTeamMember, refetchInterval: 15000 },
+  });
 }
 
 export function useUnreadSummary() {

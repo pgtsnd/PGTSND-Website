@@ -673,6 +673,16 @@ export interface DmConversation {
   unreadCount: number;
 }
 
+export interface RecentClientMessage {
+  id: string;
+  projectId: string;
+  projectName: string;
+  senderId: string;
+  senderName?: string | null;
+  content: string;
+  createdAt: string;
+}
+
 export interface UnreadSummary {
   projectGroups: number;
   directMessages: number;

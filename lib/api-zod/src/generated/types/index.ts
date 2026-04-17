@@ -55,6 +55,7 @@ export * from "./project";
 export * from "./projectMember";
 export * from "./projectPhase";
 export * from "./projectStatus";
+export * from "./recentClientMessage";
 export * from "./review";
 export * from "./reviewStatus";
 export * from "./sendDm";
