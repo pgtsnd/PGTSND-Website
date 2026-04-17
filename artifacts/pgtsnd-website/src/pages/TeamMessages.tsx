@@ -66,6 +66,8 @@ export default function TeamMessages() {
 
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const seenClientMessageIdsRef = useRef<Set<string>>(new Set());
+  const baselineLoadedProjectRef = useRef<string | null>(null);
   const { toast } = useToast();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
 
@@ -105,6 +107,72 @@ export default function TeamMessages() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [sortedMessages.length]);
+
+  useEffect(() => {
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {
+        // Ignore — user can enable later via browser settings
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!selectedProjectId || !groupMessages) return;
+    const projectName =
+      activeProjects.find((p: Project) => p.id === selectedProjectId)?.name ?? "Project";
+
+    const isNewProject = baselineLoadedProjectRef.current !== selectedProjectId;
+    const seen = isNewProject ? new Set<string>() : seenClientMessageIdsRef.current;
+    const nextSeen = new Set<string>();
+    const incoming: Message[] = [];
+
+    for (const msg of groupMessages) {
+      if (!msg.id) continue;
+      nextSeen.add(msg.id);
+      const sender = userMap.get(msg.senderId);
+      if (sender?.role !== "client") continue;
+      if (!isNewProject && !seen.has(msg.id)) {
+        incoming.push(msg);
+      }
+    }
+
+    seenClientMessageIdsRef.current = nextSeen;
+    baselineLoadedProjectRef.current = selectedProjectId;
+
+    if (isNewProject) return;
+    if (
+      typeof window === "undefined" ||
+      typeof Notification === "undefined" ||
+      Notification.permission !== "granted"
+    ) {
+      return;
+    }
+    if (document.visibilityState === "visible" && document.hasFocus()) return;
+
+    const projectId = selectedProjectId;
+    for (const msg of incoming) {
+      const sender = userMap.get(msg.senderId);
+      try {
+        const notification = new Notification(
+          `New message from ${sender?.name ?? "client"}`,
+          {
+            body: `${projectName}: ${msg.content}`,
+            tag: `pgtsnd-team-msg-${projectId}`,
+          },
+        );
+        notification.onclick = () => {
+          window.focus();
+          setMode("groups");
+          setSelectedProjectId(projectId);
+          notification.close();
+        };
+      } catch {
+        // Ignore notification errors (some browsers throw on unsupported configs)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupMessages, selectedProjectId, userMap]);
 
   // mark DMs read when opening
   useEffect(() => {

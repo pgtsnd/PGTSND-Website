@@ -72,7 +72,7 @@ export function useProjectDeliverables(projectId: string) {
 export function useProjectMessages(projectId: string) {
   const { userId } = useTeamAuth();
   return useListProjectMessages(projectId, {
-    query: { enabled: !!projectId && !!userId },
+    query: { enabled: !!projectId && !!userId, refetchInterval: 10000 },
   });
 }
 
