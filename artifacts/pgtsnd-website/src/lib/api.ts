@@ -160,6 +160,9 @@ export interface Invoice {
   dueDate: string | null;
   paidAt: string | null;
   paymentMethod: string | null;
+  stripeInvoiceId: string | null;
+  stripePaymentIntentId: string | null;
+  stripeCheckoutSessionId: string | null;
   stripeHostedUrl: string | null;
   stripePdfUrl: string | null;
   createdAt: string;

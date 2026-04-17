@@ -228,6 +228,7 @@ export default function TeamClients() {
       }
       setCopiedInvoiceId(invoiceId);
       setTimeout(() => setCopiedInvoiceId((cur) => (cur === invoiceId ? null : cur)), 2000);
+      refreshInvoices();
     } catch (err: any) {
       setLinkError(err?.message || "Failed to create payment link");
       setTimeout(() => setLinkError(null), 4000);
@@ -310,6 +311,35 @@ export default function TeamClients() {
     if (s === "overdue") return "rgba(255,100,80,0.9)";
     if (s === "void") return "rgba(160,160,160,0.6)";
     return "rgba(255,200,60,0.9)";
+  };
+
+  const stripeStatus = (inv: Invoice): { label: string; color: string; bg: string; title: string } | null => {
+    if (inv.status === "paid") {
+      if (inv.stripePaymentIntentId) {
+        return {
+          label: "Paid via Stripe",
+          color: "rgba(180,140,255,0.95)",
+          bg: "rgba(180,140,255,0.1)",
+          title: inv.paymentMethod ? `Stripe payment (${inv.paymentMethod})` : "Paid through Stripe Checkout",
+        };
+      }
+      return {
+        label: "Marked Paid",
+        color: "rgba(160,160,160,0.85)",
+        bg: "rgba(160,160,160,0.1)",
+        title: "Manually marked paid by the team",
+      };
+    }
+    if (inv.status === "void") return null;
+    if (inv.stripeCheckoutSessionId) {
+      return {
+        label: "Awaiting Stripe payment",
+        color: "rgba(255,200,60,0.95)",
+        bg: "rgba(255,200,60,0.1)",
+        title: "A Stripe Checkout link has been created. Waiting for the client to pay.",
+      };
+    }
+    return null;
   };
 
   return (
@@ -437,7 +467,7 @@ export default function TeamClients() {
                         <ClientOverview client={client} t={t} f={f} />
                       )}
                       {clientTab === "scope" && (
-                        <ClientScope client={client} t={t} f={f} />
+                        <ClientScope client={client} t={t} f={f} stripeStatus={stripeStatus} />
                       )}
                       {clientTab === "invoices" && (
                         <ClientInvoices
@@ -445,6 +475,7 @@ export default function TeamClients() {
                           t={t}
                           f={f}
                           statusColor={statusColor}
+                          stripeStatus={stripeStatus}
                           showNewInvoice={showNewInvoice}
                           setShowNewInvoice={setShowNewInvoice}
                           invoiceForm={invoiceForm}
@@ -626,7 +657,7 @@ function ClientOverview({ client, t, f }: { client: any; t: any; f: any }) {
   );
 }
 
-function ClientScope({ client, t, f }: { client: any; t: any; f: any }) {
+function ClientScope({ client, t, f, stripeStatus }: { client: any; t: any; f: any; stripeStatus: (inv: Invoice) => { label: string; color: string; bg: string; title: string } | null }) {
   return (
     <div>
       {client.projects.length === 0 ? (
@@ -686,9 +717,11 @@ function ClientScope({ client, t, f }: { client: any; t: any; f: any }) {
                   {projInvoices.length > 0 && (
                     <div style={{ marginTop: "12px" }}>
                       <p style={f({ fontWeight: 600, fontSize: "9px", color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" })}>Invoice History</p>
-                      {projInvoices.sort((a: Invoice, b: Invoice) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((inv: Invoice) => (
+                      {projInvoices.sort((a: Invoice, b: Invoice) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((inv: Invoice) => {
+                        const stripe = stripeStatus(inv);
+                        return (
                         <div key={inv.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: `1px solid ${t.borderSubtle}` }}>
-                          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                             <span style={f({
                               fontWeight: 600, fontSize: "8px",
                               color: inv.status === "paid" ? "rgba(80,200,120,0.9)" : inv.status === "sent" ? "rgba(120,180,255,0.9)" : inv.status === "overdue" ? "rgba(255,100,80,0.9)" : "rgba(255,200,60,0.9)",
@@ -698,6 +731,16 @@ function ClientScope({ client, t, f }: { client: any; t: any; f: any }) {
                             })}>
                               {inv.status}
                             </span>
+                            {stripe && (
+                              <span title={stripe.title} style={f({
+                                fontWeight: 600, fontSize: "8px",
+                                color: stripe.color, background: stripe.bg,
+                                textTransform: "uppercase", letterSpacing: "0.04em",
+                                padding: "2px 6px", borderRadius: "3px",
+                              })}>
+                                {stripe.label}
+                              </span>
+                            )}
                             <span style={f({ fontWeight: 400, fontSize: "11px", color: t.text })}>{inv.description}</span>
                           </div>
                           <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
@@ -705,7 +748,8 @@ function ClientScope({ client, t, f }: { client: any; t: any; f: any }) {
                             <span style={f({ fontWeight: 600, fontSize: "12px", color: t.text })}>${fmtUsd(inv.amount)}</span>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -718,7 +762,7 @@ function ClientScope({ client, t, f }: { client: any; t: any; f: any }) {
   );
 }
 
-function ClientInvoices({ client, t, f, statusColor, showNewInvoice, setShowNewInvoice, invoiceForm, setInvoiceForm, invoiceSaving, invoiceError, handleCreateInvoice, handleMarkPaid, handleSendInvoice, handleVoidInvoice, handleCopyPaymentLink, copiedInvoiceId, linkLoadingId, linkError, inputStyle, labelStyle }: any) {
+function ClientInvoices({ client, t, f, statusColor, stripeStatus, showNewInvoice, setShowNewInvoice, invoiceForm, setInvoiceForm, invoiceSaving, invoiceError, handleCreateInvoice, handleMarkPaid, handleSendInvoice, handleVoidInvoice, handleCopyPaymentLink, copiedInvoiceId, linkLoadingId, linkError, inputStyle, labelStyle }: any) {
   const allInvoices = (client.invoices as Invoice[]).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const paidInvoices = allInvoices.filter((i) => i.status === "paid");
   const pendingInvoices = allInvoices.filter((i) => i.status === "sent" || i.status === "draft");
@@ -863,12 +907,13 @@ function ClientInvoices({ client, t, f, statusColor, showNewInvoice, setShowNewI
           </div>
           {allInvoices.map((inv) => {
             const projName = client.projects.find((p: Project) => p.id === inv.projectId)?.name ?? "";
+            const stripe = stripeStatus(inv);
             return (
               <div key={inv.id} style={{
                 display: "grid", gridTemplateColumns: "100px 1fr 100px 100px 120px 220px",
                 padding: "10px 14px", borderBottom: `1px solid ${t.borderSubtle}`, alignItems: "center",
               }}>
-                <div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
                   <span style={f({
                     fontWeight: 600, fontSize: "9px",
                     color: statusColor(inv.status),
@@ -878,6 +923,16 @@ function ClientInvoices({ client, t, f, statusColor, showNewInvoice, setShowNewI
                   })}>
                     {inv.status}
                   </span>
+                  {stripe && (
+                    <span title={stripe.title} style={f({
+                      fontWeight: 600, fontSize: "8px",
+                      color: stripe.color, background: stripe.bg,
+                      textTransform: "uppercase", letterSpacing: "0.04em",
+                      padding: "2px 6px", borderRadius: "3px",
+                    })}>
+                      {stripe.label}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <p style={f({ fontWeight: 500, fontSize: "12px", color: t.text, margin: 0 })}>{inv.description}</p>
