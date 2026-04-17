@@ -208,6 +208,17 @@ export default function VideoReviewPanel({
     setSubmitting(false);
   };
 
+  const resolveVersionLabel = (comment: VideoComment): string | null => {
+    if (
+      versionLabelById &&
+      comment.deliverableVersionId &&
+      versionLabelById[comment.deliverableVersionId]
+    ) {
+      return versionLabelById[comment.deliverableVersionId];
+    }
+    return comment.versionLabel ?? null;
+  };
+
   const canReopenComment = (comment: VideoComment): boolean => {
     if (!comment.resolvedAt) return false;
     if (onResolveComment) return true; // team has full resolve power
@@ -463,6 +474,22 @@ export default function VideoReviewPanel({
                           {formatTime(rc.timestampSeconds)}
                         </span>
                       )}
+                      {(() => {
+                        const vlabel = resolveVersionLabel(rc);
+                        return vlabel ? (
+                          <span
+                            data-testid={`resolved-comment-version-tag-${rc.id}`}
+                            title={`Left on ${vlabel}`}
+                            style={f({
+                              fontWeight: 600, fontSize: "9px", color: "#7aa7ff",
+                              background: "rgba(122,167,255,0.12)", padding: "2px 6px",
+                              borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.05em",
+                            })}
+                          >
+                            {vlabel}
+                          </span>
+                        ) : null;
+                      })()}
                       <span style={f({ fontWeight: 600, fontSize: "11px", color: t.text })}>
                         {rc.authorName}
                       </span>
@@ -584,35 +611,25 @@ export default function VideoReviewPanel({
                     {formatTime(comment.timestampSeconds)}
                   </button>
                 )}
-                {versionLabelById && comment.deliverableVersionId && versionLabelById[comment.deliverableVersionId] && (
-                  <span
-                    data-testid={`comment-version-tag-${comment.id}`}
-                    title={`Left on ${versionLabelById[comment.deliverableVersionId]}`}
-                    style={f({
-                      fontWeight: 600, fontSize: "9px", color: t.textSecondary,
-                      background: t.hoverBg, border: `1px solid ${t.borderSubtle}`,
-                      padding: "1px 6px", borderRadius: "4px",
-                      letterSpacing: "0.04em",
-                    })}
-                  >
-                    {versionLabelById[comment.deliverableVersionId]}
-                  </span>
-                )}
+                {(() => {
+                  const vlabel = resolveVersionLabel(comment);
+                  return vlabel ? (
+                    <span
+                      data-testid={`comment-version-tag-${comment.id}`}
+                      title={`Left on ${vlabel}`}
+                      style={f({
+                        fontWeight: 600, fontSize: "9px", color: "#7aa7ff",
+                        background: "rgba(122,167,255,0.12)", padding: "2px 6px",
+                        borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.05em",
+                      })}
+                    >
+                      {vlabel}
+                    </span>
+                  ) : null;
+                })()}
                 <span style={f({ fontWeight: 600, fontSize: "11px", color: t.text })}>
                   {comment.authorName}
                 </span>
-                {comment.versionLabel && (
-                  <span
-                    data-testid={`comment-version-badge-${comment.id}`}
-                    style={f({
-                      fontWeight: 600, fontSize: "9px", color: "#7aa7ff",
-                      background: "rgba(122,167,255,0.12)", padding: "2px 6px",
-                      borderRadius: "4px", textTransform: "uppercase", letterSpacing: "0.05em",
-                    })}
-                  >
-                    {comment.versionLabel}
-                  </span>
-                )}
                 <span style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>
                   {timeAgo(comment.createdAt)}
                 </span>

@@ -1040,6 +1040,11 @@ export default function ClientVideoReview() {
                 currentVersionLabel={selectedDeliverable.version ?? null}
                 onReopenComment={handleReopenComment}
                 currentUserId={currentUser?.id ?? null}
+                versionLabelById={(() => {
+                  const map: Record<string, string> = {};
+                  for (const v of deliverableVersions) map[v.id] = v.version;
+                  return map;
+                })()}
                 highlightCommentId={
                   selectedDeliverable && deepLink.deliverableId === selectedDeliverable.id
                     ? highlightCommentId
