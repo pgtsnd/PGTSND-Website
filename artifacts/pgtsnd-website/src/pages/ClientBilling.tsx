@@ -111,6 +111,49 @@ export default function ClientBilling() {
     }
   };
 
+  const stripeStatus = (inv: Invoice): { label: string; color: string; bg: string; title: string } | null => {
+    if (inv.status === "paid") {
+      if (inv.stripePaymentIntentId) {
+        return {
+          label: "Paid via Stripe",
+          color: "rgba(180,140,255,0.95)",
+          bg: "rgba(180,140,255,0.1)",
+          title: inv.paymentMethod ? `Stripe payment (${inv.paymentMethod})` : "Paid through Stripe Checkout",
+        };
+      }
+      return {
+        label: "Marked Paid",
+        color: "rgba(160,160,160,0.85)",
+        bg: "rgba(160,160,160,0.1)",
+        title: "Manually marked paid by your team",
+      };
+    }
+    if (inv.status === "void") return null;
+    if (inv.stripeCheckoutSessionId) {
+      return {
+        label: "Awaiting payment",
+        color: "rgba(255,200,60,0.95)",
+        bg: "rgba(255,200,60,0.1)",
+        title: "A Stripe Checkout link is ready. Pay anytime to complete this invoice.",
+      };
+    }
+    return null;
+  };
+
+  const stripeBadgeStyle = (s: { color: string; bg: string }) => ({
+    fontFamily: "'Montserrat', sans-serif",
+    fontWeight: 600,
+    fontSize: "9px",
+    color: s.color,
+    background: s.bg,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.05em",
+    padding: "3px 8px",
+    borderRadius: "4px",
+    display: "inline-block",
+    marginLeft: "6px",
+  });
+
   const statusColor = (status: string) => {
     switch (status) {
       case "paid": return { color: "rgba(96,208,96,0.8)", bg: "rgba(96,208,96,0.08)" };
@@ -240,6 +283,7 @@ export default function ClientBilling() {
                   </div>
                   {dueInvoices.map((inv) => {
                     const sc = statusColor(inv.status);
+                    const stripe = stripeStatus(inv);
                     const isProcessing = checkoutLoading === inv.id;
                     return (
                       <div key={inv.id} style={{ display: "grid", gridTemplateColumns: "90px 1fr 110px 110px 100px 120px", padding: "16px 20px", borderBottom: `1px solid ${t.borderSubtle}`, alignItems: "center" }}>
@@ -249,6 +293,9 @@ export default function ClientBilling() {
                         <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "12px", color: t.textTertiary }}>{formatDate(inv.dueDate)}</p>
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "4px" }}>
                           <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.05em", color: sc.color, background: sc.bg, padding: "4px 12px", borderRadius: "4px", textAlign: "center", display: "inline-block" }}>{statusLabel(inv.status)}</span>
+                          {stripe && (
+                            <span title={stripe.title} style={{ ...stripeBadgeStyle(stripe), marginLeft: 0 }}>{stripe.label}</span>
+                          )}
                           {inv.paymentLinkSentAt && (
                             <span title={`Payment link emailed ${new Date(inv.paymentLinkSentAt).toLocaleString()}`} style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em", color: t.textMuted, background: t.hoverBg, border: `1px solid ${t.borderSubtle}`, padding: "3px 8px", borderRadius: "4px", display: "inline-block" }}>
                               Link emailed {new Date(inv.paymentLinkSentAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
@@ -303,13 +350,19 @@ export default function ClientBilling() {
                 <div>
                   {paidInvoices.map((payment, i) => {
                     const details = paymentDetails[payment.id];
+                    const stripe = stripeStatus(payment);
                     const displayMethod = details?.paymentMethod ?? payment.paymentMethod;
                     const displayDate = details?.paidAt ?? payment.paidAt;
                     const displayAmount = details?.amount ?? payment.amount;
                     return (
                       <div key={payment.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: i < paidInvoices.length - 1 ? `1px solid ${t.borderSubtle}` : "none" }}>
                         <div>
-                          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "13px", color: t.textSecondary, marginBottom: "2px" }}>{payment.invoiceNumber ? `${payment.invoiceNumber} — ` : ""}{payment.description}</p>
+                          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: "13px", color: t.textSecondary, marginBottom: "2px", display: "flex", alignItems: "center", flexWrap: "wrap" }}>
+                            <span>{payment.invoiceNumber ? `${payment.invoiceNumber} — ` : ""}{payment.description}</span>
+                            {stripe && (
+                              <span title={stripe.title} style={stripeBadgeStyle(stripe)}>{stripe.label}</span>
+                            )}
+                          </p>
                           <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>
                             {formatDate(displayDate)} {displayMethod ? `· ${displayMethod}` : ""}
                             {details?.status ? ` · ${details.status}` : ""}
