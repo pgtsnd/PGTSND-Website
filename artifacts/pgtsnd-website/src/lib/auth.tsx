@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { csrfHeaders } from "./csrf";
-import { useToast } from "../components/Toast";
 import {
   DEFAULT_SESSION_EXPIRED_MESSAGE,
   SESSION_EXPIRED_EVENT,
@@ -36,7 +35,6 @@ const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "") + "/api";
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
   const userRef = useRef<AuthUser | null>(null);
   const handlingExpiryRef = useRef(false);
 
@@ -54,7 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const detail = (event as CustomEvent<Partial<SessionExpiredDetail>>).detail ?? {};
       handlingExpiryRef.current = true;
       rememberPostLoginRedirect();
-      setUser(null);
       try {
         localStorage.removeItem("team-user-id");
       } catch {
@@ -62,19 +59,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       const message = detail.message ?? DEFAULT_SESSION_EXPIRED_MESSAGE;
       rememberSessionExpiredMessage(message);
-      toast(message, "info");
       const loginPath = getLoginPathForCurrentLocation();
       const base = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
       const targetPath = `${base}${loginPath}`;
-      window.setTimeout(() => {
-        window.location.assign(targetPath);
-      }, 50);
+      // Trigger a full reload immediately. We deliberately do NOT call
+      // setUser(null) first: doing so would cause ProtectedRoute to render
+      // TeamLogin/ClientHub via SPA navigation, whose mount-time effect would
+      // consume the session-expired message from sessionStorage before the
+      // reload re-mounts the login page. After the reload, the fresh login
+      // page mount is the sole consumer of the message.
+      window.location.assign(targetPath);
     };
     window.addEventListener(SESSION_EXPIRED_EVENT, handler);
     return () => {
       window.removeEventListener(SESSION_EXPIRED_EVENT, handler);
     };
-  }, [toast]);
+  }, []);
 
   const checkSession = useCallback(async () => {
     try {

@@ -64,9 +64,9 @@ test.describe("session-expiry redirect flow", () => {
     expect(snapshot.savedRedirect).toBe(PROTECTED_PATH);
     expect(snapshot.savedMessage).toBe(EXPIRED_MESSAGE);
 
-    // 4. Wait for the redirect to /team. The handler schedules
-    //    window.location.assign('/team') inside a 50ms setTimeout, so the
-    //    execution context will be destroyed mid-wait — that's expected.
+    // 4. Wait for the redirect to /team. The handler calls
+    //    window.location.assign('/team') synchronously, so the execution
+    //    context will be destroyed mid-wait — that's expected.
     try {
       await page.waitForFunction(
         () => window.location.pathname === "/team",
@@ -84,6 +84,13 @@ test.describe("session-expiry redirect flow", () => {
       page.getByRole("heading", { name: /crew sign in/i }),
     ).toBeVisible();
 
+    // The session-expired message must be visible on the login page that the
+    // user lands on after the redirect — regardless of whether the page got
+    // there via SPA navigation, a full reload, or both. Previously the SPA
+    // mount of TeamLogin would consume the message before the full reload
+    // re-mounted the login page, leaving the user on a plain login form.
+    await expect(page.getByText(EXPIRED_MESSAGE)).toBeVisible();
+
     // The login page consumes the message on mount but leaves the redirect
     // key in place for the post-login flow to read.
     const sessionAfterRedirect = await page.evaluate(
@@ -94,6 +101,7 @@ test.describe("session-expiry redirect flow", () => {
       [REDIRECT_KEY, MESSAGE_KEY] as const,
     );
     expect(sessionAfterRedirect.savedRedirect).toBe(PROTECTED_PATH);
+    expect(sessionAfterRedirect.savedMessage).toBeNull();
 
     // 5. Re-authenticate via the same demo email and assert that the user
     //    lands on the originally protected page (not the role-default
