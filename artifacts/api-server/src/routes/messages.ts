@@ -46,9 +46,10 @@ router.post(
   requireProjectAccess("projectId"),
   async (req, res) => {
     const parsed = insertMessageSchema.safeParse({
-      ...req.body,
+      content: req.body?.content,
       projectId: req.params.projectId,
       senderId: req.user!.id,
+      recipientId: null,
     });
     if (!parsed.success) {
       res.status(400).json({ error: "Validation failed", details: parsed.error.issues });

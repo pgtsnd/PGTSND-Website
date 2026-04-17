@@ -77,7 +77,13 @@ router.get("/dm/conversations", async (req, res) => {
     : [];
   const userMap = new Map(users.map((u) => [u.id, u]));
 
-  const result = Array.from(map.values()).map((c) => ({
+  // Re-filter by current RBAC: a role change should not surface forbidden conversations.
+  const result = Array.from(map.values())
+    .filter((c) => {
+      const u = userMap.get(c.partnerId);
+      return !!u && canDM(me.role as Role, u.role as Role);
+    })
+    .map((c) => ({
     partnerId: c.partnerId,
     partnerName: userMap.get(c.partnerId)?.name ?? "Unknown",
     partnerRole: userMap.get(c.partnerId)?.role ?? null,

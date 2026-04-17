@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   useCreateProject,
   useCreateOrganization,
@@ -10,6 +10,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "./ThemeContext";
 import { useToast } from "./Toast";
+import { csrfHeaders } from "../lib/csrf";
 
 type Props = {
   open: boolean;
@@ -17,7 +18,47 @@ type Props = {
   onCreated?: (projectId: string) => void;
 };
 
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
+
+const FILE_KIND_OPTIONS = [
+  "Kickoff recording",
+  "Brief / scope doc",
+  "Reference",
+  "Contract",
+  "Other",
+] as const;
+
+const MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB
+
+type PendingFile = {
+  id: string;
+  file: File;
+  kind: string;
+  status: "pending" | "uploading" | "done" | "error";
+  progress: number;
+  error?: string;
+};
+
+function inferContentType(file: File): string {
+  if (file.type) return file.type;
+  const lower = file.name.toLowerCase();
+  if (lower.endsWith(".mp4")) return "video/mp4";
+  if (lower.endsWith(".webm")) return "video/webm";
+  if (lower.endsWith(".mov")) return "video/quicktime";
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+  if (lower.endsWith(".webp")) return "image/webp";
+  if (lower.endsWith(".gif")) return "image/gif";
+  if (lower.endsWith(".pdf")) return "application/pdf";
+  return "application/octet-stream";
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
 
 const PROJECT_TYPES = [
   "Brand film",
@@ -118,6 +159,9 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { data: orgs } = useListOrganizations({ query: { enabled: open } });
   const { data: users } = useListUsers({ query: { enabled: open } });
@@ -169,7 +213,117 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
     setForm(INITIAL_FORM);
     setStep(1);
     setError(null);
+    setPendingFiles([]);
     onClose();
+  };
+
+  const addFiles = (incoming: FileList | File[]) => {
+    const list: PendingFile[] = [];
+    const skipped: string[] = [];
+    const arr = Array.from(incoming);
+    for (const file of arr) {
+      if (file.size <= 0 || file.size > MAX_FILE_BYTES) {
+        skipped.push(`${file.name} (size out of range)`);
+        continue;
+      }
+      list.push({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        file,
+        kind: "Other",
+        status: "pending",
+        progress: 0,
+      });
+    }
+    if (skipped.length) {
+      toast(`Skipped: ${skipped.join(", ")}`, "error");
+    }
+    if (list.length) {
+      setPendingFiles((prev) => [...prev, ...list]);
+    }
+  };
+
+  const removePendingFile = (id: string) => {
+    setPendingFiles((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const updatePendingKind = (id: string, kind: string) => {
+    setPendingFiles((prev) => prev.map((p) => (p.id === id ? { ...p, kind } : p)));
+  };
+
+  const uploadOneFile = async (
+    item: PendingFile,
+    folder: string,
+  ): Promise<boolean> => {
+    setPendingFiles((prev) =>
+      prev.map((p) =>
+        p.id === item.id ? { ...p, status: "uploading", progress: 5, error: undefined } : p,
+      ),
+    );
+    const contentType = inferContentType(item.file);
+    try {
+      const reqRes = await fetch("/api/storage/uploads/request-url", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...csrfHeaders() },
+        body: JSON.stringify({ name: item.file.name, size: item.file.size, contentType }),
+      });
+      if (!reqRes.ok) {
+        const data = await reqRes.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to start upload");
+      }
+      const { uploadURL, objectPath } = (await reqRes.json()) as {
+        uploadURL: string;
+        objectPath: string;
+      };
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", uploadURL);
+        xhr.setRequestHeader("Content-Type", contentType);
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const pct = 10 + Math.round((e.loaded / e.total) * 85);
+            setPendingFiles((prev) =>
+              prev.map((p) => (p.id === item.id ? { ...p, progress: pct } : p)),
+            );
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error(`Upload failed (${xhr.status})`));
+        };
+        xhr.onerror = () => reject(new Error("Network error during upload"));
+        xhr.send(item.file);
+      });
+
+      const regRes = await fetch("/api/storage/media", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...csrfHeaders() },
+        body: JSON.stringify({
+          objectPath,
+          name: item.file.name,
+          contentType,
+          sizeBytes: item.file.size,
+          folder,
+          label: item.kind && item.kind !== "Other" ? item.kind : undefined,
+        }),
+      });
+      if (!regRes.ok) throw new Error("Failed to register upload");
+
+      setPendingFiles((prev) =>
+        prev.map((p) => (p.id === item.id ? { ...p, status: "done", progress: 100 } : p)),
+      );
+      return true;
+    } catch (e: any) {
+      const msg = e?.message || "Upload failed";
+      setPendingFiles((prev) =>
+        prev.map((p) =>
+          p.id === item.id ? { ...p, status: "error", error: msg } : p,
+        ),
+      );
+      return false;
+    }
   };
 
   const validateStep = (s: Step): string | null => {
@@ -188,11 +342,11 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
       return;
     }
     setError(null);
-    setStep((s) => Math.min(5, (s + 1) as Step));
+    setStep((s) => Math.min(6, s + 1) as Step);
   };
   const prev = () => {
     setError(null);
-    setStep((s) => Math.max(1, (s - 1) as Step));
+    setStep((s) => Math.max(1, s - 1) as Step);
   };
 
   const submit = async () => {
@@ -243,10 +397,43 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
 
       const created = (await createProject.mutateAsync({ data: payload } as any)) as any;
       await queryClient.invalidateQueries({ queryKey: getListProjectsQueryKey() });
-      toast(`Project "${created?.name ?? form.name}" created.`, "success");
+
+      const filesToUpload = pendingFiles.filter((p) => p.status !== "done");
+      if (filesToUpload.length && created?.id) {
+        const folder = `project-${created.id}`;
+        let okCount = 0;
+        for (const item of filesToUpload) {
+          // eslint-disable-next-line no-await-in-loop
+          const ok = await uploadOneFile(item, folder);
+          if (ok) okCount += 1;
+        }
+        if (okCount === filesToUpload.length) {
+          toast(
+            `Project "${created?.name ?? form.name}" created with ${okCount} file${okCount === 1 ? "" : "s"}.`,
+            "success",
+          );
+        } else if (okCount > 0) {
+          toast(
+            `Project created. ${okCount} of ${filesToUpload.length} files uploaded — see remaining errors below.`,
+            "info",
+          );
+          setError(`${filesToUpload.length - okCount} file(s) failed to upload. The project was still created.`);
+          setSubmitting(false);
+          return;
+        } else {
+          toast(`Project created, but uploads failed.`, "info");
+          setError("All file uploads failed. The project was still created.");
+          setSubmitting(false);
+          return;
+        }
+      } else {
+        toast(`Project "${created?.name ?? form.name}" created.`, "success");
+      }
+
       onCreated?.(created?.id);
       setForm(INITIAL_FORM);
       setStep(1);
+      setPendingFiles([]);
       onClose();
     } catch (e: any) {
       const msg = e?.response?.data?.error || e?.message || "Failed to create project.";
@@ -262,6 +449,7 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
     3: { label: "Deliverables & status", sub: "What is being produced, and where does it stand?" },
     4: { label: "Timeline & budget", sub: "When and how much?" },
     5: { label: "Notes & contacts", sub: "Anything else worth tracking." },
+    6: { label: "Files", sub: "Attach kickoff recordings, briefs, references — optional." },
   };
 
   return (
@@ -326,7 +514,7 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
 
         {/* Progress bar */}
         <div style={{ display: "flex", gap: "4px", padding: "12px 28px 0" }}>
-          {[1, 2, 3, 4, 5].map((n) => (
+          {[1, 2, 3, 4, 5, 6].map((n) => (
             <div
               key={n}
               style={{
@@ -678,6 +866,131 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
               </div>
             </div>
           )}
+
+          {step === 6 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <p style={f({ fontWeight: 400, fontSize: "13px", color: t.textSecondary, lineHeight: 1.6 })}>
+                Drop in a kickoff meeting recording, the signed brief, mood-board PDFs, or any reference
+                files you want stored alongside this project. Everything attaches to the project after it's
+                created and shows up under Uploads. Up to 2 GB per file.
+              </p>
+
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOver(true);
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOver(false);
+                  if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
+                }}
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  border: `2px dashed ${dragOver ? t.accent : t.border}`,
+                  borderRadius: "12px",
+                  padding: "32px 20px",
+                  textAlign: "center" as const,
+                  background: dragOver ? `${t.accent}10` : t.bgElevated,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+                data-testid="wizard-files-dropzone"
+              >
+                <p style={f({ fontWeight: 700, fontSize: "13px", color: t.text, marginBottom: "6px" })}>
+                  Drop files here or click to browse
+                </p>
+                <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textTertiary })}>
+                  Videos, images, PDFs, audio — anything you want attached to the project.
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    if (e.target.files?.length) addFiles(e.target.files);
+                    e.target.value = "";
+                  }}
+                  data-testid="wizard-files-input"
+                />
+              </div>
+
+              {pendingFiles.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <p style={f({ fontWeight: 700, fontSize: "11px", color: t.textMuted, textTransform: "uppercase" as const, letterSpacing: "0.08em" })}>
+                    {pendingFiles.length} file{pendingFiles.length === 1 ? "" : "s"} ready to attach
+                  </p>
+                  {pendingFiles.map((p) => (
+                    <div
+                      key={p.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "10px 12px",
+                        background: t.bgElevated,
+                        border: `1px solid ${p.status === "error" ? "#ff6b6b55" : t.border}`,
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={f({ fontWeight: 600, fontSize: "12px", color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const })}>
+                          {p.file.name}
+                        </p>
+                        <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textTertiary, marginTop: "2px" })}>
+                          {formatFileSize(p.file.size)}
+                          {p.status === "uploading" && ` · uploading ${p.progress}%`}
+                          {p.status === "done" && ` · uploaded`}
+                          {p.status === "error" && ` · ${p.error || "upload failed"}`}
+                        </p>
+                        {p.status === "uploading" && (
+                          <div style={{ height: "3px", background: t.border, borderRadius: "2px", marginTop: "6px", overflow: "hidden" }}>
+                            <div style={{ width: `${p.progress}%`, height: "100%", background: t.accent, transition: "width 0.2s" }} />
+                          </div>
+                        )}
+                      </div>
+                      <select
+                        value={p.kind}
+                        onChange={(e) => updatePendingKind(p.id, e.target.value)}
+                        disabled={p.status === "uploading" || p.status === "done"}
+                        style={{
+                          ...inputStyle,
+                          width: "auto",
+                          padding: "6px 8px",
+                          fontSize: "11px",
+                        }}
+                      >
+                        {FILE_KIND_OPTIONS.map((k) => (
+                          <option key={k} value={k}>
+                            {k}
+                          </option>
+                        ))}
+                      </select>
+                      {p.status !== "uploading" && p.status !== "done" && (
+                        <button
+                          type="button"
+                          onClick={() => removePendingFile(p.id)}
+                          style={{ background: "transparent", border: "none", cursor: "pointer", padding: "4px", color: t.textTertiary }}
+                          aria-label="Remove file"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textTertiary })}>
+                Files upload after you click Create project. You can always add more later from the project page.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -716,7 +1029,7 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
                 Back
               </button>
             )}
-            {step < 5 ? (
+            {step < 6 ? (
               <button
                 onClick={next}
                 style={f({
