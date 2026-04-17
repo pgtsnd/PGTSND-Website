@@ -6,6 +6,7 @@ import { SettingsSkeleton, ErrorState } from "../components/TeamLoadingStates";
 import { useToast } from "../components/Toast";
 import { useUpdateProfile } from "../hooks/useTeamData";
 import { api, type DistributionList } from "../lib/api";
+import { csrfHeaders } from "../lib/csrf";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useUpdateMyNotificationPreferences,
@@ -1370,9 +1371,11 @@ export function DormantTokensSubscribersCard({
   t: any;
   f: (s: object) => object;
 }) {
+  const { toast } = useToast();
   const [rows, setRows] = useState<DormantTokensSubscriberRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [resubscribingId, setResubscribingId] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -1387,6 +1390,38 @@ export function DormantTokensSubscribersCard({
         setError(err instanceof Error ? err.message : "Failed to load"),
       )
       .finally(() => setLoading(false));
+  };
+
+  const handleResubscribe = async (row: DormantTokensSubscriberRow) => {
+    const label = row.name ?? row.email;
+    const confirmed = window.confirm(
+      `Re-subscribe ${label} to the weekly dormant-tokens email? They will start receiving it again immediately.`,
+    );
+    if (!confirmed) return;
+    setResubscribingId(row.id);
+    try {
+      const res = await fetch(
+        `/api/admin/dormant-tokens-subscribers/${row.id}/resubscribe`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { ...csrfHeaders() },
+        },
+      );
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? `Request failed (${res.status})`);
+      }
+      toast(`${label} re-subscribed`, "success");
+      load();
+    } catch (err) {
+      toast(
+        err instanceof Error ? err.message : "Failed to re-subscribe owner",
+        "error",
+      );
+    } finally {
+      setResubscribingId(null);
+    }
   };
 
   useEffect(() => {
@@ -1569,6 +1604,20 @@ export function DormantTokensSubscribersCard({
                 >
                   Last Unsubscribed
                 </th>
+                <th
+                  style={f({
+                    textAlign: "right",
+                    padding: "10px 12px",
+                    color: t.textSecondary,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    fontSize: "10px",
+                    letterSpacing: "0.06em",
+                    borderBottom: `1px solid ${t.borderLight}`,
+                  })}
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -1617,6 +1666,39 @@ export function DormantTokensSubscribersCard({
                       style={f({ padding: "10px 12px", color: t.textPrimary })}
                     >
                       {formatDateTime(row.unsubscribedAt)}
+                    </td>
+                    <td
+                      style={f({
+                        padding: "10px 12px",
+                        textAlign: "right",
+                      })}
+                    >
+                      {row.status === "unsubscribed" ? (
+                        <button
+                          type="button"
+                          disabled={resubscribingId === row.id}
+                          onClick={() => handleResubscribe(row)}
+                          data-testid={`dormant-tokens-resubscribe-${row.id}`}
+                          style={f({
+                            padding: "6px 12px",
+                            borderRadius: "6px",
+                            border: "none",
+                            background: t.accent,
+                            color: "#fff",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            cursor:
+                              resubscribingId === row.id ? "wait" : "pointer",
+                            opacity: resubscribingId === row.id ? 0.7 : 1,
+                          })}
+                        >
+                          {resubscribingId === row.id
+                            ? "Re-subscribing…"
+                            : "Re-subscribe"}
+                        </button>
+                      ) : (
+                        <span style={f({ color: t.textSecondary })}>—</span>
+                      )}
                     </td>
                   </tr>
                 );
