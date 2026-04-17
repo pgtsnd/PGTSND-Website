@@ -10,7 +10,6 @@ import {
   enrichedMessageSchema,
 } from "@workspace/db";
 import { and, desc, eq, gt, inArray, isNotNull, sql } from "drizzle-orm";
-import { z } from "zod/v4";
 import { requireRole } from "../middleware/auth";
 import {
   requireProjectAccess,
@@ -193,16 +192,6 @@ router.delete(
   },
 );
 
-const recentClientMessageSchema = z.object({
-  id: z.string(),
-  projectId: z.string(),
-  projectName: z.string(),
-  senderId: z.string(),
-  senderName: z.string().nullable(),
-  content: z.string(),
-  createdAt: z.date(),
-});
-
 router.get("/messages/recent-client-activity", async (req, res) => {
   const me = req.user!;
 
@@ -254,7 +243,7 @@ router.get("/messages/recent-client-activity", async (req, res) => {
     .orderBy(desc(messagesTable.createdAt))
     .limit(50);
 
-  validateAndSendArray(res, recentClientMessageSchema, rows);
+  res.json(rows);
 });
 
 export default router;

@@ -1,70 +1,145 @@
 # Overview
 
-This project is a pnpm workspace monorepo using TypeScript, designed to manage a full-stack application for PGTSND Productions. It includes a client-facing portal and a team/admin portal, aiming to streamline project management, client communication, asset delivery, and financial operations. The system supports various user roles with tailored access, integrates with external services for enhanced functionality, and provides a robust, real-time platform for production companies.
+This project is a pnpm workspace monorepo (TypeScript) for **PGTSND
+Productions** — a media production company. It powers a public marketing
+site, a Client Hub for clients, and a Team Portal for the internal crew
+and owners. It streamlines project management, client communication,
+asset delivery, video review, and billing.
 
-The business vision is to provide an all-encompassing digital platform for production companies to efficiently manage projects from lead to delivery, enhance client engagement through a dedicated portal, and optimize internal team workflows. The market potential lies in offering a specialized, integrated solution that addresses the unique needs of the media production industry, improving operational efficiency and client satisfaction.
+The vision is an all-in-one platform that runs a media production shop
+from lead through delivery: client engagement on one side, internal team
+workflow on the other, with deep integrations into the tools the
+business already uses (Stripe, Drive, Slack, DocuSign).
+
+For a human-readable catalog of every shipped feature, see
+**`FEATURES.md`** in the repo root. Always update both files when you
+ship anything user-visible.
 
 # User Preferences
 
-I want iterative development.
-Ask before making major changes.
-Do not make changes to folder `lib/api-spec`.
-Do not make changes to files with `test` in their name.
+- I want iterative development.
+- Ask before making major changes.
+- Do not make changes to folder `lib/api-spec`.
+- Do not make changes to files with `test` in their name.
+- Strict black & white palette in the Client Hub. No other colors. No
+  italics anywhere in the Client Hub.
+- The sign-in flow is **access-token only** by design. Do not re-add
+  Google SSO or magic-link surfaces to the sign-in pages without an
+  explicit request.
 
 # System Architecture
 
 ## Monorepo Structure
-The project is organized as a pnpm workspace monorepo, with each package managing its own dependencies. This structure facilitates code sharing and consistent tooling across the application.
+pnpm workspace. Each package owns its dependencies. Notable artifacts:
+- `artifacts/api-server` — Express 5 API
+- `artifacts/pgtsnd-website` — React + Vite frontend (marketing,
+  Client Hub, Team Portal)
+- `artifacts/mockup-sandbox` — Vite preview server for component
+  mockups on the canvas
+- `lib/db` — Drizzle schema + migrations + `@workspace/db` exports
+- `lib/api-spec` — OpenAPI spec (do not hand-edit; orval source)
 
 ## Technology Stack
-- **Node.js**: Version 24
-- **Package Manager**: pnpm
-- **TypeScript**: Version 5.9
-- **API Framework**: Express 5
-- **Database**: PostgreSQL with Drizzle ORM
-- **Validation**: Zod (v4) integrated with `drizzle-zod`
-- **API Codegen**: Orval, generating types and hooks from OpenAPI specifications
-- **Build Tool**: esbuild (for CJS bundles)
+- **Node.js** 24, **pnpm**, **TypeScript** 5.9
+- **API**: Express 5
+- **Database**: PostgreSQL with Drizzle ORM, text UUID PKs
+- **Validation**: Zod v4 via `drizzle-zod`
+- **API Codegen**: Orval → `@workspace/api-zod` (schemas) and
+  `@workspace/api-client-react` (React Query hooks)
+- **Build**: esbuild (CJS bundles)
+- **Email**: Resend (via `services/email.ts`)
+- **Auth**: JWT in HTTP-only cookie (`pgtsnd_session`)
 
 ## Database Schema Highlights
-The database utilizes text UUIDs for primary keys. Key entities include:
-- `users`: Stores system users with roles (owner, partner, crew, client).
-- `organizations`: Client companies.
-- `projects`: Central entity with a detailed lifecycle and phases (pre_production, production, post_production, review, delivered).
-- `tasks`: Project-scoped tasks with status, assignee, and dependencies.
-- `deliverables`: Project outputs with review states and linked to reviews.
-- `contracts`: Manages project contracts, including DocuSign integration fields.
-- `invoices`: Handles billing with Stripe integration fields and various statuses.
-- `integration_settings`: Stores encrypted configurations for external services (Stripe, Google Drive, Slack, DocuSign).
-- `video_comments` and `video_comment_replies`: Supports timestamped, threaded comments on video deliverables.
-- `project_notification_mutes`: Per-user, per-project email mute flag (composite PK on user_id + project_id) honored by all notification helpers in `services/notifications.ts`.
+- `users` — roles: owner, partner, crew, client.
+- `organizations` — client companies.
+- `projects` — phase-based lifecycle (pre_production, production,
+  post_production, review, delivered).
+- `tasks` — project-scoped, with status, assignee, dependencies.
+- `deliverables` — outputs with review state.
+- `messages` — **either** a project group message (projectId set,
+  recipientId null) **or** a DM (projectId null, recipientId set).
+- `video_comments` / `video_comment_replies` — timestamped, threaded;
+  carry full reopen audit columns (`reopened_at`, `reopened_by`,
+  `previous_resolved_*`).
+- `access_tokens` — hashed, revocable, with `last_used_at` updated on
+  every successful sign-in. JWT carries `tokenId` so revocation is
+  effectively immediate.
+- `magic_link_tokens` — legacy, route still works but unused by UI.
+- `project_notification_mutes` — composite PK on (`user_id`,
+  `project_id`); honored by every helper in `services/notifications.ts`.
+- `integration_settings` — encrypted blobs per integration.
+- `contracts`, `invoices` — DocuSign and Stripe integration fields.
 
 ## API Architecture
-- All API routes are mounted under `/api` using Express.
-- Authentication uses session-based JWTs (`pgtsnd_session` cookie).
-- Role-based access control (RBAC) is enforced through middleware.
-- Zod validation is applied to all incoming request payloads using Drizzle-Zod generated schemas.
-- OpenAPI specification at `lib/api-spec/openapi.yaml` drives API documentation and code generation.
-- Automated review reminder jobs run hourly for deliverables.
+- All routes mounted under `/api`.
+- JWT session cookie + RBAC middleware (owner / partner / crew / client).
+- Zod-validated request bodies (drizzle-zod-derived schemas).
+- CSRF middleware on mutating routes.
+- OpenAPI in `lib/api-spec/openapi.yaml` drives codegen for both
+  `@workspace/api-zod` and `@workspace/api-client-react`.
+- DM RBAC: crew→client DM is forbidden (403); owners/partners may DM
+  anyone.
+- Hourly background job sends review reminders for stalled deliverables.
 
-## UI/UX and Frontend Architecture
-The frontend consists of the PGTSND Productions Website, built with React and Vite. It features:
-- **Client Portal (`/client-hub/*`)**: Provides clients with a dashboard, messaging, project overview (without granular tasks), asset review, video review with timestamped comments, contract management, and billing. The client portal is fully wired to the API.
-  - **Client-specific features**: Dashboard with review queue, messages with real-time send, project progress views (Treatment, Storyboard, Shot List, Notes), asset management showing approved deliverables, and comprehensive video review system.
-- **Team Portal (`/team/*`)**: Designed for internal teams (admin, production) with a dashboard, project management (detailed workspace with milestones, deliverables, assets, review), CRM for clients, team messaging, schedule, asset library, crew management, and settings. All pages are connected to the API.
-  - **Team-specific features**: Owner dashboard with pipeline, crew status, revenue snapshot, production schedule (Gantt charts). Project workspace with 5 tabs (Overview, Milestones, Deliverables, Assets, Review). Full CRM, Crew management with detailed member profiles, rates, and tax info.
-- **Authentication**: Supports magic link email login, Google SSO, and a demo bypass. JWT sessions are stored in HTTP-only cookies. Role-based routing ensures appropriate access.
-- **Theming**: Implements a dark/light mode toggle with specific color palettes.
-- **Design Language**: Features a black background, white text, bold Montserrat headings, and pill-shaped CTA buttons.
+## Frontend Architecture (`artifacts/pgtsnd-website`)
+- React + Vite with `wouter` routing.
+- **Client Hub (`/client-hub/*`)** — dashboard, messages, project
+  progress (Treatment / Storyboard / Shot List / Notes — never raw
+  tasks), asset library (approved deliverables only), video review,
+  contracts, billing. Strict B&W palette, no italics.
+- **Team Portal (`/team/*`)** — dashboard with pipeline + crew status
+  + revenue snapshot, project workspace (Overview / Milestones /
+  Deliverables / Assets / Review), CRM, messages with project-groups
+  and DMs toggle, schedule, asset library, crew, settings, access
+  tokens, admin email previews.
+- **Auth UI**: single token-only sign-in form for both the team and
+  the client. Demo access tokens (`DEMO-OWNER-2026`, `DEMO-CREW-2026`,
+  `DEMO-CLIENT-2026`) are surfaced in a "Demo Access" panel on both
+  sign-in pages.
+- **Hooks**: `useAuth()` is the source of truth for user state;
+  `useTeamData.ts` centralizes Team Portal queries; `useUnreadSummary`
+  drives the Messages-tab badges; `useRecentClientActivity` drives
+  cross-project desktop notifications.
+- **Theming**: dark/light toggle on team-side; client side is pinned
+  to dark B&W.
+- **Design language**: Montserrat headings, pill-shaped CTA buttons,
+  high contrast.
 
-## Technical Implementations
-- API codegen produces `@workspace/api-zod` (Zod schemas) and `@workspace/api-client-react` (React Query hooks) for type-safe API interactions.
-- `useAuth()` and `useTeamData.ts` hooks manage user authentication state and data fetching for the Team Portal, ensuring data is fetched only when a user is authenticated.
-- Integration services use a `Vault` for encrypting sensitive credentials via AES-256-GCM, with a `VAULT_MASTER_KEY` environment variable.
+## Notifications
+- Email helpers live in `services/notifications.ts`. They all consult
+  `project_notification_mutes` before sending.
+- Coverage includes: new messages, new client messages, new comments,
+  comment replies, comment resolved, **comment reopened**, deliverable
+  status changes, contract events, invoice events.
+- Browser desktop notifications fire from the Messages page only and
+  respect per-project mutes via the in-page `ProjectMuteToggle`.
+
+## Security
+- Integration credentials encrypted at rest with AES-256-GCM via the
+  `Vault` helper. Master key from `VAULT_MASTER_KEY`.
+- Demo access tokens auto-create their user on first use and re-pin
+  the user's role/name on every sign-in so their role can't drift.
+- Access tokens are hashed in the DB; only the hash is stored.
+  Revocation is enforced on every `/auth/me` lookup via `tokenId`.
 
 # External Dependencies
 
-- **Stripe**: For invoicing, payment processing via Stripe Checkout, and webhook handling (e.g., `checkout.session.completed`, `invoice.paid`).
-- **Google Drive**: For file storage, listing, and generating download URLs.
-- **Slack**: For sending messages, listing channels, and accessing message history.
-- **DocuSign**: For sending contract envelopes, retrieving signing URLs, and tracking status via webhooks.
+- **Stripe** — invoicing, Stripe Checkout, webhook handling
+  (`checkout.session.completed`, `invoice.paid`, etc.).
+- **Google Drive** — folder picker per project (with cached BFS
+  parent-path resolution + match highlighting), file listing, signed
+  URLs.
+- **Slack** — outbound messages, channel listing, message history.
+- **DocuSign** — contract envelopes, signing URLs, status webhooks.
+- **Resend** — transactional email delivery.
+
+# Where to Look First
+
+- "What does the app do?" → `FEATURES.md`
+- "How does X work in code?" → search the relevant route file under
+  `artifacts/api-server/src/routes/` and the matching page in
+  `artifacts/pgtsnd-website/src/pages/`.
+- "What's in the database?" → `lib/db/src/schema/`
+- "What's the API contract?" → `lib/api-spec/openapi.yaml` (do not
+  hand-edit) and the generated `@workspace/api-zod`.
