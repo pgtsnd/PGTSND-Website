@@ -16,10 +16,14 @@ import { api, type VideoCommentWithReplies, type ReviewLinkData, type Deliverabl
 import { csrfHeaders } from "../lib/csrf";
 import {
   useProjectWithDetails,
+  useProjectMessages,
+  useSendMessage,
   formatPhase,
   formatDateLong,
+  timeAgo,
   type Task,
   type Deliverable,
+  type Message,
 } from "../hooks/useTeamData";
 import {
   useListTaskItems,
@@ -34,7 +38,7 @@ import {
   useSlackChannels,
 } from "../hooks/useIntegrations";
 
-type Tab = "overview" | "milestones" | "deliverables" | "assets" | "review";
+type Tab = "overview" | "milestones" | "deliverables" | "assets" | "review" | "messages";
 
 export default function TeamProjectDetail() {
   const { t } = useTheme();
@@ -123,6 +127,7 @@ export default function TeamProjectDetail() {
     { key: "deliverables", label: "Deliverables", badge: `${deliverables.length}` },
     { key: "assets", label: "Assets" },
     { key: "review", label: "Review", badge: pendingDeliverables > 0 ? `${pendingDeliverables}` : undefined },
+    { key: "messages", label: "Messages" },
   ];
 
   const handleSaveHeaderImage = () => {
@@ -335,6 +340,9 @@ export default function TeamProjectDetail() {
             initialCommentId={initialQuery.commentId}
             initialAction={initialQuery.action}
           />
+        )}
+        {activeTab === "messages" && (
+          <MessagesTab projectId={projectId} />
         )}
         </div>
       </div>
@@ -2825,6 +2833,158 @@ export function TeamReviewTab({ deliverables, projectId, initialDeliverableId, o
           />
         </div>
       )}
+    </div>
+  );
+}
+
+function MessagesTab({ projectId }: { projectId: string }) {
+  const { t } = useTheme();
+  const { toast } = useToast();
+  const { currentUser, userMap } = useTeamAuth();
+  const queryClient = useQueryClient();
+  const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { data: messages, isLoading, isError, refetch } = useProjectMessages(projectId);
+  const sendMutation = useSendMessage();
+  const [newMessage, setNewMessage] = useState("");
+
+  const sortedMessages = useMemo(
+    () => [...(messages ?? [])].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    ),
+    [messages],
+  );
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [sortedMessages.length]);
+
+  const initials = (name: string) =>
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0]?.toUpperCase() ?? "")
+      .join("");
+
+  const handleSend = () => {
+    if (!newMessage.trim()) return;
+    sendMutation.mutate(
+      { projectId, data: { content: newMessage.trim() } },
+      {
+        onSuccess: () => {
+          setNewMessage("");
+          queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/messages`] });
+          toast("Message sent", "success");
+        },
+        onError: () => toast("Failed to send message", "error"),
+      },
+    );
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: "20px" }}>
+        <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Messages</h2>
+        <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>
+          Project group conversation
+        </p>
+      </div>
+
+      <div style={{
+        background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "12px",
+        padding: "20px", marginBottom: "16px", minHeight: "320px",
+      }}>
+        {isLoading ? (
+          <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, textAlign: "center", padding: "40px 0" })}>
+            Loading messages…
+          </p>
+        ) : isError ? (
+          <ErrorState message="Couldn't load this conversation." onRetry={refetch} />
+        ) : sortedMessages.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "60px 0" }}>
+            <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" })}>No messages yet</p>
+            <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>Start the conversation.</p>
+          </div>
+        ) : (
+          sortedMessages.map((msg: Message) => {
+            const sender = userMap.get(msg.senderId);
+            const isMe = msg.senderId === currentUser?.id;
+            const senderName = msg.senderName ?? sender?.name ?? "Unknown";
+            const senderInitials =
+              msg.senderInitials ??
+              (sender?.name ? initials(sender.name) : initials(senderName));
+            const avatarUrl = msg.senderAvatarUrl ?? null;
+            return (
+              <div key={msg.id} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", marginBottom: "16px", gap: "10px", alignItems: "flex-start", flexDirection: isMe ? "row-reverse" : "row" }}>
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={senderName}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                      const sib = (e.currentTarget as HTMLImageElement).nextElementSibling as HTMLElement | null;
+                      if (sib) sib.style.display = "flex";
+                    }}
+                    style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                  />
+                ) : null}
+                <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: t.bg, border: `1px solid ${t.border}`, display: avatarUrl ? "none" : "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10px", color: t.textSecondary, flexShrink: 0 }}>
+                  {senderInitials || "??"}
+                </div>
+                <div style={{
+                  maxWidth: "65%", padding: "12px 16px",
+                  background: isMe ? t.accent : t.bg,
+                  border: isMe ? "none" : `1px solid ${t.border}`,
+                  borderRadius: isMe ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px", gap: "16px" }}>
+                    <span style={f({ fontWeight: 600, fontSize: "11px", color: isMe ? t.accentText : t.text })}>
+                      {senderName}
+                    </span>
+                    <span style={f({ fontWeight: 400, fontSize: "10px", color: isMe ? "rgba(255,255,255,0.6)" : t.textMuted })}>
+                      {timeAgo(msg.createdAt)}
+                    </span>
+                  </div>
+                  <p style={f({ fontWeight: 400, fontSize: "13px", color: isMe ? t.accentText : t.textSecondary, lineHeight: 1.5 })}>
+                    {msg.content}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div style={{ display: "flex", gap: "8px" }}>
+        <input
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+          placeholder="Write a message…"
+          style={{
+            flex: 1, padding: "10px 14px", borderRadius: "8px",
+            background: t.bgCard, border: `1px solid ${t.border}`, color: t.text,
+            outline: "none",
+            ...f({ fontWeight: 400, fontSize: "13px" }),
+          }}
+        />
+        <button
+          onClick={handleSend}
+          disabled={!newMessage.trim() || sendMutation.isPending}
+          style={f({
+            fontWeight: 600, fontSize: "12px", color: t.accentText,
+            background: t.accent, border: "none", borderRadius: "8px",
+            padding: "10px 20px",
+            cursor: newMessage.trim() && !sendMutation.isPending ? "pointer" : "default",
+            opacity: newMessage.trim() && !sendMutation.isPending ? 1 : 0.4,
+          })}
+        >
+          {sendMutation.isPending ? "Sending…" : "Send"}
+        </button>
+      </div>
     </div>
   );
 }
