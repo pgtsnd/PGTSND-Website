@@ -10,8 +10,12 @@ import {
   projectsTable,
   organizationsTable,
   usersTable,
+  scheduledInvoiceExportsTable,
+  invoiceExportRunsTable,
+  scheduledInvoiceExportFiltersSchema,
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
+import { executeScheduledExport } from "../jobs/scheduled-invoice-exports";
 import { sendEmail, getAppBaseUrl } from "../services/email";
 import { renderPaymentLinkEmail } from "../services/email-templates";
 import { requireRole } from "../middleware/auth";
@@ -340,6 +344,138 @@ router.get(
   async (_req, res) => {
     const invoices = await db.select().from(invoicesTable);
     validateAndSendArray(res, selectInvoiceSchema, invoices);
+  },
+);
+
+router.get(
+  "/scheduled-invoice-exports",
+  requireRole("owner", "partner"),
+  async (_req, res) => {
+    const [schedule] = await db
+      .select()
+      .from(scheduledInvoiceExportsTable)
+      .orderBy(desc(scheduledInvoiceExportsTable.updatedAt))
+      .limit(1);
+    res.json(schedule ?? null);
+  },
+);
+
+router.put(
+  "/scheduled-invoice-exports",
+  requireRole("owner", "partner"),
+  async (req, res) => {
+    const bodySchema = scheduledInvoiceExportFiltersSchema.safeParse(
+      req.body?.filters,
+    );
+    if (!bodySchema.success) {
+      res.status(400).json({
+        error: "Invalid filters",
+        details: bodySchema.error.issues,
+      });
+      return;
+    }
+    const enabled = req.body?.enabled !== false;
+
+    const [existing] = await db
+      .select()
+      .from(scheduledInvoiceExportsTable)
+      .orderBy(desc(scheduledInvoiceExportsTable.updatedAt))
+      .limit(1);
+
+    if (existing) {
+      const [updated] = await db
+        .update(scheduledInvoiceExportsTable)
+        .set({ enabled, filters: bodySchema.data })
+        .where(eq(scheduledInvoiceExportsTable.id, existing.id))
+        .returning();
+      res.json(updated);
+      return;
+    }
+
+    const [created] = await db
+      .insert(scheduledInvoiceExportsTable)
+      .values({
+        enabled,
+        filters: bodySchema.data,
+        createdById: req.user?.id ?? null,
+      })
+      .returning();
+    res.status(201).json(created);
+  },
+);
+
+router.delete(
+  "/scheduled-invoice-exports",
+  requireRole("owner", "partner"),
+  async (_req, res) => {
+    await db.delete(scheduledInvoiceExportsTable);
+    res.json({ message: "Scheduled invoice export disabled" });
+  },
+);
+
+router.post(
+  "/scheduled-invoice-exports/run-now",
+  requireRole("owner", "partner"),
+  async (_req, res) => {
+    const [schedule] = await db
+      .select()
+      .from(scheduledInvoiceExportsTable)
+      .orderBy(desc(scheduledInvoiceExportsTable.updatedAt))
+      .limit(1);
+    if (!schedule) {
+      res.status(404).json({ error: "No schedule configured" });
+      return;
+    }
+    try {
+      const run = await executeScheduledExport(schedule);
+      res.status(201).json(run);
+    } catch (err) {
+      logger.error({ err }, "Manual scheduled export run failed");
+      res.status(500).json({ error: "Failed to run export" });
+    }
+  },
+);
+
+router.get(
+  "/invoice-export-runs",
+  requireRole("owner", "partner"),
+  async (_req, res) => {
+    const runs = await db
+      .select({
+        id: invoiceExportRunsTable.id,
+        scheduledExportId: invoiceExportRunsTable.scheduledExportId,
+        filename: invoiceExportRunsTable.filename,
+        rowCount: invoiceExportRunsTable.rowCount,
+        periodStart: invoiceExportRunsTable.periodStart,
+        periodEnd: invoiceExportRunsTable.periodEnd,
+        createdAt: invoiceExportRunsTable.createdAt,
+      })
+      .from(invoiceExportRunsTable)
+      .orderBy(desc(invoiceExportRunsTable.createdAt))
+      .limit(50);
+    res.json(runs);
+  },
+);
+
+router.get(
+  "/invoice-export-runs/:id/download",
+  requireRole("owner", "partner"),
+  async (req, res) => {
+    const [run] = await db
+      .select()
+      .from(invoiceExportRunsTable)
+      .where(eq(invoiceExportRunsTable.id, req.params.id))
+      .limit(1);
+    if (!run) {
+      res.status(404).json({ error: "Export not found" });
+      return;
+    }
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${run.filename}"`,
+    );
+    res.send(run.csv);
   },
 );
 

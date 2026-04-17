@@ -20,7 +20,13 @@ import {
   getListOrganizationsQueryKey,
   getListUsersQueryKey,
 } from "@workspace/api-client-react";
-import { api, type Invoice, type Contract } from "../lib/api";
+import {
+  api,
+  type Invoice,
+  type Contract,
+  type ScheduledInvoiceExport,
+  type InvoiceExportRunSummary,
+} from "../lib/api";
 import { exportTeamInvoicesToCsv, type TeamInvoiceExportRow } from "../lib/exports";
 
 type ClientTab = "overview" | "invoices" | "scope";
@@ -205,6 +211,94 @@ export default function TeamClients() {
     fromDate: string;
     toDate: string;
   }>({ statuses: [...allStatuses], clientId: "", fromDate: "", toDate: "" });
+
+  const [schedule, setSchedule] = useState<ScheduledInvoiceExport | null>(null);
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduleLookback, setScheduleLookback] = useState(1);
+  const [scheduleSaving, setScheduleSaving] = useState(false);
+  const [exportRuns, setExportRuns] = useState<InvoiceExportRunSummary[]>([]);
+  const [runNowLoading, setRunNowLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [s, runs] = await Promise.all([
+          api.getScheduledInvoiceExport(),
+          api.listInvoiceExportRuns(),
+        ]);
+        if (cancelled) return;
+        setSchedule(s);
+        if (s) {
+          setScheduleEnabled(s.enabled);
+          setScheduleLookback(s.filters.lookbackMonths ?? 1);
+          setExportFilters({
+            statuses: s.filters.statuses?.length ? s.filters.statuses : [...allStatuses],
+            clientId: s.filters.clientId ?? "",
+            fromDate: "",
+            toDate: "",
+          });
+        }
+        setExportRuns(runs);
+      } catch {
+        // Silent fail — schedule UI just stays default
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const refreshExportRuns = async () => {
+    try {
+      const runs = await api.listInvoiceExportRuns();
+      setExportRuns(runs);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleSaveSchedule = async (enabled: boolean) => {
+    setScheduleSaving(true);
+    try {
+      if (!enabled && schedule) {
+        await api.deleteScheduledInvoiceExport();
+        setSchedule(null);
+        setScheduleEnabled(false);
+      } else {
+        const saved = await api.saveScheduledInvoiceExport({
+          enabled,
+          filters: {
+            statuses: exportFilters.statuses,
+            clientId: exportFilters.clientId || null,
+            lookbackMonths: scheduleLookback,
+          },
+        });
+        setSchedule(saved);
+        setScheduleEnabled(saved.enabled);
+      }
+    } catch (err) {
+      // ignore for now; UI will reflect actual server state on next refresh
+    } finally {
+      setScheduleSaving(false);
+    }
+  };
+
+  const handleRunScheduleNow = async () => {
+    setRunNowLoading(true);
+    try {
+      await api.runScheduledInvoiceExportNow();
+      await refreshExportRuns();
+    } catch {
+      // ignore
+    } finally {
+      setRunNowLoading(false);
+    }
+  };
+
+  const handleDownloadExportRun = (id: string) => {
+    window.location.assign(api.getInvoiceExportRunDownloadUrl(id));
+  };
 
   const handleEmailPaymentLink = async (invoiceId: string) => {
     setEmailLoadingId(invoiceId);
@@ -536,6 +630,17 @@ export default function TeamClients() {
           filters={exportFilters}
           setFilters={setExportFilters}
           allStatuses={allStatuses}
+          schedule={schedule}
+          scheduleEnabled={scheduleEnabled}
+          setScheduleEnabled={setScheduleEnabled}
+          scheduleLookback={scheduleLookback}
+          setScheduleLookback={setScheduleLookback}
+          scheduleSaving={scheduleSaving}
+          onSaveSchedule={handleSaveSchedule}
+          onRunScheduleNow={handleRunScheduleNow}
+          runNowLoading={runNowLoading}
+          exportRuns={exportRuns}
+          onDownloadRun={handleDownloadExportRun}
           onClose={() => setShowExportModal(false)}
           onExport={() => {
             const rows: TeamInvoiceExportRow[] = [];
@@ -1162,7 +1267,12 @@ function AddClientModal({ t, f, form, setForm, formError, isSaving, showIntegrat
   );
 }
 
-function ExportInvoicesModal({ t, f, inputStyle, labelStyle, clients, filters, setFilters, allStatuses, onClose, onExport }: any) {
+function ExportInvoicesModal({
+  t, f, inputStyle, labelStyle, clients, filters, setFilters, allStatuses,
+  schedule, scheduleEnabled, setScheduleEnabled, scheduleLookback, setScheduleLookback,
+  scheduleSaving, onSaveSchedule, onRunScheduleNow, runNowLoading,
+  exportRuns, onDownloadRun, onClose, onExport,
+}: any) {
   const matchingCount = (() => {
     const fromTs = filters.fromDate ? new Date(filters.fromDate).getTime() : null;
     const toTs = filters.toDate ? new Date(filters.toDate).getTime() + 24 * 60 * 60 * 1000 - 1 : null;
@@ -1284,6 +1394,102 @@ function ExportInvoicesModal({ t, f, inputStyle, labelStyle, clients, filters, s
           >
             Download CSV
           </button>
+        </div>
+
+        <div style={{ marginTop: "28px", paddingTop: "20px", borderTop: `1px solid ${t.border}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <h3 style={f({ fontWeight: 700, fontSize: "14px", color: t.text })}>Monthly schedule</h3>
+            <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={scheduleEnabled}
+                disabled={scheduleSaving}
+                onChange={(e: any) => {
+                  const next = e.target.checked;
+                  setScheduleEnabled(next);
+                  onSaveSchedule(next);
+                }}
+              />
+              <span style={f({ fontWeight: 600, fontSize: "11px", color: t.textSecondary })}>
+                {scheduleEnabled ? "Enabled" : "Disabled"}
+              </span>
+            </label>
+          </div>
+          <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, marginBottom: "12px" })}>
+            Generate the same filtered CSV automatically on the 1st of every month. Past exports stay in the team portal.
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "12px", alignItems: "end", marginBottom: "12px" }}>
+            <div>
+              <label style={labelStyle}>Include invoices from the last</label>
+              <select
+                value={scheduleLookback}
+                onChange={(e: any) => setScheduleLookback(parseInt(e.target.value, 10))}
+                style={{ ...inputStyle, cursor: "pointer" }}
+              >
+                <option value={1}>1 month</option>
+                <option value={3}>3 months</option>
+                <option value={6}>6 months</option>
+                <option value={12}>12 months</option>
+              </select>
+            </div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => onSaveSchedule(scheduleEnabled)}
+                disabled={scheduleSaving || filters.statuses.length === 0}
+                style={f({ fontWeight: 600, fontSize: "11px", color: t.text, background: "transparent", border: `1px solid ${t.border}`, borderRadius: "8px", padding: "8px 14px", cursor: "pointer", opacity: scheduleSaving ? 0.6 : 1 })}
+              >
+                Save settings
+              </button>
+              <button
+                type="button"
+                onClick={onRunScheduleNow}
+                disabled={runNowLoading || !schedule}
+                style={f({ fontWeight: 600, fontSize: "11px", color: t.accentText, background: t.accent, border: "none", borderRadius: "8px", padding: "8px 14px", cursor: !schedule || runNowLoading ? "not-allowed" : "pointer", opacity: !schedule || runNowLoading ? 0.5 : 1 })}
+              >
+                {runNowLoading ? "Running..." : "Run now"}
+              </button>
+            </div>
+          </div>
+
+          {schedule?.lastRunAt && (
+            <p style={f({ fontWeight: 500, fontSize: "11px", color: t.textMuted, marginBottom: "12px" })}>
+              Last run: {new Date(schedule.lastRunAt).toLocaleString()}
+            </p>
+          )}
+
+          <div>
+            <p style={f({ fontWeight: 700, fontSize: "11px", color: t.textSecondary, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" })}>Past exports</p>
+            {exportRuns.length === 0 ? (
+              <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>
+                No scheduled exports have been generated yet.
+              </p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "180px", overflowY: "auto" }}>
+                {exportRuns.map((run: InvoiceExportRunSummary) => (
+                  <div
+                    key={run.id}
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: t.hoverBg, borderRadius: "6px" }}
+                  >
+                    <div>
+                      <p style={f({ fontWeight: 600, fontSize: "12px", color: t.text })}>{run.filename}</p>
+                      <p style={f({ fontWeight: 400, fontSize: "10px", color: t.textMuted })}>
+                        {new Date(run.createdAt).toLocaleString()} · {run.rowCount} invoice{run.rowCount === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onDownloadRun(run.id)}
+                      style={f({ fontWeight: 600, fontSize: "11px", color: t.accentText, background: t.accent, border: "none", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" })}
+                    >
+                      Download
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -174,6 +174,36 @@ export interface Invoice {
   createdAt: string;
 }
 
+export interface ScheduledInvoiceExportFilters {
+  statuses: Invoice["status"][];
+  clientId: string | null;
+  lookbackMonths: number;
+}
+
+export interface ScheduledInvoiceExport {
+  id: string;
+  enabled: boolean;
+  filters: ScheduledInvoiceExportFilters;
+  createdById: string | null;
+  lastRunAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InvoiceExportRunSummary {
+  id: string;
+  scheduledExportId: string | null;
+  filename: string;
+  rowCount: number;
+  periodStart: string | null;
+  periodEnd: string | null;
+  createdAt: string;
+}
+
+export interface InvoiceExportRun extends InvoiceExportRunSummary {
+  csv: string;
+}
+
 export interface TeamMember {
   userId: string;
   role: string;
@@ -378,6 +408,34 @@ export const api = {
 
   emailPaymentLink: (id: string) =>
     apiFetch<Invoice>(`/invoices/${id}/email-payment-link`, { method: "POST" }),
+
+  getScheduledInvoiceExport: () =>
+    apiFetch<ScheduledInvoiceExport | null>("/scheduled-invoice-exports"),
+
+  saveScheduledInvoiceExport: (data: {
+    enabled: boolean;
+    filters: ScheduledInvoiceExportFilters;
+  }) =>
+    apiFetch<ScheduledInvoiceExport>("/scheduled-invoice-exports", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  deleteScheduledInvoiceExport: () =>
+    apiFetch<{ message: string }>("/scheduled-invoice-exports", {
+      method: "DELETE",
+    }),
+
+  runScheduledInvoiceExportNow: () =>
+    apiFetch<InvoiceExportRun>("/scheduled-invoice-exports/run-now", {
+      method: "POST",
+    }),
+
+  listInvoiceExportRuns: () =>
+    apiFetch<InvoiceExportRunSummary[]>("/invoice-export-runs"),
+
+  getInvoiceExportRunDownloadUrl: (id: string) =>
+    `${API_BASE}/invoice-export-runs/${id}/download`,
 
 
   getDocuSignSigningUrl: (contractId: string) =>

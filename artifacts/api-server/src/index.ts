@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { startReminderJob } from "./jobs/review-reminders";
 import { migratePlaintextIntegrationConfigs } from "./jobs/encrypt-integration-configs";
+import { startScheduledExportJob } from "./jobs/scheduled-invoice-exports";
 
 const rawPort = process.env["PORT"];
 
@@ -25,5 +26,6 @@ app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
   startReminderJob();
+  startScheduledExportJob();
   void migratePlaintextIntegrationConfigs();
 });
