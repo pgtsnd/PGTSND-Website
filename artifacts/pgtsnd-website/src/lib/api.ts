@@ -445,6 +445,8 @@ export const api = {
     recipient: string;
     csv: string;
     filename: string;
+    subject?: string;
+    message?: string;
     summary: {
       count: number;
       totalAmount?: number;

@@ -627,7 +627,7 @@ router.post(
   "/integrations/invoices/email-export",
   requireRole("owner", "partner"),
   async (req, res) => {
-    const { recipient, csv, filename, summary } = req.body ?? {};
+    const { recipient, csv, filename, summary, subject: subjectOverride, message: messageOverride } = req.body ?? {};
 
     if (typeof recipient !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) {
       res.status(400).json({ error: "A valid recipient email address is required" });
@@ -639,6 +639,24 @@ router.post(
     }
     if (csv.length > 5_000_000) {
       res.status(413).json({ error: "Export is too large to email (limit 5MB)" });
+      return;
+    }
+    if (subjectOverride !== undefined && typeof subjectOverride !== "string") {
+      res.status(400).json({ error: "subject must be a string" });
+      return;
+    }
+    if (messageOverride !== undefined && typeof messageOverride !== "string") {
+      res.status(400).json({ error: "message must be a string" });
+      return;
+    }
+    const trimmedSubject = typeof subjectOverride === "string" ? subjectOverride.trim() : "";
+    const trimmedMessage = typeof messageOverride === "string" ? messageOverride.trim() : "";
+    if (trimmedSubject.length > 200) {
+      res.status(400).json({ error: "subject must be 200 characters or fewer" });
+      return;
+    }
+    if (trimmedMessage.length > 2000) {
+      res.status(400).json({ error: "message must be 2000 characters or fewer" });
       return;
     }
     const safeFilename =
@@ -672,10 +690,19 @@ router.post(
       ...(totalLine ? [totalLine] : []),
     ];
 
+    const introText = trimmedMessage
+      ? trimmedMessage
+      : `${senderName} sent you an invoice export from PGTSND Productions.`;
+    const escapeHtml = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const introHtml = trimmedMessage
+      ? escapeHtml(trimmedMessage).replace(/\n/g, "<br/>")
+      : `${escapeHtml(senderName)} sent you an invoice export from <strong>PGTSND Productions</strong>.`;
+
     const text = [
       `Hi,`,
       ``,
-      `${senderName} sent you an invoice export from PGTSND Productions.`,
+      introText,
       ``,
       ...filterLines,
       ``,
@@ -688,19 +715,23 @@ router.post(
     const html = `
       <div style="font-family: Arial, sans-serif; color: #1a1a1a; max-width: 560px;">
         <p>Hi,</p>
-        <p>${senderName} sent you an invoice export from <strong>PGTSND Productions</strong>.</p>
+        <p>${introHtml}</p>
         <ul style="line-height:1.6;color:#333;">
-          ${filterLines.map((l) => `<li>${l.replace(/</g, "&lt;")}</li>`).join("")}
+          ${filterLines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}
         </ul>
-        <p>The CSV is attached as <code>${safeFilename}</code>.</p>
+        <p>The CSV is attached as <code>${escapeHtml(safeFilename)}</code>.</p>
         <p style="color:#666;">Thanks,<br/>PGTSND Productions</p>
       </div>
     `;
 
+    const finalSubject = trimmedSubject
+      ? trimmedSubject
+      : `Invoice export (${count} invoice${count === 1 ? "" : "s"}) – PGTSND`;
+
     try {
       await sendEmail({
         to: recipient,
-        subject: `Invoice export (${count} invoice${count === 1 ? "" : "s"}) – PGTSND`,
+        subject: finalSubject,
         text,
         html,
         attachments: [

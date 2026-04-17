@@ -673,6 +673,7 @@ export default function TeamClients() {
           exportRuns={exportRuns}
           onDownloadRun={handleDownloadExportRun}
           defaultBookkeeperEmail={currentUser?.bookkeeperEmail ?? ""}
+          senderName={currentUser?.name ?? "the PGTSND team"}
           sending={exportSending}
           error={exportError}
           emailed={exportEmailed}
@@ -681,7 +682,7 @@ export default function TeamClients() {
             setExportError(null);
             setExportEmailed(null);
           }}
-          onExport={async (mode: "download" | "email", recipient: string) => {
+          onExport={async (mode: "download" | "email", recipient: string, subject?: string, message?: string) => {
             const rows: TeamInvoiceExportRow[] = [];
             const fromTs = exportFilters.fromDate ? new Date(exportFilters.fromDate).getTime() : null;
             const toTs = exportFilters.toDate ? new Date(exportFilters.toDate).getTime() + 24 * 60 * 60 * 1000 - 1 : null;
@@ -729,6 +730,8 @@ export default function TeamClients() {
                 recipient,
                 csv,
                 filename,
+                ...(subject ? { subject } : {}),
+                ...(message ? { message } : {}),
                 summary: {
                   count: rows.length,
                   totalAmount,
@@ -1391,10 +1394,12 @@ function ExportInvoicesModal({
   schedule, scheduleEnabled, setScheduleEnabled, scheduleLookback, setScheduleLookback,
   scheduleRecipients, setScheduleRecipients,
   scheduleSaving, onSaveSchedule, onRunScheduleNow, runNowLoading,
-  exportRuns, onDownloadRun, defaultBookkeeperEmail, sending, error, emailed, onClose, onExport,
+  exportRuns, onDownloadRun, defaultBookkeeperEmail, senderName, sending, error, emailed, onClose, onExport,
 }: any) {
   const [mode, setMode] = useState<"download" | "email">("download");
   const [recipient, setRecipient] = useState<string>(defaultBookkeeperEmail || "");
+  const [subject, setSubject] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
   useEffect(() => {
     setRecipient(defaultBookkeeperEmail || "");
   }, [defaultBookkeeperEmail]);
@@ -1415,6 +1420,9 @@ function ExportInvoicesModal({
     }
     return n;
   })();
+
+  const defaultSubject = `Invoice export (${matchingCount} invoice${matchingCount === 1 ? "" : "s"}) – PGTSND`;
+  const defaultMessage = `${senderName || "the PGTSND team"} sent you an invoice export from PGTSND Productions.`;
 
   const toggleStatus = (s: Invoice["status"]) => {
     const has = filters.statuses.includes(s);
@@ -1537,6 +1545,33 @@ function ExportInvoicesModal({
                 ? "Defaults to your saved bookkeeper email — change in Settings."
                 : "Tip: save a default in Settings → Profile → Bookkeeper email."}
             </p>
+
+            <div style={{ marginTop: "12px" }}>
+              <label style={labelStyle}>Subject (optional)</label>
+              <input
+                type="text"
+                value={subject}
+                onChange={(e: any) => setSubject(e.target.value)}
+                placeholder={defaultSubject}
+                maxLength={200}
+                style={inputStyle}
+              />
+            </div>
+
+            <div style={{ marginTop: "12px" }}>
+              <label style={labelStyle}>Message (optional)</label>
+              <textarea
+                value={message}
+                onChange={(e: any) => setMessage(e.target.value)}
+                placeholder={defaultMessage}
+                maxLength={2000}
+                rows={3}
+                style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
+              />
+              <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, marginTop: "6px" })}>
+                Leave blank to use the default. The filter summary and CSV attachment are always included.
+              </p>
+            </div>
           </div>
         )}
 
@@ -1563,7 +1598,7 @@ function ExportInvoicesModal({
             Cancel
           </button>
           <button
-            onClick={() => onExport(mode, recipient.trim())}
+            onClick={() => onExport(mode, recipient.trim(), subject.trim(), message.trim())}
             disabled={
               matchingCount === 0 ||
               filters.statuses.length === 0 ||
