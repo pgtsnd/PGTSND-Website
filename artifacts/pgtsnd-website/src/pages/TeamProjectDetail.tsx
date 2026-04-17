@@ -38,6 +38,7 @@ export default function TeamProjectDetail() {
   const [, params] = useRoute("/team/projects/:id");
   const projectId = params?.id || "";
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [reviewDeliverableId, setReviewDeliverableId] = useState<string | null>(null);
   const { isLoading: authLoading } = useTeamAuth();
   const [showHeaderImageModal, setShowHeaderImageModal] = useState(false);
   const [headerImageUrl, setHeaderImageUrl] = useState("");
@@ -283,7 +284,11 @@ export default function TeamProjectDetail() {
         )}
 
         {activeTab === "deliverables" && (
-          <DeliverablesTab deliverables={deliverables} onRefresh={refetch} />
+          <DeliverablesTab
+            deliverables={deliverables}
+            onRefresh={refetch}
+            onOpenReview={(id) => { setReviewDeliverableId(id); setActiveTab("review"); }}
+          />
         )}
 
         {activeTab === "assets" && (
@@ -291,7 +296,12 @@ export default function TeamProjectDetail() {
         )}
 
         {activeTab === "review" && (
-          <TeamReviewTab deliverables={deliverables} projectId={projectId} />
+          <TeamReviewTab
+            deliverables={deliverables}
+            projectId={projectId}
+            initialDeliverableId={reviewDeliverableId}
+            onInitialDeliverableConsumed={() => setReviewDeliverableId(null)}
+          />
         )}
         </div>
       </div>
@@ -1079,7 +1089,7 @@ const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"];
 const ACCEPTED_VIDEO_EXTENSIONS = [".mp4", ".webm"];
 const MAX_VIDEO_SIZE_BYTES = 2 * 1024 * 1024 * 1024;
 
-function DeliverablesTab({ deliverables, onRefresh }: { deliverables: Deliverable[]; onRefresh: () => void }) {
+function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverables: Deliverable[]; onRefresh: () => void; onOpenReview: (id: string) => void }) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -1247,10 +1257,21 @@ function DeliverablesTab({ deliverables, onRefresh }: { deliverables: Deliverabl
                   {d.fileUrl && d.type === "video" ? (
                     <div
                       data-testid={`deliverable-preview-${d.id}`}
+                      onClick={(e) => { e.stopPropagation(); onOpenReview(d.id); }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onOpenReview(d.id);
+                        }
+                      }}
+                      title="Open in review player"
                       style={{
                         width: "80px", height: "45px", borderRadius: "4px",
                         overflow: "hidden", flexShrink: 0, background: "#000",
-                        border: `1px solid ${t.borderSubtle}`,
+                        border: `1px solid ${t.borderSubtle}`, cursor: "pointer",
                       }}
                     >
                       <video
@@ -1601,7 +1622,7 @@ function AssetsTab({ projectId, projectName }: { projectId: string; projectName:
   );
 }
 
-function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[]; projectId: string }) {
+function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitialDeliverableConsumed }: { deliverables: Deliverable[]; projectId: string; initialDeliverableId?: string | null; onInitialDeliverableConsumed?: () => void }) {
   const { t } = useTheme();
   const { toast } = useToast();
   const [selectedDeliverable, setSelectedDeliverable] = useState<Deliverable | null>(null);
@@ -1627,6 +1648,15 @@ function TeamReviewTab({ deliverables, projectId }: { deliverables: Deliverable[
       setSelectedDeliverable(reviewableDeliverables[0]);
     }
   }, [reviewableDeliverables.length]);
+
+  useEffect(() => {
+    if (!initialDeliverableId) return;
+    const match = deliverables.find((d) => d.id === initialDeliverableId);
+    if (match) {
+      setSelectedDeliverable(match);
+      onInitialDeliverableConsumed?.();
+    }
+  }, [initialDeliverableId, deliverables]);
 
   useEffect(() => {
     if (!selectedDeliverable) return;
