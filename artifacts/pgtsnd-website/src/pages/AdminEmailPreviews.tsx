@@ -27,6 +27,45 @@ interface TemplatePayload extends TemplateInfo {
 
 type FieldValue = string | boolean;
 
+const STORAGE_KEY = "admin-email-previews:sample-values:v1";
+
+function loadStoredValues(): Record<string, Record<string, FieldValue>> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return {};
+    const out: Record<string, Record<string, FieldValue>> = {};
+    for (const [tplId, fields] of Object.entries(
+      parsed as Record<string, unknown>,
+    )) {
+      if (!fields || typeof fields !== "object") continue;
+      const cleaned: Record<string, FieldValue> = {};
+      for (const [k, v] of Object.entries(fields as Record<string, unknown>)) {
+        if (typeof v === "string" || typeof v === "boolean") {
+          cleaned[k] = v;
+        }
+      }
+      out[tplId] = cleaned;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function persistValues(
+  values: Record<string, Record<string, FieldValue>>,
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+  } catch {
+    // ignore quota/serialization errors
+  }
+}
+
 const f = (s: object) => ({
   fontFamily: "'Montserrat', sans-serif" as const,
   ...s,
@@ -79,9 +118,19 @@ export default function AdminEmailPreviews() {
       .then((data) => {
         if (cancelled) return;
         setTemplates(data.templates);
+        const stored = loadStoredValues();
         const seeded: Record<string, Record<string, FieldValue>> = {};
         for (const tpl of data.templates) {
-          seeded[tpl.id] = defaultsFor(tpl);
+          const defaults = defaultsFor(tpl);
+          const saved = stored[tpl.id] ?? {};
+          const merged: Record<string, FieldValue> = { ...defaults };
+          for (const field of tpl.fields) {
+            const v = saved[field.key];
+            if (typeof v === typeof field.default) {
+              merged[field.key] = v;
+            }
+          }
+          seeded[tpl.id] = merged;
         }
         setValuesById(seeded);
         if (data.templates.length > 0) setActiveId(data.templates[0].id);
@@ -152,18 +201,26 @@ export default function AdminEmailPreviews() {
 
   const updateField = (key: string, value: FieldValue) => {
     if (!activeId) return;
-    setValuesById((prev) => ({
-      ...prev,
-      [activeId]: { ...(prev[activeId] ?? {}), [key]: value },
-    }));
+    setValuesById((prev) => {
+      const next = {
+        ...prev,
+        [activeId]: { ...(prev[activeId] ?? {}), [key]: value },
+      };
+      persistValues(next);
+      return next;
+    });
   };
 
   const resetToDefaults = () => {
     if (!activeId || !activeTemplate) return;
-    setValuesById((prev) => ({
-      ...prev,
-      [activeId]: defaultsFor(activeTemplate),
-    }));
+    setValuesById((prev) => {
+      const next = {
+        ...prev,
+        [activeId]: defaultsFor(activeTemplate),
+      };
+      persistValues(next);
+      return next;
+    });
   };
 
   const handleCopy = async () => {
