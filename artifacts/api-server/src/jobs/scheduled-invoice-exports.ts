@@ -12,6 +12,7 @@ import {
 } from "@workspace/db";
 import { and, eq, gte, lte, inArray, type SQL } from "drizzle-orm";
 import { logger } from "../lib/logger";
+import { sendEmail } from "../services/email";
 
 function csvEscape(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return "";
@@ -205,6 +206,52 @@ export async function executeScheduledExport(
     { scheduleId: schedule.id, runId: run.id, rowCount, filename },
     "Scheduled invoice export generated",
   );
+
+  const recipients = Array.isArray(schedule.recipients)
+    ? Array.from(
+        new Set(
+          schedule.recipients
+            .map((r) => (typeof r === "string" ? r.trim() : ""))
+            .filter((r) => r.length > 0),
+        ),
+      )
+    : [];
+
+  if (recipients.length > 0) {
+    const periodLabel = `${formatDate(periodStart)} – ${formatDate(periodEnd)}`;
+    const subject = `Invoice export for ${stamp} (${rowCount} invoice${rowCount === 1 ? "" : "s"})`;
+    const text = [
+      `Attached is the scheduled invoice export covering ${periodLabel}.`,
+      "",
+      `File: ${filename}`,
+      `Invoices included: ${rowCount}`,
+      "",
+      "This message was sent automatically by PGTSND Productions.",
+    ].join("\n");
+    const csvBase64 = Buffer.from(csv, "utf8").toString("base64");
+    for (const to of recipients) {
+      try {
+        await sendEmail({
+          to,
+          subject,
+          text,
+          attachments: [
+            {
+              filename,
+              content: csvBase64,
+              contentType: "text/csv",
+            },
+          ],
+        });
+      } catch (err) {
+        logger.error(
+          { err, scheduleId: schedule.id, runId: run.id, to },
+          "Failed to email scheduled invoice export",
+        );
+      }
+    }
+  }
+
   return run;
 }
 

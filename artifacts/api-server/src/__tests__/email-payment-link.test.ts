@@ -94,6 +94,9 @@ vi.mock("@workspace/db", () => {
     scheduledInvoiceExportFiltersSchema: {
       safeParse: (d: unknown) => ({ success: true, data: d }),
     },
+    scheduledInvoiceExportRecipientsSchema: {
+      safeParse: (d: unknown) => ({ success: true, data: Array.isArray(d) ? d : [] }),
+    },
   };
 });
 

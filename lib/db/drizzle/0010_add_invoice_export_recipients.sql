@@ -1,0 +1,1 @@
+ALTER TABLE "scheduled_invoice_exports" ADD COLUMN "recipients" jsonb DEFAULT '[]'::jsonb NOT NULL;

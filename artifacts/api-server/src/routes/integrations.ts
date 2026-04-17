@@ -13,6 +13,7 @@ import {
   scheduledInvoiceExportsTable,
   invoiceExportRunsTable,
   scheduledInvoiceExportFiltersSchema,
+  scheduledInvoiceExportRecipientsSchema,
 } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
 import { executeScheduledExport } from "../jobs/scheduled-invoice-exports";
@@ -376,6 +377,20 @@ router.put(
     }
     const enabled = req.body?.enabled !== false;
 
+    const recipientsRaw = Array.isArray(req.body?.recipients)
+      ? req.body.recipients
+      : [];
+    const recipientsParsed =
+      scheduledInvoiceExportRecipientsSchema.safeParse(recipientsRaw);
+    if (!recipientsParsed.success) {
+      res.status(400).json({
+        error: "Invalid recipients",
+        details: recipientsParsed.error.issues,
+      });
+      return;
+    }
+    const recipients = Array.from(new Set(recipientsParsed.data));
+
     const [existing] = await db
       .select()
       .from(scheduledInvoiceExportsTable)
@@ -385,7 +400,7 @@ router.put(
     if (existing) {
       const [updated] = await db
         .update(scheduledInvoiceExportsTable)
-        .set({ enabled, filters: bodySchema.data })
+        .set({ enabled, filters: bodySchema.data, recipients })
         .where(eq(scheduledInvoiceExportsTable.id, existing.id))
         .returning();
       res.json(updated);
@@ -397,6 +412,7 @@ router.put(
       .values({
         enabled,
         filters: bodySchema.data,
+        recipients,
         createdById: req.user?.id ?? null,
       })
       .returning();

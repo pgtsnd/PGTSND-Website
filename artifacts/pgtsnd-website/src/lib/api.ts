@@ -185,6 +185,7 @@ export interface ScheduledInvoiceExport {
   id: string;
   enabled: boolean;
   filters: ScheduledInvoiceExportFilters;
+  recipients: string[];
   createdById: string | null;
   lastRunAt: string | null;
   createdAt: string;
@@ -417,6 +418,7 @@ export const api = {
   saveScheduledInvoiceExport: (data: {
     enabled: boolean;
     filters: ScheduledInvoiceExportFilters;
+    recipients: string[];
   }) =>
     apiFetch<ScheduledInvoiceExport>("/scheduled-invoice-exports", {
       method: "PUT",

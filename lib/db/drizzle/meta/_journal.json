@@ -71,6 +71,13 @@
       "when": 1776410188092,
       "tag": "0009_complete_monster_badoon",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776410712300,
+      "tag": "0010_add_invoice_export_recipients",
+      "breakpoints": true
     }
   ]
 }

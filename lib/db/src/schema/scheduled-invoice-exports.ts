@@ -31,6 +31,10 @@ export const scheduledInvoiceExportsTable = pgTable(
     filters: jsonb("filters")
       .$type<ScheduledInvoiceExportFilters>()
       .notNull(),
+    recipients: jsonb("recipients")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
     createdById: text("created_by_id").references(() => usersTable.id, {
       onDelete: "set null",
     }),
@@ -89,3 +93,7 @@ export const scheduledInvoiceExportFiltersSchema = z.object({
   clientId: z.string().nullable(),
   lookbackMonths: z.number().int().min(1).max(36),
 });
+
+export const scheduledInvoiceExportRecipientsSchema = z
+  .array(z.string().trim().toLowerCase().email().max(320))
+  .max(20);

@@ -221,6 +221,7 @@ export default function TeamClients() {
   const [schedule, setSchedule] = useState<ScheduledInvoiceExport | null>(null);
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduleLookback, setScheduleLookback] = useState(1);
+  const [scheduleRecipients, setScheduleRecipients] = useState<string[]>([]);
   const [scheduleSaving, setScheduleSaving] = useState(false);
   const [exportRuns, setExportRuns] = useState<InvoiceExportRunSummary[]>([]);
   const [runNowLoading, setRunNowLoading] = useState(false);
@@ -238,6 +239,7 @@ export default function TeamClients() {
         if (s) {
           setScheduleEnabled(s.enabled);
           setScheduleLookback(s.filters.lookbackMonths ?? 1);
+          setScheduleRecipients(Array.isArray(s.recipients) ? s.recipients : []);
           setExportFilters({
             statuses: s.filters.statuses?.length ? s.filters.statuses : [...allStatuses],
             clientId: s.filters.clientId ?? "",
@@ -272,6 +274,13 @@ export default function TeamClients() {
         setSchedule(null);
         setScheduleEnabled(false);
       } else {
+        const cleaned = Array.from(
+          new Set(
+            scheduleRecipients
+              .map((r) => r.trim().toLowerCase())
+              .filter((r) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r)),
+          ),
+        );
         const saved = await api.saveScheduledInvoiceExport({
           enabled,
           filters: {
@@ -279,9 +288,11 @@ export default function TeamClients() {
             clientId: exportFilters.clientId || null,
             lookbackMonths: scheduleLookback,
           },
+          recipients: cleaned,
         });
         setSchedule(saved);
         setScheduleEnabled(saved.enabled);
+        setScheduleRecipients(Array.isArray(saved.recipients) ? saved.recipients : []);
       }
     } catch (err) {
       // ignore for now; UI will reflect actual server state on next refresh
@@ -653,6 +664,8 @@ export default function TeamClients() {
           setScheduleEnabled={setScheduleEnabled}
           scheduleLookback={scheduleLookback}
           setScheduleLookback={setScheduleLookback}
+          scheduleRecipients={scheduleRecipients}
+          setScheduleRecipients={setScheduleRecipients}
           scheduleSaving={scheduleSaving}
           onSaveSchedule={handleSaveSchedule}
           onRunScheduleNow={handleRunScheduleNow}
@@ -1365,6 +1378,7 @@ function AddClientModal({ t, f, form, setForm, formError, isSaving, showIntegrat
 function ExportInvoicesModal({
   t, f, inputStyle, labelStyle, clients, filters, setFilters, allStatuses,
   schedule, scheduleEnabled, setScheduleEnabled, scheduleLookback, setScheduleLookback,
+  scheduleRecipients, setScheduleRecipients,
   scheduleSaving, onSaveSchedule, onRunScheduleNow, runNowLoading,
   exportRuns, onDownloadRun, defaultBookkeeperEmail, sending, error, emailed, onClose, onExport,
 }: any) {
@@ -1583,6 +1597,22 @@ function ExportInvoicesModal({
             Generate the same filtered CSV automatically on the 1st of every month. Past exports stay in the team portal.
           </p>
 
+          <div style={{ marginBottom: "12px" }}>
+            <label style={labelStyle}>Email the CSV to (bookkeepers)</label>
+            <ScheduleRecipientsEditor
+              t={t}
+              f={f}
+              inputStyle={inputStyle}
+              recipients={scheduleRecipients}
+              setRecipients={setScheduleRecipients}
+            />
+            <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, marginTop: "6px" })}>
+              {scheduleRecipients.length === 0
+                ? "No recipients yet — exports will only be saved to the team portal."
+                : "The CSV will be emailed as an attachment to each address on every scheduled run."}
+            </p>
+          </div>
+
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "12px", alignItems: "end", marginBottom: "12px" }}>
             <div>
               <label style={labelStyle}>Include invoices from the last</label>
@@ -1656,6 +1686,82 @@ function ExportInvoicesModal({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ScheduleRecipientsEditor({ t, f, inputStyle, recipients, setRecipients }: any) {
+  const [draft, setDraft] = useState("");
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.trim());
+  const add = () => {
+    const email = draft.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+    if (recipients.includes(email)) {
+      setDraft("");
+      return;
+    }
+    setRecipients([...recipients, email]);
+    setDraft("");
+  };
+  const remove = (email: string) => {
+    setRecipients(recipients.filter((r: string) => r !== email));
+  };
+  return (
+    <div>
+      <div style={{ display: "flex", gap: "8px" }}>
+        <input
+          type="email"
+          value={draft}
+          onChange={(e: any) => setDraft(e.target.value)}
+          onKeyDown={(e: any) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
+          }}
+          placeholder="bookkeeper@accounting.com"
+          style={{ ...inputStyle, flex: 1 }}
+        />
+        <button
+          type="button"
+          onClick={add}
+          disabled={!valid}
+          style={f({
+            fontWeight: 600, fontSize: "11px", color: t.accentText, background: t.accent,
+            border: "none", borderRadius: "8px", padding: "0 16px",
+            cursor: valid ? "pointer" : "not-allowed", opacity: valid ? 1 : 0.5,
+          })}
+        >
+          Add
+        </button>
+      </div>
+      {recipients.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "8px" }}>
+          {recipients.map((email: string) => (
+            <span
+              key={email}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "4px 10px", borderRadius: "999px",
+                background: t.hoverBg, border: `1px solid ${t.border}`,
+              }}
+            >
+              <span style={f({ fontWeight: 500, fontSize: "11px", color: t.text })}>{email}</span>
+              <button
+                type="button"
+                onClick={() => remove(email)}
+                aria-label={`Remove ${email}`}
+                style={f({
+                  fontWeight: 700, fontSize: "12px", color: t.textMuted,
+                  background: "transparent", border: "none", cursor: "pointer", padding: 0,
+                })}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
