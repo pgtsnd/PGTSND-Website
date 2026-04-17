@@ -4,7 +4,11 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CTAButton from "../components/CTAButton";
 import { useAuth } from "../lib/auth";
-import { consumePostLoginRedirect, consumeSessionExpiredMessage } from "../lib/session-expired";
+import {
+  consumePostLoginRedirect,
+  consumeSessionExpiredMessage,
+  consumeSignedOutMessage,
+} from "../lib/session-expired";
 
 export default function ClientHub() {
   const [email, setEmail] = useState("");
@@ -23,7 +27,12 @@ export default function ClientHub() {
 
   useEffect(() => {
     const expiredMsg = consumeSessionExpiredMessage();
-    if (expiredMsg) setError(expiredMsg);
+    if (expiredMsg) {
+      setError(expiredMsg);
+      return;
+    }
+    const signedOutMsg = consumeSignedOutMessage();
+    if (signedOutMsg) setError(signedOutMsg);
   }, []);
 
   const inputStyle: React.CSSProperties = {

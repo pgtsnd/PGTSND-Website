@@ -1,9 +1,12 @@
 export const POST_LOGIN_REDIRECT_KEY = "pgtsnd_post_login_redirect";
 export const SESSION_EXPIRED_MESSAGE_KEY = "pgtsnd_session_expired_message";
+export const SIGNED_OUT_MESSAGE_KEY = "pgtsnd_signed_out_message";
 export const SESSION_EXPIRED_EVENT = "pgtsnd:session-expired";
 
 export const DEFAULT_SESSION_EXPIRED_MESSAGE =
   "Your session expired. Please sign in again to continue.";
+
+export const DEFAULT_SIGNED_OUT_MESSAGE = "You've been signed out.";
 
 export interface SessionExpiredDetail {
   message: string;
@@ -92,6 +95,26 @@ export function consumeSessionExpiredMessage(): string | null {
   try {
     const value = sessionStorage.getItem(SESSION_EXPIRED_MESSAGE_KEY);
     if (value) sessionStorage.removeItem(SESSION_EXPIRED_MESSAGE_KEY);
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+export function rememberSignedOutMessage(message: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(SIGNED_OUT_MESSAGE_KEY, message);
+  } catch {
+    // ignore
+  }
+}
+
+export function consumeSignedOutMessage(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = sessionStorage.getItem(SIGNED_OUT_MESSAGE_KEY);
+    if (value) sessionStorage.removeItem(SIGNED_OUT_MESSAGE_KEY);
     return value;
   } catch {
     return null;

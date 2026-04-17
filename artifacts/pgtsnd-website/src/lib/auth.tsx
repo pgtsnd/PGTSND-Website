@@ -2,10 +2,12 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef, ty
 import { csrfHeaders } from "./csrf";
 import {
   DEFAULT_SESSION_EXPIRED_MESSAGE,
+  DEFAULT_SIGNED_OUT_MESSAGE,
   SESSION_EXPIRED_EVENT,
   getLoginPathForCurrentLocation,
   rememberPostLoginRedirect,
   rememberSessionExpiredMessage,
+  rememberSignedOutMessage,
   type SessionExpiredDetail,
 } from "./session-expired";
 
@@ -178,8 +180,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore
     }
-    localStorage.removeItem("team-user-id");
-    setUser(null);
+    try {
+      localStorage.removeItem("team-user-id");
+    } catch {
+      // ignore
+    }
+    rememberSignedOutMessage(DEFAULT_SIGNED_OUT_MESSAGE);
+    const loginPath = getLoginPathForCurrentLocation();
+    const base = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
+    const targetPath = `${base}${loginPath}`;
+    // Full reload so the login page mount is the sole consumer of the
+    // signed-out message (mirrors the session-expired flow).
+    window.location.assign(targetPath);
   };
 
   return (

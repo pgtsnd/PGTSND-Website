@@ -4,7 +4,11 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CTAButton from "../components/CTAButton";
 import { useAuth, getDashboardPath } from "../lib/auth";
-import { consumePostLoginRedirect, consumeSessionExpiredMessage } from "../lib/session-expired";
+import {
+  consumePostLoginRedirect,
+  consumeSessionExpiredMessage,
+  consumeSignedOutMessage,
+} from "../lib/session-expired";
 
 export default function TeamLogin() {
   const [email, setEmail] = useState("");
@@ -32,7 +36,12 @@ export default function TeamLogin() {
 
   useEffect(() => {
     const expiredMsg = consumeSessionExpiredMessage();
-    if (expiredMsg) setError(expiredMsg);
+    if (expiredMsg) {
+      setError(expiredMsg);
+      return;
+    }
+    const signedOutMsg = consumeSignedOutMessage();
+    if (signedOutMsg) setError(signedOutMsg);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
