@@ -186,6 +186,22 @@ export default function ClientVideoReview() {
         .sort((a, b) => (a.version ?? "").localeCompare(b.version ?? ""))
     : [];
 
+  const previousVersionUploadedAt = (() => {
+    if (!selectedDeliverable) return null;
+    const currentMs = new Date(selectedDeliverable.createdAt).getTime();
+    const earlier = versions
+      .filter(
+        (v) =>
+          v.id !== selectedDeliverable.id &&
+          new Date(v.createdAt).getTime() < currentMs,
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+    return earlier[0]?.createdAt ?? null;
+  })();
+
   if (loading) {
     return (
       <ClientLayout>
@@ -632,6 +648,8 @@ export default function ClientVideoReview() {
                 onCommentClick={handleCommentClick}
                 activeTimestamp={activeTimestamp}
                 hideTimestamps={!isVideo}
+                previousVersionUploadedAt={previousVersionUploadedAt}
+                currentVersionLabel={selectedDeliverable.version ?? null}
               />
             </div>
           </div>

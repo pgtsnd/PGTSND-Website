@@ -1951,6 +1951,19 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
       ? comments.filter((c) => c.deliverableVersionId === activeVersion.id)
       : comments;
 
+  const sortedVersionsAsc = [...versions].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
+  const activeVersionIdx = activeVersion
+    ? sortedVersionsAsc.findIndex((v) => v.id === activeVersion.id)
+    : sortedVersionsAsc.findIndex(
+        (v) => v.fileUrl === selectedDeliverable?.fileUrl,
+      );
+  const previousVersionUploadedAt =
+    activeVersionIdx > 0
+      ? sortedVersionsAsc[activeVersionIdx - 1].createdAt
+      : null;
+
   const handleAddComment = useCallback(
     async (timestampSeconds: number, content: string) => {
       if (!selectedDeliverable) return;
@@ -2310,6 +2323,8 @@ function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitia
             activeTimestamp={activeTimestamp}
             onResolveComment={handleResolveComment}
             versionLabelById={versionLabelById}
+            previousVersionUploadedAt={previousVersionUploadedAt}
+            currentVersionLabel={activeVersionLabel}
           />
         </div>
       )}

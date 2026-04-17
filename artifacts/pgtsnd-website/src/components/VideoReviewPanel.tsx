@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "./ThemeContext";
 import { formatTime } from "./VideoPlayer";
 
@@ -39,6 +39,8 @@ interface VideoReviewPanelProps {
   onResolveComment?: (commentId: string, resolved: boolean, note?: string) => Promise<void>;
   hideTimestamps?: boolean;
   versionLabelById?: Record<string, string>;
+  previousVersionUploadedAt?: string | null;
+  currentVersionLabel?: string | null;
 }
 
 function timeAgo(date: string | Date) {
@@ -64,6 +66,8 @@ export default function VideoReviewPanel({
   onResolveComment,
   hideTimestamps = false,
   versionLabelById,
+  previousVersionUploadedAt = null,
+  currentVersionLabel = null,
 }: VideoReviewPanelProps) {
   const { t } = useTheme();
   const [newComment, setNewComment] = useState("");
@@ -76,12 +80,32 @@ export default function VideoReviewPanel({
   const [showResolvedSummary, setShowResolvedSummary] = useState(false);
   const composerOpen = hideTimestamps || activeTimestamp !== null;
   const composerTimestamp = hideTimestamps ? 0 : activeTimestamp;
+  const hasRoundBaseline = !!previousVersionUploadedAt;
+  const [resolvedScope, setResolvedScope] = useState<"round" | "all">(
+    hasRoundBaseline ? "round" : "all",
+  );
+
+  useEffect(() => {
+    setResolvedScope(hasRoundBaseline ? "round" : "all");
+  }, [previousVersionUploadedAt, currentVersionLabel, hasRoundBaseline]);
 
   const unresolvedCount = comments.filter((c) => !c.resolvedAt).length;
-  const resolvedComments = comments
+  const allResolvedComments = comments
     .filter((c) => !!c.resolvedAt)
     .sort((a, b) => new Date(b.resolvedAt!).getTime() - new Date(a.resolvedAt!).getTime());
+  const baselineMs = previousVersionUploadedAt
+    ? new Date(previousVersionUploadedAt).getTime()
+    : null;
+  const roundResolvedComments = baselineMs
+    ? allResolvedComments.filter(
+        (c) => new Date(c.resolvedAt!).getTime() > baselineMs,
+      )
+    : allResolvedComments;
+  const effectiveScope: "round" | "all" = hasRoundBaseline ? resolvedScope : "all";
+  const resolvedComments =
+    effectiveScope === "round" ? roundResolvedComments : allResolvedComments;
   const resolvedCount = resolvedComments.length;
+  const totalResolvedCount = allResolvedComments.length;
   const visibleComments = hideResolved
     ? comments.filter((c) => !c.resolvedAt)
     : comments;
@@ -253,46 +277,103 @@ export default function VideoReviewPanel({
       )}
 
       <div style={{ flex: 1, overflowY: "auto" }}>
-        {resolvedCount > 0 && (
+        {totalResolvedCount > 0 && (
           <div style={{
             marginBottom: "12px",
             border: `1px solid ${t.borderSubtle}`,
             borderRadius: "6px",
             background: "rgba(0,170,0,0.04)",
           }}>
-            <button
-              onClick={() => setShowResolvedSummary((v) => !v)}
-              style={f({
-                display: "flex", alignItems: "center", gap: "8px",
-                width: "100%", background: "none", border: "none",
-                padding: "8px 10px", cursor: "pointer", textAlign: "left",
-              })}
-              aria-expanded={showResolvedSummary}
-            >
-              <svg
-                width="10" height="10" viewBox="0 0 12 12" fill="none"
-                style={{
-                  transform: showResolvedSummary ? "rotate(90deg)" : "rotate(0deg)",
-                  transition: "transform 0.15s ease",
-                }}
+            <div style={{
+              display: "flex", alignItems: "center", gap: "8px",
+              padding: "8px 10px",
+            }}>
+              <button
+                onClick={() => setShowResolvedSummary((v) => !v)}
+                style={f({
+                  display: "flex", alignItems: "center", gap: "8px",
+                  flex: 1, background: "none", border: "none",
+                  padding: 0, cursor: "pointer", textAlign: "left",
+                })}
+                aria-expanded={showResolvedSummary}
               >
-                <path d="M4 2 L8 6 L4 10" stroke={t.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <span style={f({
-                fontWeight: 600, fontSize: "11px", color: t.textSecondary,
-              })}>
-                Resolved this round
-              </span>
-              <span style={f({
-                fontWeight: 600, fontSize: "10px", color: "#0a0",
-                background: "rgba(0,170,0,0.12)", padding: "1px 7px",
-                borderRadius: "10px",
-              })}>
-                {resolvedCount}
-              </span>
-            </button>
+                <svg
+                  width="10" height="10" viewBox="0 0 12 12" fill="none"
+                  style={{
+                    transform: showResolvedSummary ? "rotate(90deg)" : "rotate(0deg)",
+                    transition: "transform 0.15s ease",
+                  }}
+                >
+                  <path d="M4 2 L8 6 L4 10" stroke={t.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span style={f({
+                  fontWeight: 600, fontSize: "11px", color: t.textSecondary,
+                })}>
+                  {effectiveScope === "round"
+                    ? `Resolved this round${currentVersionLabel ? ` (${currentVersionLabel})` : ""}`
+                    : "All resolved"}
+                </span>
+                <span style={f({
+                  fontWeight: 600, fontSize: "10px", color: "#0a0",
+                  background: "rgba(0,170,0,0.12)", padding: "1px 7px",
+                  borderRadius: "10px",
+                })}>
+                  {resolvedCount}
+                </span>
+              </button>
+              {hasRoundBaseline && (
+                <div
+                  role="group"
+                  aria-label="Resolved scope"
+                  data-testid="resolved-scope-selector"
+                  style={{
+                    display: "inline-flex",
+                    border: `1px solid ${t.borderSubtle}`,
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    background: t.bgCard,
+                  }}
+                >
+                  {(
+                    [
+                      { key: "round" as const, label: "This round" },
+                      { key: "all" as const, label: "All" },
+                    ]
+                  ).map((opt) => {
+                    const active = effectiveScope === opt.key;
+                    return (
+                      <button
+                        key={opt.key}
+                        onClick={() => setResolvedScope(opt.key)}
+                        data-testid={`resolved-scope-${opt.key}`}
+                        aria-pressed={active}
+                        style={f({
+                          fontWeight: 600, fontSize: "10px",
+                          color: active ? "#0a0" : t.textMuted,
+                          background: active ? "rgba(0,170,0,0.12)" : "transparent",
+                          border: "none",
+                          padding: "3px 8px",
+                          cursor: "pointer",
+                        })}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             {showResolvedSummary && (
               <div style={{ padding: "0 10px 8px 10px" }}>
+                {resolvedComments.length === 0 && (
+                  <p style={f({
+                    fontWeight: 400, fontSize: "11px", color: t.textMuted,
+                    padding: "8px 0", margin: 0,
+                    borderTop: `1px solid ${t.borderSubtle}`,
+                  })}>
+                    Nothing has been resolved since the previous version was uploaded.
+                  </p>
+                )}
                 {resolvedComments.map((rc) => (
                   <div
                     key={rc.id}
