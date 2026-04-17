@@ -292,7 +292,12 @@ export default function TeamProjectDetail() {
         )}
 
         {activeTab === "assets" && (
-          <AssetsTab projectId={projectId} projectName={project.name} />
+          <AssetsTab
+            projectId={projectId}
+            projectName={project.name}
+            driveFolderId={project.driveFolderId ?? null}
+            onJumpToSettings={() => setActiveTab("overview")}
+          />
         )}
 
         {activeTab === "review" && (
@@ -1662,11 +1667,28 @@ function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverabl
   );
 }
 
-function AssetsTab({ projectId, projectName }: { projectId: string; projectName: string }) {
+function AssetsTab({ projectId, projectName, driveFolderId, onJumpToSettings }: {
+  projectId: string;
+  projectName: string;
+  driveFolderId: string | null;
+  onJumpToSettings: () => void;
+}) {
   const { t } = useTheme();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
+
+  const { data: integrationStatus } = useIntegrationStatus();
+  const driveConnected = !!integrationStatus?.google_drive;
+  const {
+    data: driveFolders,
+    isLoading: driveFoldersLoading,
+  } = useDriveFolders(driveConnected && !!driveFolderId);
+  const linkedFolder = driveFolderId
+    ? (driveFolders || []).find((folder) => folder.id === driveFolderId)
+    : null;
+  const linkedFolderName = linkedFolder?.name ?? null;
+  const folderResolutionPending = !!driveFolderId && !linkedFolder && (driveFoldersLoading || !driveFolders);
 
   const folders = [
     { name: "Source Footage", icon: "film", count: 0 },
@@ -1711,6 +1733,40 @@ function AssetsTab({ projectId, projectName }: { projectId: string; projectName:
           Upload Files
         </button>
         <input ref={fileInputRef} type="file" multiple style={{ display: "none" }} />
+      </div>
+
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px",
+        padding: "10px 14px", marginBottom: "16px", borderRadius: "8px",
+        background: t.bgCard, border: `1px solid ${t.border}`,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.8" style={{ flexShrink: 0 }}>
+            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+          </svg>
+          <span style={f({ fontWeight: 500, fontSize: "12px", color: t.textSecondary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" })}>
+            {linkedFolderName ? (
+              <>Linked to Drive folder: <span style={{ color: t.text, fontWeight: 600 }}>{linkedFolderName}</span></>
+            ) : driveFolderId && folderResolutionPending ? (
+              "Resolving linked Drive folder…"
+            ) : driveFolderId ? (
+              "Linked to a Drive folder you don't have access to"
+            ) : (
+              "No folder linked"
+            )}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onJumpToSettings}
+          style={f({
+            fontWeight: 600, fontSize: "11px", color: t.textMuted, background: "transparent",
+            border: `1px solid ${t.border}`, borderRadius: "6px",
+            padding: "5px 10px", cursor: "pointer", flexShrink: 0,
+          })}
+        >
+          {driveFolderId ? "Change" : "Link a folder"}
+        </button>
       </div>
 
       <div

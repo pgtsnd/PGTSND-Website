@@ -24,6 +24,8 @@ import {
   getGetUnreadSummaryQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
+import { useIntegrationStatus, useSlackChannels } from "../hooks/useIntegrations";
 
 type Mode = "groups" | "dms";
 
@@ -121,6 +123,19 @@ export default function TeamMessages() {
   }, [mode, selectedDmUserId]);
 
   const selectedProject = activeProjects.find((p: Project) => p.id === selectedProjectId);
+  const selectedSlackChannelId = selectedProject?.slackChannelId ?? null;
+  const { data: integrationStatus } = useIntegrationStatus();
+  const slackConnected = !!integrationStatus?.slack;
+  const {
+    data: slackChannels,
+    isLoading: slackChannelsLoading,
+  } = useSlackChannels(slackConnected && !!selectedSlackChannelId);
+  const linkedChannel = selectedSlackChannelId
+    ? (slackChannels || []).find((c) => c.id === selectedSlackChannelId)
+    : null;
+  const linkedChannelName = linkedChannel?.name ?? null;
+  const channelResolutionPending =
+    !!selectedSlackChannelId && !linkedChannel && (slackChannelsLoading || !slackChannels);
   const dmConvList = (conversations ?? []) as DmConversation[];
   const dmContactList = (contacts ?? []) as DmContact[];
   const selectedDmPartner =
@@ -342,6 +357,37 @@ export default function TeamMessages() {
             <div>
               <p style={f({ fontWeight: 600, fontSize: "14px", color: t.text })}>{headerTitle}</p>
               <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted })}>{headerSub}</p>
+              {mode === "groups" && selectedProject && (
+                <p style={f({ fontWeight: 500, fontSize: "11px", color: t.textMuted, marginTop: "4px", display: "flex", alignItems: "center", gap: "6px" })}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="4" y1="9" x2="20" y2="9" /><line x1="4" y1="15" x2="20" y2="15" />
+                    <line x1="10" y1="3" x2="8" y2="21" /><line x1="16" y1="3" x2="14" y2="21" />
+                  </svg>
+                  {linkedChannelName ? (
+                    <>Linked to Slack channel: <span style={{ color: t.textSecondary, fontWeight: 600 }}>#{linkedChannelName}</span></>
+                  ) : selectedSlackChannelId && channelResolutionPending ? (
+                    "Resolving linked Slack channel…"
+                  ) : selectedSlackChannelId ? (
+                    <>Linked to a Slack channel you don't have access to ·{" "}
+                      <Link
+                        href={`/team/projects/${selectedProject.id}`}
+                        style={f({ color: t.textSecondary, fontWeight: 600, textDecoration: "underline" })}
+                      >
+                        Change in project settings
+                      </Link>
+                    </>
+                  ) : (
+                    <>No channel linked ·{" "}
+                      <Link
+                        href={`/team/projects/${selectedProject.id}`}
+                        style={f({ color: t.textSecondary, fontWeight: 600, textDecoration: "underline" })}
+                      >
+                        Link one in project settings
+                      </Link>
+                    </>
+                  )}
+                </p>
+              )}
             </div>
           </div>
 
