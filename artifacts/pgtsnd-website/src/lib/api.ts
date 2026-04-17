@@ -448,7 +448,8 @@ export const api = {
     `${API_BASE}/invoice-export-runs/${id}/download`,
 
   emailInvoiceExport: (data: {
-    recipient: string;
+    recipients: string[];
+    cc?: string[];
     csv: string;
     filename: string;
     subject?: string;
@@ -462,7 +463,14 @@ export const api = {
       clientName?: string | null;
     };
   }) =>
-    apiFetch<{ message: string; recipient: string; filename: string; count: number }>(
+    apiFetch<{
+      message: string;
+      recipients: string[];
+      cc: string[];
+      recipient: string;
+      filename: string;
+      count: number;
+    }>(
       "/integrations/invoices/email-export",
       { method: "POST", body: JSON.stringify(data) },
     ),

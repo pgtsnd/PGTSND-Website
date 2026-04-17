@@ -62,13 +62,40 @@ router.patch("/users/me/notifications", async (req, res) => {
 
 router.patch("/users/me/bookkeeper-email", async (req, res) => {
   const { bookkeeperEmail } = (req.body ?? {}) as { bookkeeperEmail?: unknown };
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   let value: string | null;
   if (bookkeeperEmail === null || bookkeeperEmail === "" || bookkeeperEmail === undefined) {
     value = null;
-  } else if (typeof bookkeeperEmail === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bookkeeperEmail)) {
-    value = bookkeeperEmail;
+  } else if (typeof bookkeeperEmail === "string") {
+    const seen = new Set<string>();
+    const parts: string[] = [];
+    for (const raw of bookkeeperEmail.split(",")) {
+      const trimmed = raw.trim();
+      if (!trimmed) continue;
+      if (!EMAIL_RE.test(trimmed)) {
+        res.status(400).json({ error: `Invalid email address: ${trimmed}` });
+        return;
+      }
+      const key = trimmed.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      parts.push(trimmed);
+    }
+    if (parts.length === 0) {
+      value = null;
+    } else if (parts.length > 10) {
+      res.status(400).json({ error: "Too many bookkeeper email addresses (limit 10)" });
+      return;
+    } else {
+      const joined = parts.join(", ");
+      if (joined.length > 255) {
+        res.status(400).json({ error: "Bookkeeper email list is too long (max 255 characters)" });
+        return;
+      }
+      value = joined;
+    }
   } else {
-    res.status(400).json({ error: "bookkeeperEmail must be a valid email address or empty" });
+    res.status(400).json({ error: "bookkeeperEmail must be a valid email address (or comma-separated list) or empty" });
     return;
   }
 

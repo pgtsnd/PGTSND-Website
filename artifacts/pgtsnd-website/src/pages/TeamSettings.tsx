@@ -47,14 +47,19 @@ export default function TeamSettings() {
 
   const handleSaveBookkeeperEmail = async () => {
     const trimmed = bookkeeperEmail.trim();
-    if (trimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const parts = trimmed
+      .split(",")
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+    if (parts.length > 0 && parts.some((p) => !EMAIL_RE.test(p))) {
       setBookkeeperStatus("invalid");
       setTimeout(() => setBookkeeperStatus(null), 2500);
       return;
     }
     setBookkeeperSaving(true);
     try {
-      await api.updateBookkeeperEmail(trimmed === "" ? null : trimmed);
+      await api.updateBookkeeperEmail(parts.length === 0 ? null : parts.join(", "));
       queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
       setBookkeeperStatus("saved");
       toast("Bookkeeper email saved", "success");
@@ -154,14 +159,14 @@ export default function TeamSettings() {
                 <div style={{ marginTop: "28px", paddingTop: "24px", borderTop: `1px solid ${t.border}` }}>
                   <h3 style={f({ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" })}>Bookkeeper Email</h3>
                   <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "12px" })}>
-                    Default recipient when emailing invoice CSV exports from the Clients page.
+                    Default recipient(s) when emailing invoice CSV exports from the Clients page. Separate multiple addresses with commas.
                   </p>
                   <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                     <input
-                      type="email"
+                      type="text"
                       value={bookkeeperEmail}
                       onChange={(e) => setBookkeeperEmail(e.target.value)}
-                      placeholder="bookkeeper@accounting.com"
+                      placeholder="bookkeeper@accounting.com, finance@studio.com"
                       style={f({ fontWeight: 400, fontSize: "13px", color: t.text, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "6px", padding: "10px 14px", flex: 1, outline: "none", boxSizing: "border-box" as const })}
                     />
                     <button
@@ -180,7 +185,7 @@ export default function TeamSettings() {
                     <p style={f({ fontWeight: 500, fontSize: "11px", color: t.accent, marginTop: "8px" })}>Saved</p>
                   )}
                   {bookkeeperStatus === "invalid" && (
-                    <p style={f({ fontWeight: 500, fontSize: "11px", color: "#e26060", marginTop: "8px" })}>Enter a valid email address</p>
+                    <p style={f({ fontWeight: 500, fontSize: "11px", color: "#e26060", marginTop: "8px" })}>Enter valid email address(es) separated by commas</p>
                   )}
                   {bookkeeperStatus === "error" && (
                     <p style={f({ fontWeight: 500, fontSize: "11px", color: "#e26060", marginTop: "8px" })}>Couldn't save — try again</p>

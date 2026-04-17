@@ -682,7 +682,13 @@ export default function TeamClients() {
             setExportError(null);
             setExportEmailed(null);
           }}
-          onExport={async (mode: "download" | "email", recipient: string, subject?: string, message?: string) => {
+          onExport={async (
+            mode: "download" | "email",
+            toRecipients: string[],
+            ccRecipients: string[],
+            subject?: string,
+            message?: string,
+          ) => {
             const rows: TeamInvoiceExportRow[] = [];
             const fromTs = exportFilters.fromDate ? new Date(exportFilters.fromDate).getTime() : null;
             const toTs = exportFilters.toDate ? new Date(exportFilters.toDate).getTime() + 24 * 60 * 60 * 1000 - 1 : null;
@@ -727,7 +733,8 @@ export default function TeamClients() {
                 ? clientData.find((c: any) => c.id === exportFilters.clientId)?.company ?? null
                 : null;
               await api.emailInvoiceExport({
-                recipient,
+                recipients: toRecipients,
+                cc: ccRecipients.length > 0 ? ccRecipients : undefined,
                 csv,
                 filename,
                 ...(subject ? { subject } : {}),
@@ -741,7 +748,11 @@ export default function TeamClients() {
                   clientName: selectedClient,
                 },
               });
-              setExportEmailed(recipient);
+              const summaryRecipients =
+                ccRecipients.length > 0
+                  ? `${toRecipients.join(", ")} (cc: ${ccRecipients.join(", ")})`
+                  : toRecipients.join(", ");
+              setExportEmailed(summaryRecipients);
               setTimeout(() => {
                 setShowExportModal(false);
                 setExportEmailed(null);
@@ -1398,12 +1409,38 @@ function ExportInvoicesModal({
 }: any) {
   const [mode, setMode] = useState<"download" | "email">("download");
   const [recipient, setRecipient] = useState<string>(defaultBookkeeperEmail || "");
+  const [ccRecipients, setCcRecipients] = useState<string>("");
   const [subject, setSubject] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   useEffect(() => {
     setRecipient(defaultBookkeeperEmail || "");
   }, [defaultBookkeeperEmail]);
-  const recipientValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient.trim());
+
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const parseEmails = (s: string): { valid: string[]; invalid: string[] } => {
+    const valid: string[] = [];
+    const invalid: string[] = [];
+    const seen = new Set<string>();
+    for (const raw of s.split(",")) {
+      const trimmed = raw.trim();
+      if (!trimmed) continue;
+      const key = trimmed.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (EMAIL_RE.test(trimmed)) valid.push(trimmed);
+      else invalid.push(trimmed);
+    }
+    return { valid, invalid };
+  };
+
+  const toParsed = parseEmails(recipient);
+  const ccParsed = parseEmails(ccRecipients);
+  const toLowerSet = new Set(toParsed.valid.map((e) => e.toLowerCase()));
+  const ccDeduped = ccParsed.valid.filter((e) => !toLowerSet.has(e.toLowerCase()));
+  const recipientValid =
+    toParsed.valid.length > 0 &&
+    toParsed.invalid.length === 0 &&
+    ccParsed.invalid.length === 0;
   const matchingCount = (() => {
     const fromTs = filters.fromDate ? new Date(filters.fromDate).getTime() : null;
     const toTs = filters.toDate ? new Date(filters.toDate).getTime() + 24 * 60 * 60 * 1000 - 1 : null;
@@ -1534,17 +1571,45 @@ function ExportInvoicesModal({
           <div style={{ marginBottom: "16px" }}>
             <label style={labelStyle}>Send to</label>
             <input
-              type="email"
+              type="text"
               value={recipient}
               onChange={(e: any) => setRecipient(e.target.value)}
-              placeholder="bookkeeper@accounting.com"
+              placeholder="bookkeeper@accounting.com, finance@studio.com"
               style={inputStyle}
             />
             <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, marginTop: "6px" })}>
               {defaultBookkeeperEmail
-                ? "Defaults to your saved bookkeeper email — change in Settings."
-                : "Tip: save a default in Settings → Profile → Bookkeeper email."}
+                ? "Defaults to your saved bookkeeper email(s) — separate multiple addresses with commas."
+                : "Separate multiple addresses with commas. Save a default in Settings → Profile → Bookkeeper email."}
             </p>
+            {toParsed.invalid.length > 0 && (
+              <p style={f({ fontWeight: 500, fontSize: "11px", color: "#e26060", marginTop: "6px" })}>
+                Invalid: {toParsed.invalid.join(", ")}
+              </p>
+            )}
+
+            <label style={{ ...labelStyle, marginTop: "14px" }}>CC (optional)</label>
+            <input
+              type="text"
+              value={ccRecipients}
+              onChange={(e: any) => setCcRecipients(e.target.value)}
+              placeholder="admin@studio.com, accountant@firm.com"
+              style={inputStyle}
+            />
+            <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, marginTop: "6px" })}>
+              Comma-separated. CC'd recipients also receive the CSV attachment.
+            </p>
+            {ccParsed.invalid.length > 0 && (
+              <p style={f({ fontWeight: 500, fontSize: "11px", color: "#e26060", marginTop: "6px" })}>
+                Invalid: {ccParsed.invalid.join(", ")}
+              </p>
+            )}
+            {(toParsed.valid.length + ccDeduped.length > 0) && (
+              <p style={f({ fontWeight: 500, fontSize: "11px", color: t.textMuted, marginTop: "6px" })}>
+                {toParsed.valid.length} recipient{toParsed.valid.length === 1 ? "" : "s"}
+                {ccDeduped.length > 0 ? ` + ${ccDeduped.length} CC` : ""}
+              </p>
+            )}
 
             <div style={{ marginTop: "12px" }}>
               <label style={labelStyle}>Subject (optional)</label>
@@ -1598,7 +1663,7 @@ function ExportInvoicesModal({
             Cancel
           </button>
           <button
-            onClick={() => onExport(mode, recipient.trim(), subject.trim(), message.trim())}
+            onClick={() => onExport(mode, toParsed.valid, ccDeduped, subject.trim(), message.trim())}
             disabled={
               matchingCount === 0 ||
               filters.statuses.length === 0 ||

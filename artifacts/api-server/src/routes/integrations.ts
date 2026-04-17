@@ -627,12 +627,63 @@ router.post(
   "/integrations/invoices/email-export",
   requireRole("owner", "partner"),
   async (req, res) => {
-    const { recipient, csv, filename, summary, subject: subjectOverride, message: messageOverride } = req.body ?? {};
+    const {
+      recipient,
+      recipients,
+      cc,
+      csv,
+      filename,
+      summary,
+      subject: subjectOverride,
+      message: messageOverride,
+    } = req.body ?? {};
 
-    if (typeof recipient !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) {
-      res.status(400).json({ error: "A valid recipient email address is required" });
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const MAX_RECIPIENTS = 25;
+
+    const collectEmails = (input: unknown): string[] => {
+      if (input === undefined || input === null || input === "") return [];
+      const raw: string[] = [];
+      if (Array.isArray(input)) {
+        for (const item of input) {
+          if (typeof item === "string") raw.push(...item.split(","));
+        }
+      } else if (typeof input === "string") {
+        raw.push(...input.split(","));
+      }
+      const seen = new Set<string>();
+      const out: string[] = [];
+      for (const part of raw) {
+        const trimmed = part.trim();
+        if (!trimmed) continue;
+        const key = trimmed.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(trimmed);
+      }
+      return out;
+    };
+
+    const toList = collectEmails(recipients ?? recipient);
+    const ccList = collectEmails(cc);
+
+    if (toList.length === 0) {
+      res.status(400).json({ error: "At least one recipient email address is required" });
       return;
     }
+    const allEmails = [...toList, ...ccList];
+    if (allEmails.length > MAX_RECIPIENTS) {
+      res.status(400).json({ error: `Too many recipients (limit ${MAX_RECIPIENTS})` });
+      return;
+    }
+    const invalid = allEmails.find((e) => !EMAIL_RE.test(e));
+    if (invalid) {
+      res.status(400).json({ error: `Invalid email address: ${invalid}` });
+      return;
+    }
+    const toLower = new Set(toList.map((e) => e.toLowerCase()));
+    const dedupedCc = ccList.filter((e) => !toLower.has(e.toLowerCase()));
+
     if (typeof csv !== "string" || csv.length === 0) {
       res.status(400).json({ error: "CSV content is required" });
       return;
@@ -730,7 +781,8 @@ router.post(
 
     try {
       await sendEmail({
-        to: recipient,
+        to: toList,
+        cc: dedupedCc.length > 0 ? dedupedCc : undefined,
         subject: finalSubject,
         text,
         html,
@@ -743,7 +795,14 @@ router.post(
         ],
       });
 
-      res.json({ message: "Export emailed", recipient, filename: safeFilename, count });
+      res.json({
+        message: "Export emailed",
+        recipients: toList,
+        cc: dedupedCc,
+        recipient: toList[0],
+        filename: safeFilename,
+        count,
+      });
     } catch (err) {
       logger.error({ err }, "Invoice export email failed");
       res.status(500).json({ error: "Failed to email export" });
