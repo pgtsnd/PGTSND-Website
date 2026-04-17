@@ -174,3 +174,58 @@ export async function ensureDemoUser() {
   logger.info("Created demo user");
   return user;
 }
+
+export const DEMO_TOKENS: Record<
+  string,
+  { email: string; name: string; role: "owner" | "crew" | "client" }
+> = {
+  "DEMO-OWNER-2026": {
+    email: "owner@demo.pgtsnd.com",
+    name: "Demo Owner",
+    role: "owner",
+  },
+  "DEMO-CREW-2026": {
+    email: "crew@demo.pgtsnd.com",
+    name: "Demo Crew",
+    role: "crew",
+  },
+  "DEMO-CLIENT-2026": {
+    email: "client@demo.pgtsnd.com",
+    name: "Demo Client",
+    role: "client",
+  },
+};
+
+export async function ensureDemoUserForToken(token: string) {
+  const config = DEMO_TOKENS[token.trim().toUpperCase()];
+  if (!config) return null;
+
+  const [existing] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, config.email));
+
+  if (existing) {
+    if (existing.role !== config.role || existing.name !== config.name) {
+      const [pinned] = await db
+        .update(usersTable)
+        .set({ role: config.role, name: config.name })
+        .where(eq(usersTable.id, existing.id))
+        .returning();
+      return pinned;
+    }
+    return existing;
+  }
+
+  const [user] = await db
+    .insert(usersTable)
+    .values({
+      email: config.email,
+      name: config.name,
+      role: config.role,
+    })
+    .returning();
+
+  logger.info({ role: config.role }, "Created demo role user");
+  return user;
+}

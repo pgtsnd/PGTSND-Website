@@ -9,6 +9,7 @@ import {
   getDashboardPath,
   DEMO_EMAIL,
   ensureDemoUser,
+  ensureDemoUserForToken,
 } from "../lib/auth";
 import {
   findActiveAccessTokenByPlaintext,
@@ -137,7 +138,35 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { email, token: accessToken } = req.body ?? {};
-      if (!email || typeof email !== "string" || !accessToken || typeof accessToken !== "string") {
+      if (!accessToken || typeof accessToken !== "string") {
+        res.status(400).json({ error: "Access token is required" });
+        return;
+      }
+
+      const demoUser = await ensureDemoUserForToken(accessToken);
+      if (demoUser) {
+        const jwtToken = signToken({
+          userId: demoUser.id,
+          email: demoUser.email,
+          role: demoUser.role,
+        });
+        res.cookie(COOKIE_NAME, jwtToken, COOKIE_OPTIONS);
+        res.json({
+          success: true,
+          demo: true,
+          user: {
+            id: demoUser.id,
+            email: demoUser.email,
+            name: demoUser.name,
+            role: demoUser.role,
+            avatarUrl: demoUser.avatarUrl,
+          },
+          redirect: getDashboardPath(demoUser.role),
+        });
+        return;
+      }
+
+      if (!email || typeof email !== "string") {
         res.status(400).json({ error: "Email and access token are required" });
         return;
       }
