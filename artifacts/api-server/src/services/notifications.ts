@@ -439,6 +439,77 @@ export async function notifyDeliverableApproved(opts: {
 }
 
 /**
+ * Sent when a client requests revisions on a deliverable.
+ * Notifies the project's team members (owner/partner/crew) — i.e. non-client
+ * project members — respecting their `emailNotifyReviews` preference.
+ */
+export async function notifyDeliverableRevisionRequested(opts: {
+  deliverableId: string;
+  requesterUserId: string | null;
+  requesterName: string;
+  comment: string;
+}): Promise<void> {
+  try {
+    const ctx = await loadDeliverableContext(opts.deliverableId);
+    if (!ctx) return;
+    const { deliverable, project } = ctx;
+
+    const recipientIds = new Set<string>();
+    const teamMembers = await db
+      .select({ userId: projectMembersTable.userId, role: usersTable.role })
+      .from(projectMembersTable)
+      .innerJoin(usersTable, eq(usersTable.id, projectMembersTable.userId))
+      .where(
+        and(
+          eq(projectMembersTable.projectId, project.id),
+          ne(usersTable.role, "client"),
+        ),
+      );
+    for (const m of teamMembers) {
+      if (m.userId !== opts.requesterUserId) recipientIds.add(m.userId);
+    }
+
+    if (recipientIds.size === 0) {
+      logger.info(
+        { deliverableId: opts.deliverableId, projectId: project.id },
+        "No team recipients for revision-request notification",
+      );
+      return;
+    }
+
+    const filteredIds = await filterOutProjectMutes(project.id, [
+      ...recipientIds,
+    ]);
+    if (filteredIds.length === 0) return;
+    const recipients = await loadUsersByIds(filteredIds);
+    const link = teamReviewLink(project.id, deliverable.id);
+    const trimmedComment = opts.comment.trim();
+
+    await Promise.all(
+      recipients
+        .filter((u) => u.emailNotifyReviews && u.email)
+        .map((u) =>
+          sendEmail({
+            to: u.email,
+            subject: `Revisions requested: "${deliverable.title}" (${project.name})`,
+            text:
+              `Hi ${u.name ?? "there"},\n\n` +
+              `${opts.requesterName} requested revisions on "${deliverable.title}" for ${project.name}.\n\n` +
+              `Revision notes:\n"${trimmedComment}"\n\n` +
+              `View the deliverable: ${link}\n\n` +
+              `— PGTSND Productions`,
+          }),
+        ),
+    );
+  } catch (err) {
+    logger.error(
+      { err, deliverableId: opts.deliverableId },
+      "notifyDeliverableRevisionRequested failed",
+    );
+  }
+}
+
+/**
  * Sent when a team member resolves a video review comment.
  * Notifies the original comment author with the resolution note (if any) and
  * a deep link back to the review. Anonymous public reviewers (no authorId)
