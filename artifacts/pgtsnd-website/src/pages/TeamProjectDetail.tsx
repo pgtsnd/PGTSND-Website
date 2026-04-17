@@ -1397,7 +1397,7 @@ function formatFileSize(bytes: number): string {
   return `${value >= 10 ? Math.round(value) : value.toFixed(1)} ${units[i]}`;
 }
 
-function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverables: Deliverable[]; onRefresh: () => void; onOpenReview: (id: string) => void }) {
+export function DeliverablesTab({ deliverables, onRefresh, onOpenReview }: { deliverables: Deliverable[]; onRefresh: () => void; onOpenReview: (id: string) => void }) {
   const { t } = useTheme();
   const { userMap } = useTeamAuth();
   const f = (s: object) => ({ fontFamily: "'Montserrat', sans-serif" as const, ...s });
@@ -2020,7 +2020,7 @@ function AssetsTab({ projectId, projectName, driveFolderId, onJumpToSettings }: 
   );
 }
 
-function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitialDeliverableConsumed, initialCommentId, initialAction }: { deliverables: Deliverable[]; projectId: string; initialDeliverableId?: string | null; onInitialDeliverableConsumed?: () => void; initialCommentId?: string | null; initialAction?: "reply" | "reopen" | null }) {
+export function TeamReviewTab({ deliverables, projectId, initialDeliverableId, onInitialDeliverableConsumed, initialCommentId, initialAction }: { deliverables: Deliverable[]; projectId: string; initialDeliverableId?: string | null; onInitialDeliverableConsumed?: () => void; initialCommentId?: string | null; initialAction?: "reply" | "reopen" | null }) {
   const { t } = useTheme();
   const { toast } = useToast();
   const { currentUser } = useTeamAuth();
