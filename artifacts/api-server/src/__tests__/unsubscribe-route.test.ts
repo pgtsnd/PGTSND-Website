@@ -140,6 +140,39 @@ describe("one-click unsubscribe route (integration)", () => {
     expect(findUser("user-abc")!.emailNotifyDormantTokens).toBe(true);
   });
 
+  it("GET with an expired token (older than the TTL) returns 400 with the invalid-or-expired page and does not flip the flag", async () => {
+    const expiredIssuedAt = Date.now() - 200 * 24 * 60 * 60 * 1000; // 200 days ago
+    const token = createUnsubscribeToken("dormant-tokens", "user-abc", {
+      issuedAt: expiredIssuedAt,
+    });
+
+    const res = await request(appModule)
+      .get(`/api/unsubscribe/dormant-tokens?token=${encodeURIComponent(token)}`)
+      .expect(400);
+
+    expect(res.headers["content-type"]).toMatch(/text\/html/);
+    expect(res.text).toContain("Invalid or expired link");
+
+    const user = findUser("user-abc")!;
+    expect(user.emailNotifyDormantTokens).toBe(true);
+  });
+
+  it("POST with an expired token returns 400 JSON and does not flip the flag", async () => {
+    const expiredIssuedAt = Date.now() - 200 * 24 * 60 * 60 * 1000;
+    const token = createUnsubscribeToken("dormant-tokens", "user-abc", {
+      issuedAt: expiredIssuedAt,
+    });
+
+    const res = await request(appModule)
+      .post(
+        `/api/unsubscribe/dormant-tokens?token=${encodeURIComponent(token)}`,
+      )
+      .expect(400);
+
+    expect(res.body).toEqual({ error: "Invalid or expired token" });
+    expect(findUser("user-abc")!.emailNotifyDormantTokens).toBe(true);
+  });
+
   it("POST /api/unsubscribe/dormant-tokens (RFC 8058 one-click) flips the flag without a CSRF header", async () => {
     const token = createUnsubscribeToken("dormant-tokens", "user-abc");
 
