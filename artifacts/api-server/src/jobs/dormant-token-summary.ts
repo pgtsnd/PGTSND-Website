@@ -11,6 +11,7 @@ import {
   renderDormantTokensSummaryEmail,
   type DormantTokenRowInput,
 } from "../services/email-templates";
+import { createUnsubscribeToken } from "../lib/unsubscribe-token";
 
 // Keep this in sync with DORMANT_THRESHOLD_DAYS in
 // artifacts/pgtsnd-website/src/pages/TeamAccess.tsx so the email and the
@@ -80,14 +81,38 @@ export async function findDormantAccessTokens(
   return dormant;
 }
 
-export async function findOwnerRecipients(): Promise<
-  { email: string; name: string | null }[]
-> {
+export interface OwnerRecipient {
+  id: string;
+  email: string;
+  name: string | null;
+}
+
+export async function findOwnerRecipients(
+  now: Date = new Date(),
+): Promise<OwnerRecipient[]> {
   const rows = await db
-    .select({ email: usersTable.email, name: usersTable.name })
+    .select({
+      id: usersTable.id,
+      email: usersTable.email,
+      name: usersTable.name,
+      emailNotifyDormantTokens: usersTable.emailNotifyDormantTokens,
+      dormantTokensSnoozeUntil: usersTable.dormantTokensSnoozeUntil,
+    })
     .from(usersTable)
     .where(eq(usersTable.role, "owner"));
-  return rows;
+
+  return rows
+    .filter((r) => {
+      if (r.emailNotifyDormantTokens === false) return false;
+      if (
+        r.dormantTokensSnoozeUntil &&
+        r.dormantTokensSnoozeUntil.getTime() > now.getTime()
+      ) {
+        return false;
+      }
+      return true;
+    })
+    .map((r) => ({ id: r.id, email: r.email, name: r.name }));
 }
 
 async function lastSummarySentAt(): Promise<Date | null> {
@@ -121,35 +146,48 @@ export async function runDormantTokenSummary(
     return { ran: false, reason: "no-dormant" };
   }
 
-  const recipients = await findOwnerRecipients();
+  const recipients = await findOwnerRecipients(now);
   if (recipients.length === 0) {
     return { ran: false, reason: "no-recipients" };
   }
 
-  const link = `${getAppBaseUrl().replace(/\/+$/, "")}/team/access`;
+  const baseUrl = getAppBaseUrl().replace(/\/+$/, "");
+  const link = `${baseUrl}/team/access`;
+  const managePreferencesUrl = `${baseUrl}/team/settings?section=notifications`;
   const subject = `Weekly access-token review: ${dormant.length} dormant token${dormant.length === 1 ? "" : "s"}`;
-  const textLines = [
-    `${dormant.length} active access token${dormant.length === 1 ? "" : "s"} ${dormant.length === 1 ? "has" : "have"} not been used in over ${DORMANT_THRESHOLD_DAYS} days:`,
-    "",
-    ...dormant.map(
-      (t) =>
-        `- ${t.userName ? `${t.userName} <${t.userEmail}>` : t.userEmail} — "${t.label}" — ${t.lastActivityLabel}`,
-    ),
-    "",
-    `Review and revoke at: ${link}`,
-    "",
-    "— PGTSND Productions",
-  ];
-  const text = textLines.join("\n");
 
   let sent = 0;
   for (const recipient of recipients) {
+    const unsubscribeToken = createUnsubscribeToken(
+      "dormant-tokens",
+      recipient.id,
+    );
+    const unsubscribeUrl = `${baseUrl}/api/unsubscribe/dormant-tokens?token=${encodeURIComponent(unsubscribeToken)}`;
+
+    const text = [
+      `${dormant.length} active access token${dormant.length === 1 ? "" : "s"} ${dormant.length === 1 ? "has" : "have"} not been used in over ${DORMANT_THRESHOLD_DAYS} days:`,
+      "",
+      ...dormant.map(
+        (t) =>
+          `- ${t.userName ? `${t.userName} <${t.userEmail}>` : t.userEmail} — "${t.label}" — ${t.lastActivityLabel}`,
+      ),
+      "",
+      `Review and revoke at: ${link}`,
+      "",
+      `Unsubscribe from this email: ${unsubscribeUrl}`,
+      `Manage email preferences: ${managePreferencesUrl}`,
+      "",
+      "— PGTSND Productions",
+    ].join("\n");
+
     try {
       const html = renderDormantTokensSummaryEmail({
         recipientName: recipient.name,
         thresholdDays: DORMANT_THRESHOLD_DAYS,
         tokens: dormant,
         link,
+        unsubscribeUrl,
+        managePreferencesUrl,
       });
       const result = await sendEmail({
         to: recipient.email,

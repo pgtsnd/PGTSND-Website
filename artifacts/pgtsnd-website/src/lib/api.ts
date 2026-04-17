@@ -235,6 +235,8 @@ export interface UserProfile {
   organizationName: string | null;
   emailNotifyReviews?: boolean;
   emailNotifyComments?: boolean;
+  emailNotifyDormantTokens?: boolean;
+  dormantTokensSnoozeUntil?: string | null;
 }
 
 export interface DistributionList {
@@ -517,6 +519,15 @@ export const api = {
       "/users/me/bookkeeper-email",
       { method: "PATCH", body: JSON.stringify({ bookkeeperEmail }) },
     ),
+
+  updateDormantTokensEmailPrefs: (data: {
+    emailNotifyDormantTokens?: boolean;
+    snoozeUntil?: string | null;
+  }) =>
+    apiFetch<UserProfile>("/users/me/dormant-tokens-email", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
 
 
   getDocuSignSigningUrl: (contractId: string) =>

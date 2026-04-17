@@ -281,6 +281,10 @@ export default function TeamSettings() {
                   })}
                 </div>
 
+                {currentUser?.role === "owner" && (
+                  <DormantTokensEmailCard t={t} f={f} />
+                )}
+
                 <MutedProjectsList variant="team" />
               </div>
             )}
@@ -1188,6 +1192,164 @@ function DistributionListsPanel({ t, f }: { t: any; f: any }) {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) {
+  const { currentUser } = useTeamAuth();
+  const user = currentUser as
+    | (typeof currentUser & {
+        emailNotifyDormantTokens?: boolean;
+        dormantTokensSnoozeUntil?: string | null;
+      })
+    | null;
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const showToast = (msg: string, type?: "success" | "error" | "info") =>
+    toast(msg, type);
+
+  const enabled = user?.emailNotifyDormantTokens !== false;
+  const snoozeUntilRaw = user?.dormantTokensSnoozeUntil ?? null;
+  const snoozeActive =
+    snoozeUntilRaw !== null && new Date(snoozeUntilRaw).getTime() > Date.now();
+  const snoozeDateValue = snoozeUntilRaw
+    ? new Date(snoozeUntilRaw).toISOString().slice(0, 10)
+    : "";
+
+  const [pendingDate, setPendingDate] = useState(snoozeDateValue);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setPendingDate(snoozeDateValue);
+  }, [snoozeDateValue]);
+
+  async function patch(data: {
+    emailNotifyDormantTokens?: boolean;
+    snoozeUntil?: string | null;
+  }) {
+    setBusy(true);
+    try {
+      await api.updateDormantTokensEmailPrefs(data);
+      await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      await queryClient.invalidateQueries({ queryKey: ["users", "me"] });
+      showToast("Saved", "success");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Failed to update", "error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      style={f({
+        background: t.cardBackground,
+        borderRadius: "12px",
+        padding: "20px",
+        border: `1px solid ${t.borderLight}`,
+      })}
+      data-testid="dormant-tokens-email-card"
+    >
+      <h3 style={f({ margin: "0 0 4px 0", color: t.textPrimary, fontSize: "16px" })}>
+        Weekly dormant access tokens email
+      </h3>
+      <p style={f({ margin: "0 0 16px 0", color: t.textSecondary, fontSize: "13px" })}>
+        Owners get a weekly summary of API access tokens that haven't been used in
+        90+ days. You can pause it temporarily or turn it off entirely.
+      </p>
+
+      <label
+        style={f({
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          color: t.textPrimary,
+          fontSize: "14px",
+          marginBottom: "16px",
+        })}
+      >
+        <input
+          type="checkbox"
+          checked={enabled}
+          disabled={busy}
+          data-testid="dormant-tokens-toggle"
+          onChange={(e) =>
+            patch({ emailNotifyDormantTokens: e.target.checked })
+          }
+        />
+        Send me the weekly dormant-tokens email
+      </label>
+
+      <div style={f({ display: "flex", flexDirection: "column", gap: "8px" })}>
+        <label
+          style={f({ color: t.textPrimary, fontSize: "14px" })}
+          htmlFor="dormant-tokens-snooze-until"
+        >
+          Snooze until
+        </label>
+        <div style={f({ display: "flex", gap: "8px", alignItems: "center" })}>
+          <input
+            id="dormant-tokens-snooze-until"
+            type="date"
+            value={pendingDate}
+            min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
+            disabled={busy || !enabled}
+            data-testid="dormant-tokens-snooze-input"
+            onChange={(e) => setPendingDate(e.target.value)}
+            style={f({
+              padding: "6px 8px",
+              borderRadius: "6px",
+              border: `1px solid ${t.borderLight}`,
+              background: t.background,
+              color: t.textPrimary,
+            })}
+          />
+          <button
+            type="button"
+            disabled={busy || !pendingDate || pendingDate === snoozeDateValue}
+            data-testid="dormant-tokens-snooze-save"
+            onClick={() =>
+              patch({
+                snoozeUntil: new Date(`${pendingDate}T00:00:00Z`).toISOString(),
+              })
+            }
+            style={f({
+              padding: "6px 12px",
+              borderRadius: "6px",
+              border: "none",
+              background: t.accent,
+              color: "#fff",
+              cursor: "pointer",
+            })}
+          >
+            Save snooze
+          </button>
+          {snoozeActive && (
+            <button
+              type="button"
+              disabled={busy}
+              data-testid="dormant-tokens-snooze-clear"
+              onClick={() => patch({ snoozeUntil: null })}
+              style={f({
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: `1px solid ${t.borderLight}`,
+                background: "transparent",
+                color: t.textPrimary,
+                cursor: "pointer",
+              })}
+            >
+              Clear snooze
+            </button>
+          )}
+        </div>
+        {snoozeActive && (
+          <p style={f({ margin: "4px 0 0 0", color: t.textSecondary, fontSize: "12px" })}>
+            Snoozed until {new Date(snoozeUntilRaw!).toLocaleDateString()}.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

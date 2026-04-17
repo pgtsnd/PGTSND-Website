@@ -50,6 +50,10 @@ export const usersTable = pgTable("users", {
 
   emailNotifyReviews: boolean("email_notify_reviews").notNull().default(true),
   emailNotifyComments: boolean("email_notify_comments").notNull().default(true),
+  emailNotifyDormantTokens: boolean("email_notify_dormant_tokens")
+    .notNull()
+    .default(true),
+  dormantTokensSnoozeUntil: timestamp("dormant_tokens_snooze_until"),
 
   bookkeeperEmail: varchar("bookkeeper_email", { length: 255 }),
 

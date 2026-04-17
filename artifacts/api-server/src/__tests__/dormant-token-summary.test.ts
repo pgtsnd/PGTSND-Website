@@ -13,6 +13,8 @@ interface FakeUserRow {
   email: string;
   name: string | null;
   role: "owner" | "partner" | "crew" | "client";
+  emailNotifyDormantTokens?: boolean;
+  dormantTokensSnoozeUntil?: Date | null;
 }
 
 const accessTokenRows: FakeAccessTokenRow[] = [];
@@ -48,6 +50,8 @@ vi.mock("@workspace/db", () => {
     email: "email",
     name: "name",
     role: "role",
+    emailNotifyDormantTokens: "emailNotifyDormantTokens",
+    dormantTokensSnoozeUntil: "dormantTokensSnoozeUntil",
   };
   const dormantTokenSummaryRunsTable = {
     __name: "dormant_token_summary_runs",
@@ -79,6 +83,7 @@ vi.mock("@workspace/db", () => {
           colKeys.includes("email") &&
           colKeys.includes("name") &&
           !colKeys.includes("userEmail");
+        void isSummaryQuery;
         return {
           from: (table: { __name: string }) => {
             if (table.__name === "dormant_token_summary_runs") {
@@ -99,7 +104,15 @@ vi.mock("@workspace/db", () => {
                 where: async () =>
                   userRows
                     .filter((u) => u.role === "owner")
-                    .map((u) => ({ email: u.email, name: u.name })),
+                    .map((u) => ({
+                      id: u.id,
+                      email: u.email,
+                      name: u.name,
+                      emailNotifyDormantTokens:
+                        u.emailNotifyDormantTokens ?? true,
+                      dormantTokensSnoozeUntil:
+                        u.dormantTokensSnoozeUntil ?? null,
+                    })),
               };
             }
             // access tokens join users
@@ -366,6 +379,125 @@ describe("dormant token summary job", () => {
       "M-middle",
       "Z-newest-stale",
     ]);
+  });
+
+  it("skips owners who opted out of the dormant-tokens email", async () => {
+    addUser({
+      id: "o1",
+      email: "owner1@x.com",
+      name: "Owner One",
+      role: "owner",
+      emailNotifyDormantTokens: false,
+    });
+    addUser({
+      id: "o2",
+      email: "owner2@x.com",
+      name: "Owner Two",
+      role: "owner",
+    });
+    addUser({ id: "u1", email: "u@x.com", name: "U", role: "crew" });
+    addToken({
+      userId: "u1",
+      label: "Stale",
+      lastUsedAt: new Date(NOW.getTime() - 200 * DAY),
+    });
+
+    const result = await runDormantTokenSummary(NOW);
+    expect(result.ran).toBe(true);
+    expect(result.recipientCount).toBe(1);
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    const recipients = sendEmailMock.mock.calls.map((c: any) => c[0].to);
+    expect(recipients).toEqual(["owner2@x.com"]);
+  });
+
+  it("skips owners whose snooze date is still in the future", async () => {
+    addUser({
+      id: "o1",
+      email: "snoozed@x.com",
+      name: "Snoozed",
+      role: "owner",
+      dormantTokensSnoozeUntil: new Date(NOW.getTime() + 30 * DAY),
+    });
+    addUser({
+      id: "o2",
+      email: "active@x.com",
+      name: "Active",
+      role: "owner",
+    });
+    addUser({ id: "u1", email: "u@x.com", name: "U", role: "crew" });
+    addToken({
+      userId: "u1",
+      label: "Stale",
+      lastUsedAt: new Date(NOW.getTime() - 200 * DAY),
+    });
+
+    const result = await runDormantTokenSummary(NOW);
+    expect(result.ran).toBe(true);
+    expect(result.recipientCount).toBe(1);
+    const recipients = sendEmailMock.mock.calls.map((c: any) => c[0].to);
+    expect(recipients).toEqual(["active@x.com"]);
+  });
+
+  it("resumes sending after a snooze date has passed", async () => {
+    addUser({
+      id: "o1",
+      email: "owner@x.com",
+      name: "Owner",
+      role: "owner",
+      dormantTokensSnoozeUntil: new Date(NOW.getTime() - 1 * DAY),
+    });
+    addUser({ id: "u1", email: "u@x.com", name: "U", role: "crew" });
+    addToken({
+      userId: "u1",
+      label: "Stale",
+      lastUsedAt: new Date(NOW.getTime() - 200 * DAY),
+    });
+
+    const result = await runDormantTokenSummary(NOW);
+    expect(result.ran).toBe(true);
+    expect(result.recipientCount).toBe(1);
+  });
+
+  it("includes a per-recipient one-click unsubscribe link in the email", async () => {
+    addUser({ id: "o1", email: "owner@x.com", name: "Owner", role: "owner" });
+    addUser({ id: "u1", email: "u@x.com", name: "U", role: "crew" });
+    addToken({
+      userId: "u1",
+      label: "Stale",
+      lastUsedAt: new Date(NOW.getTime() - 200 * DAY),
+    });
+
+    await runDormantTokenSummary(NOW);
+    const call = sendEmailMock.mock.calls[0][0] as any;
+    expect(call.text).toMatch(
+      /Unsubscribe from this email: https:\/\/app\.example\.com\/api\/unsubscribe\/dormant-tokens\?token=/,
+    );
+    expect(call.text).toContain(
+      "Manage email preferences: https://app.example.com/team/settings",
+    );
+    expect(call.html).toContain("/api/unsubscribe/dormant-tokens?token=");
+    expect(call.html).toContain("/team/settings?section=notifications");
+  });
+
+  it("treats every owner as opted out → no recipients", async () => {
+    addUser({
+      id: "o1",
+      email: "o1@x.com",
+      name: null,
+      role: "owner",
+      emailNotifyDormantTokens: false,
+    });
+    addUser({ id: "u1", email: "u@x.com", name: "U", role: "crew" });
+    addToken({
+      userId: "u1",
+      label: "Stale",
+      lastUsedAt: new Date(NOW.getTime() - 200 * DAY),
+    });
+
+    const result = await runDormantTokenSummary(NOW);
+    expect(result.ran).toBe(false);
+    expect(result.reason).toBe("no-recipients");
+    expect(sendEmailMock).not.toHaveBeenCalled();
   });
 
   it("does nothing if there are no owner recipients", async () => {

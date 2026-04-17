@@ -19,6 +19,7 @@ import adminEmailPreviewsRouter from "./admin-email-previews";
 import publicReviewRouter from "./public-review";
 import storageRouter from "./storage";
 import accessTokensRouter from "./access-tokens";
+import unsubscribeRouter from "./unsubscribe";
 import { authMiddleware } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -27,6 +28,7 @@ router.use(healthRouter);
 router.use(authRouter);
 router.use(publicReviewRouter);
 router.use(storageRouter);
+router.use(unsubscribeRouter);
 
 router.post("/webhooks/stripe", (req, res, next) => {
   req.url = "/webhooks/stripe";

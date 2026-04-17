@@ -9,6 +9,7 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const EXEMPT_PATH_PREFIXES = [
   "/api/webhooks/",
   "/api/auth/google/callback",
+  "/api/unsubscribe/",
 ];
 
 const cookieOptions = {

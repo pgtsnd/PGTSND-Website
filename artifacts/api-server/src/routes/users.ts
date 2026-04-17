@@ -161,6 +161,73 @@ router.patch("/users/me/notifications", async (req, res) => {
   validateAndSend(res, selectUserSchema, user);
 });
 
+router.patch("/users/me/dormant-tokens-email", async (req, res) => {
+  const body = (req.body ?? {}) as {
+    emailNotifyDormantTokens?: unknown;
+    snoozeUntil?: unknown;
+  };
+
+  const updates: {
+    emailNotifyDormantTokens?: boolean;
+    dormantTokensSnoozeUntil?: Date | null;
+  } = {};
+
+  if ("emailNotifyDormantTokens" in body) {
+    if (typeof body.emailNotifyDormantTokens !== "boolean") {
+      res.status(400).json({
+        error: "emailNotifyDormantTokens must be a boolean",
+      });
+      return;
+    }
+    updates.emailNotifyDormantTokens = body.emailNotifyDormantTokens;
+  }
+
+  if ("snoozeUntil" in body) {
+    const raw = body.snoozeUntil;
+    if (raw === null || raw === "") {
+      updates.dormantTokensSnoozeUntil = null;
+    } else if (typeof raw === "string") {
+      const parsed = new Date(raw);
+      if (Number.isNaN(parsed.getTime())) {
+        res
+          .status(400)
+          .json({ error: "snoozeUntil must be an ISO date string or null" });
+        return;
+      }
+      if (parsed.getTime() < Date.now() - 60_000) {
+        res
+          .status(400)
+          .json({ error: "snoozeUntil must be in the future" });
+        return;
+      }
+      updates.dormantTokensSnoozeUntil = parsed;
+    } else {
+      res
+        .status(400)
+        .json({ error: "snoozeUntil must be an ISO date string or null" });
+      return;
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No valid fields to update" });
+    return;
+  }
+
+  const [user] = await db
+    .update(usersTable)
+    .set(updates)
+    .where(eq(usersTable.id, req.user!.id))
+    .returning();
+
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  validateAndSend(res, selectUserSchema, user);
+});
+
 router.patch("/users/me/bookkeeper-email", async (req, res) => {
   const { bookkeeperEmail } = (req.body ?? {}) as { bookkeeperEmail?: unknown };
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

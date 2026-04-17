@@ -127,6 +127,7 @@ const protectedCases: ProtectedCase[] = [
 
   // users
   { name: "update my notification prefs", method: "patch", path: "/api/users/me/notifications", body: { emailNotifyReviews: true } },
+  { name: "update my dormant-tokens email prefs", method: "patch", path: "/api/users/me/dormant-tokens-email", body: { emailNotifyDormantTokens: true } },
   { name: "update my bookkeeper email", method: "patch", path: "/api/users/me/bookkeeper-email", body: { bookkeeperEmail: "b@x.com" } },
   { name: "create user", method: "post", path: "/api/users", body: { email: "x@y.com", name: "x", role: "client" } },
   { name: "update user", method: "patch", path: "/api/users/u1", body: { name: "y" } },

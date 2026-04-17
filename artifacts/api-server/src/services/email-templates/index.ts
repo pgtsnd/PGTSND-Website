@@ -428,6 +428,8 @@ export interface DormantTokensSummaryTemplateInput {
   thresholdDays: number;
   tokens: DormantTokenRowInput[];
   link: string;
+  unsubscribeUrl?: string;
+  managePreferencesUrl?: string;
 }
 
 export function renderDormantTokensSummaryEmail(
@@ -467,6 +469,21 @@ export function renderDormantTokensSummaryEmail(
       Tokens listed above haven't been used in over ${input.thresholdDays} days. Consider revoking any you no longer need.
     </p>`;
 
+  const footerParts = [
+    "You're receiving this weekly summary because you're an owner on PGTSND Productions.",
+  ];
+  if (input.unsubscribeUrl) {
+    footerParts.push(
+      `Unsubscribe from this email: ${input.unsubscribeUrl}`,
+    );
+  }
+  if (input.managePreferencesUrl) {
+    footerParts.push(
+      `Pause for a while or manage all email preferences: ${input.managePreferencesUrl}`,
+    );
+  }
+  const footerNote = footerParts.join(" · ");
+
   return layout({
     previewText: `${count} dormant access ${noun} unused for ${input.thresholdDays}+ days.`,
     heading: `${count} dormant access ${noun} need a look`,
@@ -474,6 +491,7 @@ export function renderDormantTokensSummaryEmail(
     bodyHtml,
     ctaLabel: "Review Access Tokens",
     ctaUrl: input.link,
+    footerNote,
   });
 }
 
