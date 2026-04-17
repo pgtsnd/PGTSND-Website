@@ -208,6 +208,20 @@ router.patch(
       });
     }
 
+    // Mirror the reopen endpoint: when a team member flips a previously
+    // resolved comment back to unresolved, notify the team. Guarded by the
+    // resolved -> unresolved transition so repeated unresolve calls don't
+    // re-send.
+    if (!resolved && updated && wasResolved) {
+      void notifyVideoCommentReopened({
+        commentId: updated.id,
+        reopenerUserId: req.user!.id,
+        reopenerName: req.user!.name ?? "A team member",
+        previousResolutionNote: previous?.resolvedNote ?? null,
+        previousResolverUserId: previous?.resolvedBy ?? null,
+      });
+    }
+
     res.json(updated);
   },
 );
@@ -276,6 +290,7 @@ router.post(
       reopenerUserId: req.user!.id,
       reopenerName: req.user!.name ?? "A collaborator",
       previousResolutionNote,
+      previousResolverUserId: comment.resolvedBy,
     });
 
     res.json(updated);

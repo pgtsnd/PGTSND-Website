@@ -717,6 +717,7 @@ export async function notifyVideoCommentReopened(opts: {
   reopenerUserId: string | null;
   reopenerName: string;
   previousResolutionNote: string | null;
+  previousResolverUserId?: string | null;
 }): Promise<void> {
   try {
     const [comment] = await db
@@ -743,6 +744,15 @@ export async function notifyVideoCommentReopened(opts: {
       );
     for (const m of teamMembers) {
       if (m.userId !== opts.reopenerUserId) recipientIds.add(m.userId);
+    }
+
+    // Always include the original resolver (the person whose resolution was
+    // undone), even if they're no longer on the project, so they're not
+    // surprised that their resolved comment is back open.
+    const previousResolverId =
+      opts.previousResolverUserId ?? comment.resolvedBy ?? null;
+    if (previousResolverId && previousResolverId !== opts.reopenerUserId) {
+      recipientIds.add(previousResolverId);
     }
 
     if (recipientIds.size === 0) {
