@@ -454,6 +454,31 @@ function OverviewTab({ project, tasks, doneTasks, contracts, projectId }: {
   );
 }
 
+function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function highlightMatches(text: string, query: string, highlightStyle: React.CSSProperties): React.ReactNode {
+  if (!text) return text;
+  const tokens = (query || "")
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0);
+  if (tokens.length === 0) return text;
+  const pattern = new RegExp(`(${tokens.map(escapeRegExp).join("|")})`, "gi");
+  const parts = text.split(pattern);
+  return parts.map((part, i) => {
+    if (i % 2 === 1) {
+      return (
+        <mark key={i} style={highlightStyle}>
+          {part}
+        </mark>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 function ProjectIntegrationsCard({ project, projectId }: { project: any; projectId: string }) {
   const { t } = useTheme();
   const { toast } = useToast();
@@ -654,10 +679,10 @@ function ProjectIntegrationsCard({ project, projectId }: { project: any; project
                                   </svg>
                                   <span style={{ flex: 1, minWidth: 0 }}>
                                     <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", ...f({ fontWeight: selected ? 600 : 500, fontSize: "12px", color: t.text }) }}>
-                                      {folder.name}
+                                      {highlightMatches(folder.name, driveSearchDebounced, { background: t.accent, color: t.bg, padding: "0 2px", borderRadius: "2px", fontWeight: 700 })}
                                     </span>
                                     <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", ...f({ fontWeight: 400, fontSize: "10px", color: t.textMuted, marginTop: "2px" }) }}>
-                                      {folder.parentPath}
+                                      {highlightMatches(folder.parentPath, driveSearchDebounced, { background: "transparent", color: t.text, padding: 0, fontWeight: 600 })}
                                     </span>
                                   </span>
                                   {selected && (
