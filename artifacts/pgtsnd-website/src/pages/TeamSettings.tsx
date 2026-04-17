@@ -1363,7 +1363,7 @@ interface DormantTokensSubscriberRow {
   status: "subscribed" | "snoozed" | "unsubscribed";
 }
 
-function DormantTokensSubscribersCard({
+export function DormantTokensSubscribersCard({
   t,
   f,
 }: {

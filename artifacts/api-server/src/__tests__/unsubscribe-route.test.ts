@@ -7,6 +7,7 @@ interface FakeUserRow {
   email: string;
   emailNotifyDormantTokens: boolean;
   dormantTokensSnoozeUntil: Date | null;
+  dormantTokensUnsubscribedAt: Date | null;
 }
 
 const userRows: FakeUserRow[] = [];
@@ -97,6 +98,7 @@ describe("one-click unsubscribe route (integration)", () => {
       email: "owner@example.com",
       emailNotifyDormantTokens: true,
       dormantTokensSnoozeUntil: new Date("2030-01-01T00:00:00Z"),
+      dormantTokensUnsubscribedAt: null,
     });
   });
 
@@ -115,6 +117,10 @@ describe("one-click unsubscribe route (integration)", () => {
     const updated = findUser("user-abc")!;
     expect(updated.emailNotifyDormantTokens).toBe(false);
     expect(updated.dormantTokensSnoozeUntil).toBeNull();
+    expect(updated.dormantTokensUnsubscribedAt).toBeInstanceOf(Date);
+    expect(updated.dormantTokensUnsubscribedAt!.getTime()).toBeGreaterThan(
+      Date.now() - 5_000,
+    );
   });
 
   it("GET with an invalid/tampered token returns 400 and does not flip the flag", async () => {
@@ -152,6 +158,10 @@ describe("one-click unsubscribe route (integration)", () => {
     const updated = findUser("user-abc")!;
     expect(updated.emailNotifyDormantTokens).toBe(false);
     expect(updated.dormantTokensSnoozeUntil).toBeNull();
+    expect(updated.dormantTokensUnsubscribedAt).toBeInstanceOf(Date);
+    expect(updated.dormantTokensUnsubscribedAt!.getTime()).toBeGreaterThan(
+      Date.now() - 5_000,
+    );
   });
 
   it("POST with an invalid token returns 400 JSON and does not flip the flag", async () => {
