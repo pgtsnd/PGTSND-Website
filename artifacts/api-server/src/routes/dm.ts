@@ -173,15 +173,27 @@ router.patch("/dm/threads/:userId/read", async (req, res) => {
 
 router.get("/messages/unread-summary", async (req, res) => {
   const me = req.user!;
-  // Direct messages addressed to me, unread
+  // Direct messages addressed to me, unread.
+  // Apply current DM RBAC so a role change doesn't surface phantom unread
+  // badges for conversations that /dm/conversations now hides.
+  const myRole = me.role as Role;
+  const allowedSenderRoles: Role[] =
+    myRole === "owner" || myRole === "partner"
+      ? ["owner", "partner", "crew", "client"]
+      : myRole === "crew"
+      ? ["owner", "partner", "crew"]
+      : ["owner", "partner"];
+
   const [dmRow] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(messagesTable)
+    .innerJoin(usersTable, eq(messagesTable.senderId, usersTable.id))
     .where(
       and(
         isNull(messagesTable.projectId),
         eq(messagesTable.recipientId, me.id),
         eq(messagesTable.read, false),
+        inArray(usersTable.role, allowedSenderRoles),
       ),
     );
 
