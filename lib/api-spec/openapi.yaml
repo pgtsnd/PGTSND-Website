@@ -208,6 +208,33 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /users/me/dormant-tokens-email:
+    patch:
+      operationId: updateMyDormantTokensEmail
+      tags: [users]
+      summary: Update the current user's dormant-tokens email preferences
+      description: >-
+        Owners receive a weekly email summarizing API access tokens that
+        haven't been used in 90+ days. This endpoint lets the user toggle the
+        email and/or snooze it until a future date.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDormantTokensEmail"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /users/{id}:
     get:
       operationId: getUser
@@ -1573,6 +1600,12 @@ components:
           type: boolean
         emailNotifyComments:
           type: boolean
+        emailNotifyDormantTokens:
+          type: boolean
+        dormantTokensSnoozeUntil:
+          type: string
+          format: date-time
+          nullable: true
         bookkeeperEmail:
           type: string
           nullable: true
@@ -1589,6 +1622,7 @@ components:
         - role
         - emailNotifyReviews
         - emailNotifyComments
+        - emailNotifyDormantTokens
         - createdAt
         - updatedAt
 
@@ -1661,6 +1695,22 @@ components:
           type: boolean
         emailNotifyComments:
           type: boolean
+
+    UpdateDormantTokensEmail:
+      type: object
+      description: >-
+        Patch the dormant-tokens email preference and/or its snooze date.
+        At least one of the properties must be provided.
+      properties:
+        emailNotifyDormantTokens:
+          type: boolean
+        snoozeUntil:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            ISO date-time string in the future to snooze the email until,
+            or null to clear an existing snooze.
 
     AccessToken:
       type: object

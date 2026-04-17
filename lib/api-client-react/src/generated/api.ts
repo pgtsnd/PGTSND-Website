@@ -58,6 +58,7 @@ import type {
   UnreadSummary,
   UpdateContract,
   UpdateDeliverable,
+  UpdateDormantTokensEmail,
   UpdateInvoice,
   UpdateNotificationPreferences,
   UpdateOrganization,
@@ -742,6 +743,96 @@ export const useUpdateMyNotificationPreferences = <
   return useMutation(
     getUpdateMyNotificationPreferencesMutationOptions(options),
   );
+};
+
+/**
+ * Owners receive a weekly email summarizing API access tokens that haven't been used in 90+ days. This endpoint lets the user toggle the email and/or snooze it until a future date.
+ * @summary Update the current user's dormant-tokens email preferences
+ */
+export const getUpdateMyDormantTokensEmailUrl = () => {
+  return `/api/users/me/dormant-tokens-email`;
+};
+
+export const updateMyDormantTokensEmail = async (
+  updateDormantTokensEmail: UpdateDormantTokensEmail,
+  options?: RequestInit,
+): Promise<User> => {
+  return customFetch<User>(getUpdateMyDormantTokensEmailUrl(), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateDormantTokensEmail),
+  });
+};
+
+export const getUpdateMyDormantTokensEmailMutationOptions = <
+  TError = ErrorType<ValidationErrorResponse | UnauthorizedResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMyDormantTokensEmail>>,
+    TError,
+    { data: BodyType<UpdateDormantTokensEmail> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateMyDormantTokensEmail>>,
+  TError,
+  { data: BodyType<UpdateDormantTokensEmail> },
+  TContext
+> => {
+  const mutationKey = ["updateMyDormantTokensEmail"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateMyDormantTokensEmail>>,
+    { data: BodyType<UpdateDormantTokensEmail> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateMyDormantTokensEmail(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateMyDormantTokensEmailMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateMyDormantTokensEmail>>
+>;
+export type UpdateMyDormantTokensEmailMutationBody =
+  BodyType<UpdateDormantTokensEmail>;
+export type UpdateMyDormantTokensEmailMutationError = ErrorType<
+  ValidationErrorResponse | UnauthorizedResponse
+>;
+
+/**
+ * @summary Update the current user's dormant-tokens email preferences
+ */
+export const useUpdateMyDormantTokensEmail = <
+  TError = ErrorType<ValidationErrorResponse | UnauthorizedResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMyDormantTokensEmail>>,
+    TError,
+    { data: BodyType<UpdateDormantTokensEmail> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateMyDormantTokensEmail>>,
+  TError,
+  { data: BodyType<UpdateDormantTokensEmail> },
+  TContext
+> => {
+  return useMutation(getUpdateMyDormantTokensEmailMutationOptions(options));
 };
 
 /**

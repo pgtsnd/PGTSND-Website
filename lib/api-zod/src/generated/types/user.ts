@@ -38,6 +38,8 @@ export interface User {
   notes?: string | null;
   emailNotifyReviews: boolean;
   emailNotifyComments: boolean;
+  emailNotifyDormantTokens: boolean;
+  dormantTokensSnoozeUntil?: Date | null;
   bookkeeperEmail?: string | null;
   createdAt: Date;
   updatedAt: Date;

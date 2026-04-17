@@ -89,6 +89,8 @@ export const ListUsersResponseItem = zod.object({
   notes: zod.string().nullish(),
   emailNotifyReviews: zod.boolean(),
   emailNotifyComments: zod.boolean(),
+  emailNotifyDormantTokens: zod.boolean(),
+  dormantTokensSnoozeUntil: zod.coerce.date().nullish(),
   bookkeeperEmail: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
@@ -163,6 +165,8 @@ export const GetCurrentUserResponse = zod.object({
   notes: zod.string().nullish(),
   emailNotifyReviews: zod.boolean(),
   emailNotifyComments: zod.boolean(),
+  emailNotifyDormantTokens: zod.boolean(),
+  dormantTokensSnoozeUntil: zod.coerce.date().nullish(),
   bookkeeperEmail: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
@@ -207,6 +211,64 @@ export const UpdateMyNotificationPreferencesResponse = zod.object({
   notes: zod.string().nullish(),
   emailNotifyReviews: zod.boolean(),
   emailNotifyComments: zod.boolean(),
+  emailNotifyDormantTokens: zod.boolean(),
+  dormantTokensSnoozeUntil: zod.coerce.date().nullish(),
+  bookkeeperEmail: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * Owners receive a weekly email summarizing API access tokens that haven't been used in 90+ days. This endpoint lets the user toggle the email and/or snooze it until a future date.
+ * @summary Update the current user's dormant-tokens email preferences
+ */
+export const UpdateMyDormantTokensEmailBody = zod
+  .object({
+    emailNotifyDormantTokens: zod.boolean().optional(),
+    snoozeUntil: zod.coerce
+      .date()
+      .nullish()
+      .describe(
+        "ISO date-time string in the future to snooze the email until, or null to clear an existing snooze.",
+      ),
+  })
+  .describe(
+    "Patch the dormant-tokens email preference and\/or its snooze date. At least one of the properties must be provided.",
+  );
+
+export const UpdateMyDormantTokensEmailResponse = zod.object({
+  id: zod.string(),
+  email: zod.string(),
+  name: zod.string(),
+  role: zod.enum(["owner", "partner", "crew", "client"]),
+  avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  title: zod.string().nullish(),
+  initials: zod.string().nullish(),
+  dayRate: zod.number().nullish(),
+  halfDayRate: zod.number().nullish(),
+  hourlyRate: zod.number().nullish(),
+  rateNotes: zod.string().nullish(),
+  w9OnFile: zod.boolean().nullish(),
+  taxClassification: zod.string().nullish(),
+  ein: zod.string().nullish(),
+  address: zod.string().nullish(),
+  city: zod.string().nullish(),
+  state: zod.string().nullish(),
+  zip: zod.string().nullish(),
+  emergencyContactName: zod.string().nullish(),
+  emergencyContactPhone: zod.string().nullish(),
+  emergencyContactRelation: zod.string().nullish(),
+  equipment: zod.string().nullish(),
+  specialties: zod.string().nullish(),
+  portfolio: zod.string().nullish(),
+  availability: zod.string().nullish(),
+  paymentMethod: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  emailNotifyReviews: zod.boolean(),
+  emailNotifyComments: zod.boolean(),
+  emailNotifyDormantTokens: zod.boolean(),
+  dormantTokensSnoozeUntil: zod.coerce.date().nullish(),
   bookkeeperEmail: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
@@ -251,6 +313,8 @@ export const GetUserResponse = zod.object({
   notes: zod.string().nullish(),
   emailNotifyReviews: zod.boolean(),
   emailNotifyComments: zod.boolean(),
+  emailNotifyDormantTokens: zod.boolean(),
+  dormantTokensSnoozeUntil: zod.coerce.date().nullish(),
   bookkeeperEmail: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
@@ -322,6 +386,8 @@ export const UpdateUserResponse = zod.object({
   notes: zod.string().nullish(),
   emailNotifyReviews: zod.boolean(),
   emailNotifyComments: zod.boolean(),
+  emailNotifyDormantTokens: zod.boolean(),
+  dormantTokensSnoozeUntil: zod.coerce.date().nullish(),
   bookkeeperEmail: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),

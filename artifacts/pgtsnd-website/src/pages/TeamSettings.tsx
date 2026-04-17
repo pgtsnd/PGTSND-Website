@@ -7,7 +7,10 @@ import { useToast } from "../components/Toast";
 import { useUpdateProfile } from "../hooks/useTeamData";
 import { api, type DistributionList } from "../lib/api";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUpdateMyNotificationPreferences } from "@workspace/api-client-react";
+import {
+  useUpdateMyNotificationPreferences,
+  useUpdateMyDormantTokensEmail,
+} from "@workspace/api-client-react";
 import {
   useIntegrations,
   useUpdateIntegration,
@@ -1198,19 +1201,14 @@ function DistributionListsPanel({ t, f }: { t: any; f: any }) {
 
 function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) {
   const { currentUser } = useTeamAuth();
-  const user = currentUser as
-    | (typeof currentUser & {
-        emailNotifyDormantTokens?: boolean;
-        dormantTokensSnoozeUntil?: string | null;
-      })
-    | null;
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const updateDormantTokensEmail = useUpdateMyDormantTokensEmail();
   const showToast = (msg: string, type?: "success" | "error" | "info") =>
     toast(msg, type);
 
-  const enabled = user?.emailNotifyDormantTokens !== false;
-  const snoozeUntilRaw = user?.dormantTokensSnoozeUntil ?? null;
+  const enabled = currentUser?.emailNotifyDormantTokens !== false;
+  const snoozeUntilRaw = currentUser?.dormantTokensSnoozeUntil ?? null;
   const snoozeActive =
     snoozeUntilRaw !== null && new Date(snoozeUntilRaw).getTime() > Date.now();
   const snoozeDateValue = snoozeUntilRaw
@@ -1218,7 +1216,7 @@ function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) 
     : "";
 
   const [pendingDate, setPendingDate] = useState(snoozeDateValue);
-  const [busy, setBusy] = useState(false);
+  const busy = updateDormantTokensEmail.isPending;
 
   useEffect(() => {
     setPendingDate(snoozeDateValue);
@@ -1228,16 +1226,14 @@ function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) 
     emailNotifyDormantTokens?: boolean;
     snoozeUntil?: string | null;
   }) {
-    setBusy(true);
     try {
-      await api.updateDormantTokensEmailPrefs(data);
+      await updateDormantTokensEmail.mutateAsync({ data });
       await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       await queryClient.invalidateQueries({ queryKey: ["users", "me"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
       showToast("Saved", "success");
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Failed to update", "error");
-    } finally {
-      setBusy(false);
     }
   }
 

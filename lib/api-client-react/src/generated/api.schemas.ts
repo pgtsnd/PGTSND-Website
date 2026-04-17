@@ -79,6 +79,8 @@ export interface User {
   notes?: string | null;
   emailNotifyReviews: boolean;
   emailNotifyComments: boolean;
+  emailNotifyDormantTokens: boolean;
+  dormantTokensSnoozeUntil?: string | null;
   bookkeeperEmail?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -127,6 +129,15 @@ export interface CreateUser {
 export interface UpdateNotificationPreferences {
   emailNotifyReviews?: boolean;
   emailNotifyComments?: boolean;
+}
+
+/**
+ * Patch the dormant-tokens email preference and/or its snooze date. At least one of the properties must be provided.
+ */
+export interface UpdateDormantTokensEmail {
+  emailNotifyDormantTokens?: boolean;
+  /** ISO date-time string in the future to snooze the email until, or null to clear an existing snooze. */
+  snoozeUntil?: string | null;
 }
 
 export type AccessTokenStatus =

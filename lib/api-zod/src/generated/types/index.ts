@@ -69,6 +69,7 @@ export * from "./updateContractStatus";
 export * from "./updateDeliverable";
 export * from "./updateDeliverableStatus";
 export * from "./updateDeliverableType";
+export * from "./updateDormantTokensEmail";
 export * from "./updateInvoice";
 export * from "./updateInvoiceStatus";
 export * from "./updateNotificationPreferences";
