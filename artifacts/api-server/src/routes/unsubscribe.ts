@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { verifyUnsubscribeToken } from "../lib/unsubscribe-token";
+import {
+  verifyUnsubscribeToken,
+  UNSUBSCRIBE_TOKEN_TTL_DAYS,
+} from "../lib/unsubscribe-token";
 import { logger } from "../lib/logger";
 
 const router = Router();
@@ -13,6 +16,15 @@ function escapeHtml(value: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function formatIssuedAt(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 function renderPage(title: string, body: string): string {
@@ -33,6 +45,9 @@ function renderPage(title: string, body: string): string {
 </html>`;
 }
 
+const INVALID_LINK_BODY = `<p>This unsubscribe link couldn't be verified. For security, unsubscribe links expire about ${UNSUBSCRIBE_TOKEN_TTL_DAYS} days after they're issued, so an older email may no longer work.</p>
+           <p style="margin-top:16px;">Sign in and update your email preferences from <a href="/team/settings?section=notifications" style="color:#fff;text-decoration:underline;">Notifications settings</a> instead.</p>`;
+
 router.get("/unsubscribe/dormant-tokens", async (req, res) => {
   const token = typeof req.query.token === "string" ? req.query.token : "";
   const verified = verifyUnsubscribeToken("dormant-tokens", token);
@@ -40,12 +55,7 @@ router.get("/unsubscribe/dormant-tokens", async (req, res) => {
     res
       .status(400)
       .set("Content-Type", "text/html; charset=utf-8")
-      .send(
-        renderPage(
-          "Invalid or expired link",
-          "<p>This unsubscribe link couldn't be verified. Sign in and update your email preferences from the Notifications settings page.</p>",
-        ),
-      );
+      .send(renderPage("Invalid or expired link", INVALID_LINK_BODY));
     return;
   }
 
@@ -78,6 +88,10 @@ router.get("/unsubscribe/dormant-tokens", async (req, res) => {
       "User unsubscribed from dormant tokens summary via one-click link",
     );
 
+    const issuedLine = verified.issuedAt
+      ? `<p style="margin-top:16px;font-size:13px;color:#737373;">This unsubscribe link was issued on ${escapeHtml(formatIssuedAt(verified.issuedAt))}.</p>`
+      : "";
+
     res
       .status(200)
       .set("Content-Type", "text/html; charset=utf-8")
@@ -85,7 +99,7 @@ router.get("/unsubscribe/dormant-tokens", async (req, res) => {
         renderPage(
           "You're unsubscribed",
           `<p>You will no longer receive the weekly dormant access-token summary at <strong style="color:#fff;">${escapeHtml(user.email)}</strong>.</p>
-           <p style="margin-top:16px;">You can re-enable this email any time from <a href="/team/settings?section=notifications" style="color:#fff;text-decoration:underline;">Notifications settings</a>. Other administrative emails are unaffected.</p>`,
+           <p style="margin-top:16px;">You can re-enable this email any time from <a href="/team/settings?section=notifications" style="color:#fff;text-decoration:underline;">Notifications settings</a>. Other administrative emails are unaffected.</p>${issuedLine}`,
         ),
       );
   } catch (err) {

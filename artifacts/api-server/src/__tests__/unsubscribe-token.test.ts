@@ -6,10 +6,29 @@ import {
 } from "../lib/unsubscribe-token";
 
 describe("unsubscribe token", () => {
-  it("round-trips a valid token", () => {
-    const token = createUnsubscribeToken("dormant-tokens", "user-123");
+  it("round-trips a valid token and exposes the issued-at timestamp", () => {
+    const issuedAt = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const token = createUnsubscribeToken("dormant-tokens", "user-123", issuedAt);
     const verified = verifyUnsubscribeToken("dormant-tokens", token);
-    expect(verified).toEqual({ userId: "user-123" });
+    expect(verified).toEqual({ userId: "user-123", issuedAt });
+  });
+
+  it("rejects a token that is older than the 90-day expiry window", () => {
+    const issuedAt = new Date("2026-01-01T00:00:00Z");
+    const token = createUnsubscribeToken("dormant-tokens", "user-123", issuedAt);
+    // 91 days later
+    const now = new Date(issuedAt.getTime() + 91 * 24 * 60 * 60 * 1000);
+    expect(verifyUnsubscribeToken("dormant-tokens", token, now)).toBeNull();
+  });
+
+  it("accepts a token that is just inside the 90-day expiry window", () => {
+    const issuedAt = new Date("2026-01-01T00:00:00Z");
+    const token = createUnsubscribeToken("dormant-tokens", "user-123", issuedAt);
+    const now = new Date(issuedAt.getTime() + 89 * 24 * 60 * 60 * 1000);
+    expect(verifyUnsubscribeToken("dormant-tokens", token, now)).toEqual({
+      userId: "user-123",
+      issuedAt,
+    });
   });
 
   it("rejects a tampered payload", () => {
@@ -35,6 +54,7 @@ describe("unsubscribe token", () => {
     });
     expect(verifyUnsubscribeToken("dormant-tokens", token)).toEqual({
       userId: "user-123",
+      issuedAt: new Date(issuedAt),
     });
   });
 
@@ -46,7 +66,7 @@ describe("unsubscribe token", () => {
     });
     expect(
       verifyUnsubscribeToken("dormant-tokens", token, { now, ttlMs }),
-    ).toEqual({ userId: "user-123" });
+    ).toEqual({ userId: "user-123", issuedAt: new Date(now - ttlMs) });
     // One ms older must be rejected.
     const expired = createUnsubscribeToken("dormant-tokens", "user-123", {
       issuedAt: now - ttlMs - 1,
@@ -68,7 +88,8 @@ describe("unsubscribe token", () => {
 
   it("rejects a legacy token that has no issued-at component", () => {
     // Manually construct a payload in the old `kind:userId` format and sign
-    // it the same way the lib used to. Such a token must no longer verify.
+    // it the same way the lib used to. Such a token must no longer verify
+    // because it would otherwise bypass the expiry window entirely.
     const payload = "dormant-tokens:user-123";
     const b64 = Buffer.from(payload, "utf8")
       .toString("base64")

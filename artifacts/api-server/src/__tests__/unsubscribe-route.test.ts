@@ -130,9 +130,26 @@ describe("one-click unsubscribe route (integration)", () => {
 
     expect(res.headers["content-type"]).toMatch(/text\/html/);
     expect(res.text).toContain("Invalid or expired link");
+    // The page should explain that links expire after a set window
+    // and point users to the Notifications settings page.
+    expect(res.text).toContain("90 days");
+    expect(res.text).toContain("/team/settings?section=notifications");
 
     const user = findUser("user-abc")!;
     expect(user.emailNotifyDormantTokens).toBe(true);
+  });
+
+  it("GET with a valid token shows the date the unsubscribe link was issued", async () => {
+    const issuedAt = new Date("2026-02-10T08:00:00Z");
+    const token = createUnsubscribeToken("dormant-tokens", "user-abc", issuedAt);
+
+    const res = await request(appModule)
+      .get(`/api/unsubscribe/dormant-tokens?token=${encodeURIComponent(token)}`)
+      .expect(200);
+
+    expect(res.text).toContain("You're unsubscribed");
+    expect(res.text).toContain("issued on");
+    expect(res.text).toContain("February 10, 2026");
   });
 
   it("GET with no token at all returns 400", async () => {
