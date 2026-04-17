@@ -416,6 +416,67 @@ export function renderClientWelcomeEmail(
   });
 }
 
+export interface DormantTokenRowInput {
+  userName: string | null;
+  userEmail: string;
+  label: string;
+  lastActivityLabel: string;
+}
+
+export interface DormantTokensSummaryTemplateInput {
+  recipientName: string | null;
+  thresholdDays: number;
+  tokens: DormantTokenRowInput[];
+  link: string;
+}
+
+export function renderDormantTokensSummaryEmail(
+  input: DormantTokensSummaryTemplateInput,
+): string {
+  const name = input.recipientName?.trim() || "there";
+  const count = input.tokens.length;
+  const noun = count === 1 ? "token" : "tokens";
+
+  const rowsHtml = input.tokens
+    .map((row) => {
+      const who = row.userName?.trim()
+        ? `${escapeHtml(row.userName)} <span style="color:${BRAND.subtle};font-weight:400;">&lt;${escapeHtml(row.userEmail)}&gt;</span>`
+        : escapeHtml(row.userEmail);
+      return `
+        <tr>
+          <td style="padding:12px 14px;border-top:1px solid ${BRAND.border};font-family:${FONT_STACK};font-size:13px;color:${BRAND.text};vertical-align:top;">
+            <div style="font-weight:600;">${who}</div>
+            <div style="margin-top:4px;color:${BRAND.muted};font-size:12px;">${escapeHtml(row.label)}</div>
+          </td>
+          <td style="padding:12px 14px;border-top:1px solid ${BRAND.border};font-family:${FONT_STACK};font-size:12px;color:${BRAND.muted};white-space:nowrap;text-align:right;vertical-align:top;">
+            ${escapeHtml(row.lastActivityLabel)}
+          </td>
+        </tr>`;
+    })
+    .join("");
+
+  const bodyHtml = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0;border:1px solid ${BRAND.border};border-radius:6px;border-collapse:separate;">
+      <tr>
+        <td style="padding:12px 14px;font-family:${FONT_STACK};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${BRAND.subtle};">User &amp; Label</td>
+        <td style="padding:12px 14px;font-family:${FONT_STACK};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${BRAND.subtle};text-align:right;">Last activity</td>
+      </tr>
+      ${rowsHtml}
+    </table>
+    <p style="margin:18px 0 0 0;font-family:${FONT_STACK};font-weight:400;font-size:12px;line-height:1.6;color:${BRAND.subtle};">
+      Tokens listed above haven't been used in over ${input.thresholdDays} days. Consider revoking any you no longer need.
+    </p>`;
+
+  return layout({
+    previewText: `${count} dormant access ${noun} unused for ${input.thresholdDays}+ days.`,
+    heading: `${count} dormant access ${noun} need a look`,
+    intro: `Hi ${name}, the following active access ${noun} ${count === 1 ? "hasn't" : "haven't"} been used in over ${input.thresholdDays} days. Stale credentials are a security risk — review and revoke any that aren't needed.`,
+    bodyHtml,
+    ctaLabel: "Review Access Tokens",
+    ctaUrl: input.link,
+  });
+}
+
 export interface PublicCommentTemplateInput {
   authorName: string;
   projectName: string;

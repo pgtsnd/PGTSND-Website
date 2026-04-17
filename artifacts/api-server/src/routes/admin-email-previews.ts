@@ -5,6 +5,7 @@ import {
   renderNewCommentEmail,
   renderPublicCommentEmail,
   renderCommentResolvedEmail,
+  renderDormantTokensSummaryEmail,
 } from "../services/email-templates";
 import { sendEmail } from "../services/email";
 import { logger } from "../lib/logger";
@@ -18,7 +19,8 @@ type PreviewId =
   | "public-comment"
   | "public-comment-reply"
   | "comment-resolved"
-  | "comment-resolved-with-note";
+  | "comment-resolved-with-note"
+  | "dormant-tokens-summary";
 
 type FieldType = "text" | "textarea" | "boolean";
 
@@ -352,6 +354,54 @@ const PREVIEWS: PreviewDef[] = [
         ),
         link: str(v, "link", COMMON.link),
       }),
+  },
+  {
+    id: "dormant-tokens-summary",
+    label: "Dormant Tokens Weekly Summary",
+    description:
+      "Sent weekly to owners listing active access tokens that have been unused for 90+ days.",
+    fields: [
+      { key: "recipientName", label: "Recipient name", type: "text", default: "Alex Morgan" },
+      { key: "thresholdDays", label: "Dormant threshold (days)", type: "text", default: "90" },
+      { key: "link", label: "Access page link", type: "text", default: "https://pgtsnd.example.com/team/access" },
+    ],
+    subject: "Weekly access-token review: 3 dormant tokens",
+    text:
+      `3 active access tokens have not been used in over 90 days:\n\n` +
+      `- Sam Rivera <sam@example.com> — "Editor laptop" — 2025-09-12 (217d ago)\n` +
+      `- Jamie Chen <jamie@example.com> — "Old CI runner" — Never used · created 2025-08-04 (256d ago)\n` +
+      `- Riley Park <riley@example.com> — "Backup script" — 2025-10-02 (197d ago)\n\n` +
+      `Review and revoke at: https://pgtsnd.example.com/team/access\n\n— PGTSND Productions`,
+    render: (v) => {
+      const thresholdRaw = str(v, "thresholdDays", "90");
+      const threshold = Number.parseInt(thresholdRaw, 10);
+      return renderDormantTokensSummaryEmail({
+        recipientName: str(v, "recipientName", "Alex Morgan"),
+        thresholdDays:
+          Number.isFinite(threshold) && threshold > 0 ? threshold : 90,
+        tokens: [
+          {
+            userName: "Sam Rivera",
+            userEmail: "sam@example.com",
+            label: "Editor laptop",
+            lastActivityLabel: "2025-09-12 (217d ago)",
+          },
+          {
+            userName: "Jamie Chen",
+            userEmail: "jamie@example.com",
+            label: "Old CI runner",
+            lastActivityLabel: "Never used · created 2025-08-04 (256d ago)",
+          },
+          {
+            userName: "Riley Park",
+            userEmail: "riley@example.com",
+            label: "Backup script",
+            lastActivityLabel: "2025-10-02 (197d ago)",
+          },
+        ],
+        link: str(v, "link", "https://pgtsnd.example.com/team/access"),
+      });
+    },
   },
 ];
 

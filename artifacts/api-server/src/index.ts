@@ -3,6 +3,7 @@ import { logger } from "./lib/logger";
 import { startReminderJob } from "./jobs/review-reminders";
 import { migratePlaintextIntegrationConfigs } from "./jobs/encrypt-integration-configs";
 import { startScheduledExportJob } from "./jobs/scheduled-invoice-exports";
+import { startDormantTokenSummaryJob } from "./jobs/dormant-token-summary";
 
 const rawPort = process.env["PORT"];
 
@@ -27,5 +28,6 @@ app.listen(port, (err) => {
   logger.info({ port }, "Server listening");
   startReminderJob();
   startScheduledExportJob();
+  startDormantTokenSummaryJob();
   void migratePlaintextIntegrationConfigs();
 });
