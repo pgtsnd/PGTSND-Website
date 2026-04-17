@@ -6,6 +6,8 @@ import {
   renderPublicCommentEmail,
   renderCommentResolvedEmail,
 } from "../services/email-templates";
+import { sendEmail } from "../services/email";
+import { logger } from "../lib/logger";
 
 const router = Router();
 
@@ -34,10 +36,14 @@ interface PreviewDef {
   label: string;
   description: string;
   fields: FieldDef[];
+  subject: string;
+  text: string;
   render: (values: Record<string, unknown>) => string;
 }
 
 const SAMPLE_LINK = "https://pgtsnd.example.com/client-hub/review?d=sample";
+const SAMPLE_PROJECT = "Bering Sea Crabbers — Season 3 Sizzle";
+const SAMPLE_DELIVERABLE = "Hero Cut v2";
 
 function str(
   values: Record<string, unknown>,
@@ -72,8 +78,8 @@ function bool(
 }
 
 const COMMON = {
-  projectName: "Bering Sea Crabbers — Season 3 Sizzle",
-  deliverableTitle: "Hero Cut v2",
+  projectName: SAMPLE_PROJECT,
+  deliverableTitle: SAMPLE_DELIVERABLE,
   link: SAMPLE_LINK,
 };
 
@@ -89,6 +95,10 @@ const PREVIEWS: PreviewDef[] = [
       { key: "deliverableTitle", label: "Deliverable title", type: "text", default: COMMON.deliverableTitle },
       { key: "link", label: "Review link", type: "text", default: COMMON.link },
     ],
+    subject: `New cut ready for review: ${SAMPLE_DELIVERABLE}`,
+    text:
+      `Hi Alex,\n\nA new cut for "${SAMPLE_PROJECT}" is ready for your review.\n\n` +
+      `Title: ${SAMPLE_DELIVERABLE}\nOpen the review page: ${SAMPLE_LINK}\n\n— PGTSND Productions`,
     render: (v) =>
       renderReviewReadyEmail({
         recipientName: str(v, "recipientName", "Alex Morgan"),
@@ -116,6 +126,11 @@ const PREVIEWS: PreviewDef[] = [
       { key: "isReply", label: "Render as reply", type: "boolean", default: false },
       { key: "link", label: "Conversation link", type: "text", default: COMMON.link },
     ],
+    subject: `New comment on "${SAMPLE_DELIVERABLE}"`,
+    text:
+      `Jamie Chen left a comment at 00:12 on "${SAMPLE_DELIVERABLE}" (${SAMPLE_PROJECT}):\n\n` +
+      `"Love the opening montage! Can we trim the boat shot by about a second?"\n\n` +
+      `View the conversation: ${SAMPLE_LINK}\n\n— PGTSND Productions`,
     render: (v) =>
       renderNewCommentEmail({
         actorName: str(v, "actorName", "Jamie Chen"),
@@ -150,6 +165,11 @@ const PREVIEWS: PreviewDef[] = [
       { key: "isReply", label: "Render as reply", type: "boolean", default: true },
       { key: "link", label: "Conversation link", type: "text", default: COMMON.link },
     ],
+    subject: `New reply on "${SAMPLE_DELIVERABLE}"`,
+    text:
+      `Jamie Chen left a reply on "${SAMPLE_DELIVERABLE}" (${SAMPLE_PROJECT}):\n\n` +
+      `"Agreed — let's tighten that to ~0.6s and re-export."\n\n` +
+      `View the conversation: ${SAMPLE_LINK}\n\n— PGTSND Productions`,
     render: (v) =>
       renderNewCommentEmail({
         actorName: str(v, "actorName", "Jamie Chen"),
@@ -185,6 +205,11 @@ const PREVIEWS: PreviewDef[] = [
       { key: "isReply", label: "Render as reply", type: "boolean", default: false },
       { key: "link", label: "Review link", type: "text", default: COMMON.link },
     ],
+    subject: `Public comment on "${SAMPLE_DELIVERABLE}"`,
+    text:
+      `Sam Rivera (via shared review link) left a comment at 01:43 on "${SAMPLE_DELIVERABLE}" (${SAMPLE_PROJECT}):\n\n` +
+      `"Color in the wheelhouse looks a little cool to me — could we warm it up slightly?"\n\n` +
+      `View the review: ${SAMPLE_LINK}\n\n— PGTSND Productions`,
     render: (v) =>
       renderPublicCommentEmail({
         authorName: str(v, "authorName", "Sam Rivera"),
@@ -218,6 +243,11 @@ const PREVIEWS: PreviewDef[] = [
       { key: "isReply", label: "Render as reply", type: "boolean", default: true },
       { key: "link", label: "Review link", type: "text", default: COMMON.link },
     ],
+    subject: `Public reply on "${SAMPLE_DELIVERABLE}"`,
+    text:
+      `Sam Rivera (via shared review link) left a reply on "${SAMPLE_DELIVERABLE}" (${SAMPLE_PROJECT}):\n\n` +
+      `"Thanks — that warmer pass looks great."\n\n` +
+      `View the review: ${SAMPLE_LINK}\n\n— PGTSND Productions`,
     render: (v) =>
       renderPublicCommentEmail({
         authorName: str(v, "authorName", "Sam Rivera"),
@@ -252,6 +282,10 @@ const PREVIEWS: PreviewDef[] = [
       { key: "timestampLabel", label: "Timestamp", type: "text", default: "00:12" },
       { key: "link", label: "Comment link", type: "text", default: COMMON.link },
     ],
+    subject: `Resolved: your comment on "${SAMPLE_DELIVERABLE}"`,
+    text:
+      `Hi Alex,\n\nJamie Chen marked your comment at 00:12 on "${SAMPLE_DELIVERABLE}" (${SAMPLE_PROJECT}) as resolved.\n\n` +
+      `View the resolved thread: ${SAMPLE_LINK}\n\n— PGTSND Productions`,
     render: (v) =>
       renderCommentResolvedEmail({
         recipientName: str(v, "recipientName", "Alex Morgan"),
@@ -294,6 +328,11 @@ const PREVIEWS: PreviewDef[] = [
       },
       { key: "link", label: "Comment link", type: "text", default: COMMON.link },
     ],
+    subject: `Resolved: your comment on "${SAMPLE_DELIVERABLE}"`,
+    text:
+      `Hi Alex,\n\nJamie Chen marked your comment at 00:12 on "${SAMPLE_DELIVERABLE}" (${SAMPLE_PROJECT}) as resolved.\n\n` +
+      `Resolution note:\n"Trimmed to 0.6s and re-exported. New cut uploaded as v3 — ready for another look."\n\n` +
+      `View the resolved thread: ${SAMPLE_LINK}\n\n— PGTSND Productions`,
     render: (v) =>
       renderCommentResolvedEmail({
         recipientName: str(v, "recipientName", "Alex Morgan"),
@@ -383,6 +422,75 @@ router.get(
       ...templateSummary(preview),
       html,
     });
+  },
+);
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+router.post(
+  "/admin/email-previews/:id/send",
+  requireRole("owner", "partner"),
+  async (req, res) => {
+    const preview = PREVIEWS.find((p) => p.id === req.params.id);
+    if (!preview) {
+      res.status(404).json({ error: "Unknown email template" });
+      return;
+    }
+
+    const recipient =
+      typeof req.body?.recipient === "string" ? req.body.recipient.trim() : "";
+    if (!recipient || !EMAIL_RE.test(recipient)) {
+      res.status(400).json({ error: "A valid recipient email is required" });
+      return;
+    }
+
+    if (!process.env.RESEND_API_KEY) {
+      res.status(503).json({
+        error:
+          "Email service is not configured. Set RESEND_API_KEY to send test emails.",
+      });
+      return;
+    }
+
+    const values =
+      typeof req.body?.values === "object" && req.body.values !== null
+        ? (req.body.values as Record<string, unknown>)
+        : {};
+
+    try {
+      const result = await sendEmail({
+        to: recipient,
+        subject: `[TEST] ${preview.subject}`,
+        text: preview.text,
+        html: preview.render(values),
+      });
+
+      if (!result.ok) {
+        res.status(502).json({
+          error: `Email provider rejected the send: ${result.error}`,
+        });
+        return;
+      }
+
+      if ("skipped" in result && result.skipped) {
+        // Defensive — RESEND_API_KEY presence was already checked above, but
+        // if email.ts ever skips for another reason, surface it instead of
+        // silently reporting success.
+        res.status(503).json({
+          error: "Email service did not dispatch the message.",
+        });
+        return;
+      }
+
+      logger.info(
+        { templateId: preview.id, to: recipient },
+        "Test email dispatched from preview screen",
+      );
+      res.json({ ok: true, recipient });
+    } catch (err) {
+      logger.error({ err, templateId: preview.id }, "Test email send failed");
+      res.status(500).json({ error: "Failed to send test email" });
+    }
   },
 );
 

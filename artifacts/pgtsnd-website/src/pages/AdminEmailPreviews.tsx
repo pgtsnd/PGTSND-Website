@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import TeamLayout from "../components/TeamLayout";
 import { useTheme } from "../components/ThemeContext";
 import { useToast } from "../components/Toast";
+import { csrfHeaders } from "../lib/csrf";
 
 type FieldType = "text" | "textarea" | "boolean";
 
@@ -65,6 +66,8 @@ export default function AdminEmailPreviews() {
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [view, setView] = useState<"rendered" | "html">("rendered");
+  const [testRecipient, setTestRecipient] = useState("");
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -170,6 +173,41 @@ export default function AdminEmailPreviews() {
       toast("HTML copied to clipboard", "success");
     } catch {
       toast("Failed to copy HTML", "error");
+    }
+  };
+
+  const handleSendTest = async () => {
+    if (!activeId) return;
+    const recipient = testRecipient.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) {
+      toast("Enter a valid email address", "error");
+      return;
+    }
+    setSending(true);
+    try {
+      const res = await fetch(
+        `/api/admin/email-previews/${activeId}/send`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json", ...csrfHeaders() },
+          body: JSON.stringify({ recipient }),
+        },
+      );
+      if (!res.ok) {
+        const data = await res
+          .json()
+          .catch(() => ({ error: `Request failed (${res.status})` }));
+        throw new Error(data?.error ?? `Request failed (${res.status})`);
+      }
+      toast(`Test email sent to ${recipient}`, "success");
+    } catch (err) {
+      toast(
+        err instanceof Error ? err.message : "Failed to send test email",
+        "error",
+      );
+    } finally {
+      setSending(false);
     }
   };
 
@@ -492,6 +530,56 @@ export default function AdminEmailPreviews() {
               >
                 Copy HTML
               </button>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "stretch",
+                  border: `1px solid ${t.border}`,
+                  borderRadius: "6px",
+                  overflow: "hidden",
+                }}
+              >
+                <input
+                  type="email"
+                  value={testRecipient}
+                  onChange={(e) => setTestRecipient(e.target.value)}
+                  placeholder="you@example.com"
+                  disabled={sending || !activeId}
+                  style={f({
+                    padding: "8px 12px",
+                    background: "transparent",
+                    color: t.text,
+                    border: "none",
+                    outline: "none",
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    minWidth: "200px",
+                  })}
+                />
+                <button
+                  onClick={handleSendTest}
+                  disabled={sending || !activeId || !testRecipient.trim()}
+                  style={f({
+                    padding: "8px 14px",
+                    background: t.accent,
+                    color: t.accentText,
+                    border: "none",
+                    borderLeft: `1px solid ${t.border}`,
+                    cursor:
+                      sending || !activeId || !testRecipient.trim()
+                        ? "not-allowed"
+                        : "pointer",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    opacity:
+                      sending || !activeId || !testRecipient.trim() ? 0.5 : 1,
+                  })}
+                >
+                  {sending ? "Sending…" : "Send Test"}
+                </button>
+              </div>
               <button
                 onClick={handleOpenRaw}
                 disabled={!activeId}

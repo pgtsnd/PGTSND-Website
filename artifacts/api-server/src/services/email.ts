@@ -20,7 +20,14 @@ function getFromAddress(): string {
   return process.env.EMAIL_FROM || "PGTSND <notifications@pgtsndproductions.com>";
 }
 
-export async function sendEmail(params: SendEmailParams): Promise<void> {
+export type SendEmailResult =
+  | { ok: true; skipped?: false }
+  | { ok: true; skipped: true; reason: "no-api-key" }
+  | { ok: false; status?: number; error: string };
+
+export async function sendEmail(
+  params: SendEmailParams,
+): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
 
   if (!apiKey) {
@@ -28,7 +35,7 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
       { to: params.to, subject: params.subject },
       "Email send skipped (RESEND_API_KEY not configured)",
     );
-    return;
+    return { ok: true, skipped: true, reason: "no-api-key" };
   }
 
   try {
@@ -62,12 +69,21 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
         { status: res.status, body, to: params.to, subject: params.subject },
         "Email send failed",
       );
-      return;
+      return {
+        ok: false,
+        status: res.status,
+        error: body || `Email provider returned ${res.status}`,
+      };
     }
 
     logger.info({ to: params.to, subject: params.subject }, "Email sent");
+    return { ok: true };
   } catch (err) {
     logger.error({ err, to: params.to }, "Email send error");
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Unknown email send error",
+    };
   }
 }
 
