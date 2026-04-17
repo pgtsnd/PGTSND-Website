@@ -9,10 +9,21 @@ interface Props {
 interface Row {
   id: string;
   name: string;
+  status: string | null;
 }
+
+const STATUS_LABELS: Record<string, string> = {
+  archived: "Archived",
+  delivered: "Delivered",
+  lead: "Lead",
+  active: "Active",
+  in_progress: "In progress",
+  review: "Review",
+};
 
 export default function MutedProjectsList({ variant = "team" }: Props) {
   const { t } = useTheme();
+  void variant;
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [unmuting, setUnmuting] = useState<Record<string, boolean>>({});
@@ -20,23 +31,18 @@ export default function MutedProjectsList({ variant = "team" }: Props) {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const [mutes, projects] = await Promise.all([
-        api.getProjectMutes(),
-        variant === "client"
-          ? api.getClientDashboard().then((d) => d.projects)
-          : api.getProjects(),
-      ]);
-      const byId = new Map(projects.map((p) => [p.id, p.name]));
+      const mutes = await api.getProjectMutes();
       setRows(
-        mutes.projectIds.map((id) => ({
-          id,
-          name: byId.get(id) ?? "Unknown project",
+        mutes.mutes.map((m) => ({
+          id: m.id,
+          name: m.name ?? "Unknown project",
+          status: m.status,
         })),
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     }
-  }, [variant]);
+  }, []);
 
   useEffect(() => {
     load();
@@ -150,6 +156,12 @@ export default function MutedProjectsList({ variant = "team" }: Props) {
         >
           {rows.map((row) => {
             const busy = !!unmuting[row.id];
+            const showStatus =
+              row.status &&
+              (row.status === "archived" || row.status === "delivered");
+            const statusLabel = row.status
+              ? STATUS_LABELS[row.status] ?? row.status
+              : null;
             return (
               <div
                 key={row.id}
@@ -165,13 +177,40 @@ export default function MutedProjectsList({ variant = "team" }: Props) {
                 }}
               >
                 <span
-                  style={f({
-                    fontWeight: 500,
-                    fontSize: "13px",
-                    color: t.text,
-                  })}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    minWidth: 0,
+                  }}
                 >
-                  {row.name}
+                  <span
+                    style={f({
+                      fontWeight: 500,
+                      fontSize: "13px",
+                      color: t.text,
+                    })}
+                  >
+                    {row.name}
+                  </span>
+                  {showStatus && statusLabel && (
+                    <span
+                      data-testid={`muted-project-status-${row.id}`}
+                      style={f({
+                        fontWeight: 600,
+                        fontSize: "10px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                        color: t.textMuted,
+                        background: "transparent",
+                        border: `1px solid ${t.border}`,
+                        borderRadius: "4px",
+                        padding: "2px 6px",
+                      })}
+                    >
+                      {statusLabel}
+                    </span>
+                  )}
                 </span>
                 <button
                   type="button"

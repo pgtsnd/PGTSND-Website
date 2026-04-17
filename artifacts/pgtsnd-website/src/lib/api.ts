@@ -543,7 +543,10 @@ export const api = {
     apiFetch<{ message: string }>(`/task-items/${id}`, { method: "DELETE" }),
 
   getProjectMutes: () =>
-    apiFetch<{ projectIds: string[] }>("/users/me/project-mutes"),
+    apiFetch<{
+      projectIds: string[];
+      mutes: { id: string; name: string | null; status: string | null }[];
+    }>("/users/me/project-mutes"),
 
   muteProject: (projectId: string) =>
     apiFetch<{ projectId: string; muted: boolean }>(
