@@ -5,6 +5,7 @@ import crypto from "crypto";
 interface FakeUserRow {
   id: string;
   email: string;
+  name: string | null;
   emailNotifyDormantTokens: boolean;
   dormantTokensSnoozeUntil: Date | null;
   dormantTokensUnsubscribedAt: Date | null;
@@ -16,11 +17,19 @@ function resetUsers() {
   userRows.length = 0;
 }
 
+const sendEmailMock = vi.fn(async () => ({ ok: true as const }));
+
+vi.mock("../services/email", () => ({
+  sendEmail: (...args: unknown[]) => sendEmailMock(...(args as [])),
+  getAppBaseUrl: () => "https://app.example.com",
+}));
+
 vi.mock("@workspace/db", () => {
   const usersTable = {
     __name: "users",
     id: "id",
     email: "email",
+    name: "name",
     emailNotifyDormantTokens: "emailNotifyDormantTokens",
     dormantTokensSnoozeUntil: "dormantTokensSnoozeUntil",
   };
@@ -55,9 +64,41 @@ vi.mock("@workspace/db", () => {
     });
   }
 
+  function makeSelect() {
+    return (_cols?: Record<string, unknown>) => ({
+      from: (_table: { __name: string }) => ({
+        where: (cond: { __emailMatch?: string; __targetId?: string }) => {
+          const matchRows = (): FakeUserRow[] => {
+            if (cond.__emailMatch !== undefined) {
+              const target = cond.__emailMatch;
+              return userRows.filter(
+                (u) => u.email.toLowerCase() === target,
+              );
+            }
+            if (cond.__targetId !== undefined) {
+              return userRows.filter((u) => u.id === cond.__targetId);
+            }
+            return [];
+          };
+          const project = (rows: FakeUserRow[]) =>
+            rows.map((r) => ({ id: r.id, email: r.email, name: r.name }));
+          const limited = {
+            limit: async (_n: number) => project(matchRows()).slice(0, _n),
+            then: (
+              resolve: (v: unknown) => unknown,
+              reject?: (e: unknown) => unknown,
+            ) =>
+              Promise.resolve(project(matchRows())).then(resolve, reject),
+          };
+          return limited;
+        },
+      }),
+    });
+  }
+
   return {
     db: {
-      select: vi.fn(),
+      select: makeSelect(),
       insert: vi.fn(),
       update: makeUpdate(),
     },
@@ -79,6 +120,11 @@ vi.mock("drizzle-orm", async () => {
   return {
     ...actual,
     eq: (_col: unknown, val: unknown) => ({ __targetId: val }),
+    sql: (_strings: TemplateStringsArray, ..._values: unknown[]) => {
+      // Our resend handler builds: sql`lower(${usersTable.email}) = ${email}`.
+      // The lowercased email is the last interpolated value.
+      return { __emailMatch: _values[_values.length - 1] };
+    },
   };
 });
 
@@ -93,9 +139,12 @@ function findUser(id: string): FakeUserRow | undefined {
 describe("one-click unsubscribe route (integration)", () => {
   beforeEach(() => {
     resetUsers();
+    sendEmailMock.mockClear();
+    sendEmailMock.mockImplementation(async () => ({ ok: true as const }));
     userRows.push({
       id: "user-abc",
       email: "owner@example.com",
+      name: "Olivia Owner",
       emailNotifyDormantTokens: true,
       dormantTokensSnoozeUntil: new Date("2030-01-01T00:00:00Z"),
       dormantTokensUnsubscribedAt: null,
@@ -267,5 +316,86 @@ describe("one-click unsubscribe route (integration)", () => {
 
     expect(res.body).toEqual({ ok: true });
     expect(findUser("user-abc")!.emailNotifyDormantTokens).toBe(false);
+  });
+
+  it("the expired-link page offers a form to request a fresh unsubscribe link", async () => {
+    const res = await request(appModule)
+      .get("/api/unsubscribe/dormant-tokens?token=not-a-real-token")
+      .expect(400);
+
+    expect(res.text).toContain("Invalid or expired link");
+    expect(res.text).toMatch(/<form[^>]+method="POST"/i);
+    expect(res.text).toContain('action="/api/unsubscribe/dormant-tokens/resend"');
+    expect(res.text).toContain('name="email"');
+    expect(res.text).toContain("Send me a new unsubscribe link");
+  });
+
+  it("POST resend with a known email sends a fresh unsubscribe link to the address on file", async () => {
+    const res = await request(appModule)
+      .post("/api/unsubscribe/dormant-tokens/resend")
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .send("email=Owner%40Example.com")
+      .expect(200);
+
+    expect(res.headers["content-type"]).toMatch(/text\/html/);
+    expect(res.text).toContain("Check your inbox");
+
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    const args = sendEmailMock.mock.calls[0][0] as {
+      to: string;
+      subject: string;
+      text: string;
+      html: string;
+    };
+    expect(args.to).toBe("owner@example.com");
+    expect(args.subject).toMatch(/unsubscribe link/i);
+    const linkMatch = args.text.match(
+      /https:\/\/app\.example\.com\/api\/unsubscribe\/dormant-tokens\?token=([^\s]+)/,
+    );
+    expect(linkMatch).not.toBeNull();
+    // The freshly-issued link must verify and apply the opt-out end-to-end.
+    const followUp = await request(appModule)
+      .get(
+        `/api/unsubscribe/dormant-tokens?token=${linkMatch![1]}`,
+      )
+      .expect(200);
+    expect(followUp.text).toContain("You're unsubscribed");
+    expect(findUser("user-abc")!.emailNotifyDormantTokens).toBe(false);
+  });
+
+  it("POST resend with an unknown email returns the same generic page and sends nothing", async () => {
+    const res = await request(appModule)
+      .post("/api/unsubscribe/dormant-tokens/resend")
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .send("email=stranger%40nowhere.test")
+      .expect(200);
+
+    expect(res.text).toContain("Check your inbox");
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("POST resend with no/blank/malformed email returns the generic page without sending", async () => {
+    for (const body of ["", "email=", "email=not-an-email"]) {
+      sendEmailMock.mockClear();
+      const res = await request(appModule)
+        .post("/api/unsubscribe/dormant-tokens/resend")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send(body)
+        .expect(200);
+      expect(res.text).toContain("Check your inbox");
+      expect(sendEmailMock).not.toHaveBeenCalled();
+    }
+  });
+
+  it("POST resend is exempt from CSRF (no header / cookie required)", async () => {
+    const res = await request(appModule)
+      .post("/api/unsubscribe/dormant-tokens/resend")
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .set("Cookie", `${CSRF_COOKIE_NAME}=dead-beef-not-the-real-token`)
+      .send("email=owner%40example.com")
+      .expect(200);
+
+    expect(res.text).toContain("Check your inbox");
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
   });
 });
