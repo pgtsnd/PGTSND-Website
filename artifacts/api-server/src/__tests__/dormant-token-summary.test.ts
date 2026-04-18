@@ -34,6 +34,16 @@ vi.mock("../services/email", () => ({
   getAppBaseUrl: () => "https://app.example.com",
 }));
 
+let configuredThresholdDays = 90;
+vi.mock("../services/studio-settings", () => ({
+  getDormantTokenThresholdDays: async () => configuredThresholdDays,
+  getOrCreateStudioSettings: async () => ({
+    id: "singleton",
+    dormantTokenThresholdDays: configuredThresholdDays,
+    updatedAt: new Date(),
+  }),
+}));
+
 vi.mock("@workspace/db", () => {
   const accessTokensTable = {
     __name: "access_tokens",
@@ -160,8 +170,9 @@ vi.mock("drizzle-orm", async () => {
 import {
   runDormantTokenSummary,
   findDormantAccessTokens,
-  DORMANT_THRESHOLD_DAYS,
 } from "../jobs/dormant-token-summary";
+
+const DORMANT_THRESHOLD_DAYS = 90;
 
 const NOW = new Date("2026-04-17T12:00:00Z");
 const DAY = 24 * 60 * 60 * 1000;

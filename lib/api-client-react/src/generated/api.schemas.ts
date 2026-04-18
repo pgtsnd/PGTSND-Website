@@ -127,6 +127,36 @@ export interface CreateUser {
   notes?: string;
 }
 
+export type StudioSettingsDormantTokenThresholdDays =
+  (typeof StudioSettingsDormantTokenThresholdDays)[keyof typeof StudioSettingsDormantTokenThresholdDays];
+
+export const StudioSettingsDormantTokenThresholdDays = {
+  NUMBER_30: 30,
+  NUMBER_60: 60,
+  NUMBER_90: 90,
+  NUMBER_180: 180,
+} as const;
+
+export interface StudioSettings {
+  id: string;
+  dormantTokenThresholdDays: StudioSettingsDormantTokenThresholdDays;
+  updatedAt: string;
+}
+
+export type UpdateStudioSettingsDormantTokenThresholdDays =
+  (typeof UpdateStudioSettingsDormantTokenThresholdDays)[keyof typeof UpdateStudioSettingsDormantTokenThresholdDays];
+
+export const UpdateStudioSettingsDormantTokenThresholdDays = {
+  NUMBER_30: 30,
+  NUMBER_60: 60,
+  NUMBER_90: 90,
+  NUMBER_180: 180,
+} as const;
+
+export interface UpdateStudioSettings {
+  dormantTokenThresholdDays?: UpdateStudioSettingsDormantTokenThresholdDays;
+}
+
 export interface UpdateNotificationPreferences {
   emailNotifyReviews?: boolean;
   emailNotifyComments?: boolean;

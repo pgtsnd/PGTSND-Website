@@ -21,6 +21,7 @@ import publicReviewRouter from "./public-review";
 import storageRouter from "./storage";
 import accessTokensRouter from "./access-tokens";
 import unsubscribeRouter from "./unsubscribe";
+import studioSettingsRouter from "./studio-settings";
 import { authMiddleware } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -58,5 +59,6 @@ router.use(projectMutesRouter);
 router.use(adminEmailPreviewsRouter);
 router.use(adminEmailSubscribersRouter);
 router.use(accessTokensRouter);
+router.use(studioSettingsRouter);
 
 export default router;

@@ -12,14 +12,13 @@ import {
   type DormantTokenRowInput,
 } from "../services/email-templates";
 import { createUnsubscribeToken } from "../lib/unsubscribe-token";
+import { getDormantTokenThresholdDays } from "../services/studio-settings";
 
-// Keep this in sync with DORMANT_THRESHOLD_DAYS in
-// artifacts/pgtsnd-website/src/pages/TeamAccess.tsx so the email and the
-// in-app badge agree on what counts as dormant.
-export const DORMANT_THRESHOLD_DAYS = 90;
-const DORMANT_THRESHOLD_MS = DORMANT_THRESHOLD_DAYS * 24 * 60 * 60 * 1000;
-
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+// The dormant threshold is owner-configurable from /team/settings and stored
+// in the studio_settings singleton row; both this email job and the in-app
+// /team/access badge read the same value so they stay in sync.
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WEEK_MS = 7 * DAY_MS;
 
 interface DormantTokenRow extends DormantTokenRowInput {
   tokenId: string;
@@ -32,7 +31,7 @@ function formatLastActivity(
   now: Date,
 ): string {
   const reference = lastUsedAt ?? createdAt;
-  const days = Math.floor((now.getTime() - reference.getTime()) / (24 * 60 * 60 * 1000));
+  const days = Math.floor((now.getTime() - reference.getTime()) / DAY_MS);
   const dateLabel = reference.toISOString().slice(0, 10);
   if (!lastUsedAt) {
     return `Never used · created ${dateLabel} (${days}d ago)`;
@@ -42,7 +41,10 @@ function formatLastActivity(
 
 export async function findDormantAccessTokens(
   now: Date = new Date(),
+  thresholdDays?: number,
 ): Promise<DormantTokenRow[]> {
+  const days = thresholdDays ?? (await getDormantTokenThresholdDays());
+  const thresholdMs = days * DAY_MS;
   const rows = await db
     .select({
       id: accessTokensTable.id,
@@ -56,7 +58,7 @@ export async function findDormantAccessTokens(
     .innerJoin(usersTable, eq(usersTable.id, accessTokensTable.userId))
     .where(eq(accessTokensTable.status, "active"));
 
-  const cutoff = now.getTime() - DORMANT_THRESHOLD_MS;
+  const cutoff = now.getTime() - thresholdMs;
   const dormant: DormantTokenRow[] = [];
   for (const r of rows) {
     const reference = r.lastUsedAt ?? r.createdAt;
@@ -139,7 +141,8 @@ export async function runDormantTokenSummary(
     return { ran: false, reason: "too-soon" };
   }
 
-  const dormant = await findDormantAccessTokens(now);
+  const thresholdDays = await getDormantTokenThresholdDays();
+  const dormant = await findDormantAccessTokens(now, thresholdDays);
   if (dormant.length === 0) {
     // Per spec: if there are no dormant tokens, no email is sent — and we
     // also don't record a run, so we'll re-check on the next tick.
@@ -165,7 +168,7 @@ export async function runDormantTokenSummary(
     const unsubscribeUrl = `${baseUrl}/api/unsubscribe/dormant-tokens?token=${encodeURIComponent(unsubscribeToken)}`;
 
     const text = [
-      `${dormant.length} active access token${dormant.length === 1 ? "" : "s"} ${dormant.length === 1 ? "has" : "have"} not been used in over ${DORMANT_THRESHOLD_DAYS} days:`,
+      `${dormant.length} active access token${dormant.length === 1 ? "" : "s"} ${dormant.length === 1 ? "has" : "have"} not been used in over ${thresholdDays} days:`,
       "",
       ...dormant.map(
         (t) =>
@@ -183,7 +186,7 @@ export async function runDormantTokenSummary(
     try {
       const html = renderDormantTokensSummaryEmail({
         recipientName: recipient.name,
-        thresholdDays: DORMANT_THRESHOLD_DAYS,
+        thresholdDays,
         tokens: dormant,
         link,
         unsubscribeUrl,

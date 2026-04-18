@@ -22,3 +22,4 @@ export * from "./media-uploads";
 export * from "./scheduled-invoice-exports";
 export * from "./distribution-lists";
 export * from "./dormant-token-summary-runs";
+export * from "./studio-settings";

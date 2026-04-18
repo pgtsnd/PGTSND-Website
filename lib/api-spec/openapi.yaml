@@ -1386,6 +1386,49 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /studio-settings:
+    get:
+      operationId: getStudioSettings
+      tags: [users]
+      summary: Get studio-wide settings
+      description: |
+        Returns studio-wide configuration values such as the dormant access-token
+        threshold. Available to any authenticated team member so the in-app
+        dormant badge can render correctly.
+      responses:
+        "200":
+          description: Studio settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudioSettings"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      operationId: updateStudioSettings
+      tags: [users]
+      summary: Update studio-wide settings
+      description: Owner only. Updates the studio-wide settings singleton.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStudioSettings"
+      responses:
+        "200":
+          description: Updated studio settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudioSettings"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /access-tokens/{id}/revoke:
     post:
       operationId: revokeAccessToken
@@ -1691,6 +1734,29 @@ components:
       required:
         - email
         - name
+
+    StudioSettings:
+      type: object
+      properties:
+        id:
+          type: string
+        dormantTokenThresholdDays:
+          type: integer
+          enum: [30, 60, 90, 180]
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - dormantTokenThresholdDays
+        - updatedAt
+
+    UpdateStudioSettings:
+      type: object
+      properties:
+        dormantTokenThresholdDays:
+          type: integer
+          enum: [30, 60, 90, 180]
 
     UpdateNotificationPreferences:
       type: object

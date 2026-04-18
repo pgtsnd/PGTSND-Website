@@ -52,6 +52,7 @@ import type {
   RecentClientMessage,
   Review,
   SendDm,
+  StudioSettings,
   Task,
   TaskItem,
   UnauthorizedResponse,
@@ -64,6 +65,7 @@ import type {
   UpdateOrganization,
   UpdateProject,
   UpdateReview,
+  UpdateStudioSettings,
   UpdateTask,
   UpdateTaskItem,
   UpdateUser,
@@ -5963,6 +5965,178 @@ export const useCreateAccessToken = <
   TContext
 > => {
   return useMutation(getCreateAccessTokenMutationOptions(options));
+};
+
+/**
+ * Returns studio-wide configuration values such as the dormant access-token
+threshold. Available to any authenticated team member so the in-app
+dormant badge can render correctly.
+
+ * @summary Get studio-wide settings
+ */
+export const getGetStudioSettingsUrl = () => {
+  return `/api/studio-settings`;
+};
+
+export const getStudioSettings = async (
+  options?: RequestInit,
+): Promise<StudioSettings> => {
+  return customFetch<StudioSettings>(getGetStudioSettingsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetStudioSettingsQueryKey = () => {
+  return [`/api/studio-settings`] as const;
+};
+
+export const getGetStudioSettingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getStudioSettings>>,
+  TError = ErrorType<UnauthorizedResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getStudioSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetStudioSettingsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getStudioSettings>>
+  > = ({ signal }) => getStudioSettings({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getStudioSettings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetStudioSettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getStudioSettings>>
+>;
+export type GetStudioSettingsQueryError = ErrorType<UnauthorizedResponse>;
+
+/**
+ * @summary Get studio-wide settings
+ */
+
+export function useGetStudioSettings<
+  TData = Awaited<ReturnType<typeof getStudioSettings>>,
+  TError = ErrorType<UnauthorizedResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getStudioSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetStudioSettingsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Owner only. Updates the studio-wide settings singleton.
+ * @summary Update studio-wide settings
+ */
+export const getUpdateStudioSettingsUrl = () => {
+  return `/api/studio-settings`;
+};
+
+export const updateStudioSettings = async (
+  updateStudioSettings: UpdateStudioSettings,
+  options?: RequestInit,
+): Promise<StudioSettings> => {
+  return customFetch<StudioSettings>(getUpdateStudioSettingsUrl(), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateStudioSettings),
+  });
+};
+
+export const getUpdateStudioSettingsMutationOptions = <
+  TError = ErrorType<
+    ValidationErrorResponse | UnauthorizedResponse | ForbiddenResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateStudioSettings>>,
+    TError,
+    { data: BodyType<UpdateStudioSettings> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateStudioSettings>>,
+  TError,
+  { data: BodyType<UpdateStudioSettings> },
+  TContext
+> => {
+  const mutationKey = ["updateStudioSettings"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateStudioSettings>>,
+    { data: BodyType<UpdateStudioSettings> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateStudioSettings(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateStudioSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateStudioSettings>>
+>;
+export type UpdateStudioSettingsMutationBody = BodyType<UpdateStudioSettings>;
+export type UpdateStudioSettingsMutationError = ErrorType<
+  ValidationErrorResponse | UnauthorizedResponse | ForbiddenResponse
+>;
+
+/**
+ * @summary Update studio-wide settings
+ */
+export const useUpdateStudioSettings = <
+  TError = ErrorType<
+    ValidationErrorResponse | UnauthorizedResponse | ForbiddenResponse
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateStudioSettings>>,
+    TError,
+    { data: BodyType<UpdateStudioSettings> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateStudioSettings>>,
+  TError,
+  { data: BodyType<UpdateStudioSettings> },
+  TContext
+> => {
+  return useMutation(getUpdateStudioSettingsMutationOptions(options));
 };
 
 /**

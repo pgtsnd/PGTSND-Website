@@ -8,6 +8,7 @@ import {
   useListAccessTokens,
   useCreateAccessToken,
   useRevokeAccessToken,
+  useGetStudioSettings,
   getListAccessTokensQueryKey,
   type AccessToken,
 } from "@workspace/api-client-react";
@@ -41,17 +42,18 @@ function tokenDisplayStatus(tk: { status: string; expiresAt?: string | null }): 
   return { label: "active", tone: "active" };
 }
 
-// Tokens whose last activity (or creation, if never used) is older than this
-// many days are flagged as dormant on /team/access. Adjust here to change the
-// threshold across the page.
-const DORMANT_THRESHOLD_DAYS = 90;
-const DORMANT_THRESHOLD_MS = DORMANT_THRESHOLD_DAYS * 24 * 60 * 60 * 1000;
+// Tokens whose last activity (or creation, if never used) is older than the
+// configured threshold (in days) are flagged as dormant. The threshold is
+// owner-configurable from /team/settings → Security; this fallback is only
+// used if the studio-settings request hasn't returned yet.
+const DEFAULT_DORMANT_THRESHOLD_DAYS = 90;
 
-function isDormantToken(tk: AccessToken): boolean {
+function isDormantToken(tk: AccessToken, thresholdDays: number): boolean {
   if (tk.status !== "active") return false;
   const reference = tk.lastUsedAt ?? tk.createdAt;
   if (!reference) return false;
-  return Date.now() - new Date(reference).getTime() > DORMANT_THRESHOLD_MS;
+  const thresholdMs = thresholdDays * 24 * 60 * 60 * 1000;
+  return Date.now() - new Date(reference).getTime() > thresholdMs;
 }
 
 export default function TeamAccess() {
@@ -65,6 +67,12 @@ export default function TeamAccess() {
   const tokensQuery = useListAccessTokens(
     isOwner ? undefined : { query: { enabled: false, queryKey: ["access-tokens"] } },
   );
+  const studioSettingsQuery = useGetStudioSettings(
+    isOwner ? undefined : { query: { enabled: false, queryKey: ["studio-settings"] } },
+  );
+  const dormantThresholdDays =
+    studioSettingsQuery.data?.dormantTokenThresholdDays ??
+    DEFAULT_DORMANT_THRESHOLD_DAYS;
   const createToken = useCreateAccessToken();
   const revokeToken = useRevokeAccessToken();
 
@@ -337,7 +345,7 @@ export default function TeamAccess() {
               </thead>
               <tbody>
                 {tokens.map((tk) => {
-                  const dormant = isDormantToken(tk);
+                  const dormant = isDormantToken(tk, dormantThresholdDays);
                   return (
                   <tr
                     key={tk.id}
@@ -410,7 +418,7 @@ export default function TeamAccess() {
                       {dormant && (
                         <div style={{ marginTop: "6px" }}>
                           <span
-                            title={`No activity in over ${DORMANT_THRESHOLD_DAYS} days — consider revoking`}
+                            title={`No activity in over ${dormantThresholdDays} days — consider revoking`}
                             style={f({
                               display: "inline-block",
                               fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em",
@@ -420,7 +428,7 @@ export default function TeamAccess() {
                               border: "1px solid rgba(255, 176, 32, 0.6)",
                             })}
                           >
-                            Dormant {DORMANT_THRESHOLD_DAYS}d+
+                            Dormant {dormantThresholdDays}d+
                           </span>
                         </div>
                       )}

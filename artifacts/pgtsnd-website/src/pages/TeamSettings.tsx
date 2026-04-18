@@ -11,6 +11,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   useUpdateMyNotificationPreferences,
   useUpdateMyDormantTokensEmail,
+  useGetStudioSettings,
+  useUpdateStudioSettings,
+  getGetStudioSettingsQueryKey,
+  UpdateStudioSettingsDormantTokenThresholdDays,
 } from "@workspace/api-client-react";
 import {
   useIntegrations,
@@ -26,7 +30,7 @@ import MutedProjectsList from "../components/MutedProjectsList";
 export default function TeamSettings() {
   const { t } = useTheme();
   const { currentUser, isLoading: authLoading } = useTeamAuth();
-  const [activeSection, setActiveSection] = useState<"profile" | "notifications" | "distribution-lists" | "integrations">("profile");
+  const [activeSection, setActiveSection] = useState<"profile" | "notifications" | "distribution-lists" | "integrations" | "security">("profile");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [title, setTitle] = useState("");
@@ -96,11 +100,13 @@ export default function TeamSettings() {
     );
   };
 
+  const isOwner = currentUser?.role === "owner";
   const sections = [
     { key: "profile" as const, label: "My Profile" },
     { key: "notifications" as const, label: "Notifications" },
     { key: "distribution-lists" as const, label: "Distribution Lists" },
     { key: "integrations" as const, label: "Integrations" },
+    ...(isOwner ? [{ key: "security" as const, label: "Security" }] : []),
   ];
 
   if (authLoading) {
@@ -302,6 +308,10 @@ export default function TeamSettings() {
 
             {activeSection === "integrations" && (
               <IntegrationsPanel t={t} f={f} />
+            )}
+
+            {activeSection === "security" && isOwner && (
+              <SecurityPanel t={t} f={f} />
             )}
           </div>
         </div>
@@ -1244,19 +1254,20 @@ function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) 
   return (
     <div
       style={f({
-        background: t.cardBackground,
+        background: t.bgCard,
         borderRadius: "12px",
         padding: "20px",
-        border: `1px solid ${t.borderLight}`,
+        border: `1px solid ${t.border}`,
       })}
       data-testid="dormant-tokens-email-card"
     >
-      <h3 style={f({ margin: "0 0 4px 0", color: t.textPrimary, fontSize: "16px" })}>
+      <h3 style={f({ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" })}>
         Weekly dormant access tokens email
       </h3>
-      <p style={f({ margin: "0 0 16px 0", color: t.textSecondary, fontSize: "13px" })}>
+      <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "16px" })}>
         Owners get a weekly summary of API access tokens that haven't been used in
-        90+ days. You can pause it temporarily or turn it off entirely.
+        a set number of days (configurable under Security). You can pause it
+        temporarily or turn it off entirely.
       </p>
 
       <label
@@ -1264,7 +1275,7 @@ function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) 
           display: "flex",
           alignItems: "center",
           gap: "10px",
-          color: t.textPrimary,
+          color: t.text,
           fontSize: "14px",
           marginBottom: "16px",
         })}
@@ -1283,7 +1294,7 @@ function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) 
 
       <div style={f({ display: "flex", flexDirection: "column", gap: "8px" })}>
         <label
-          style={f({ color: t.textPrimary, fontSize: "14px" })}
+          style={f({ color: t.text, fontSize: "14px" })}
           htmlFor="dormant-tokens-snooze-until"
         >
           Snooze until
@@ -1300,9 +1311,9 @@ function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) 
             style={f({
               padding: "6px 8px",
               borderRadius: "6px",
-              border: `1px solid ${t.borderLight}`,
-              background: t.background,
-              color: t.textPrimary,
+              border: `1px solid ${t.border}`,
+              background: t.bgCard,
+              color: t.text,
             })}
           />
           <button
@@ -1319,7 +1330,7 @@ function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) 
               borderRadius: "6px",
               border: "none",
               background: t.accent,
-              color: "#fff",
+              color: t.accentText,
               cursor: "pointer",
             })}
           >
@@ -1334,9 +1345,9 @@ function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) 
               style={f({
                 padding: "6px 12px",
                 borderRadius: "6px",
-                border: `1px solid ${t.borderLight}`,
+                border: `1px solid ${t.border}`,
                 background: "transparent",
-                color: t.textPrimary,
+                color: t.text,
                 cursor: "pointer",
               })}
             >
@@ -1345,7 +1356,7 @@ function DormantTokensEmailCard({ t, f }: { t: any; f: (s: object) => object }) 
           )}
         </div>
         {snoozeActive && (
-          <p style={f({ margin: "4px 0 0 0", color: t.textSecondary, fontSize: "12px" })}>
+          <p style={f({ margin: "4px 0 0 0", color: t.textMuted, fontSize: "12px" })}>
             Snoozed until {new Date(snoozeUntilRaw!).toLocaleDateString()}.
           </p>
         )}
@@ -1707,6 +1718,113 @@ export function DormantTokensSubscribersCard({
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+const DORMANT_THRESHOLD_OPTIONS = [30, 60, 90, 180] as const;
+
+function SecurityPanel({ t, f }: { t: any; f: (s: object) => object }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { data: settings, isLoading, isError, refetch } = useGetStudioSettings();
+  const updateSettings = useUpdateStudioSettings();
+
+  const handleChange = (days: number) => {
+    updateSettings.mutate(
+      {
+        data: {
+          dormantTokenThresholdDays:
+            days as UpdateStudioSettingsDormantTokenThresholdDays,
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetStudioSettingsQueryKey() });
+          toast(`Dormant threshold set to ${days} days`, "success");
+        },
+        onError: () => {
+          toast("Failed to update dormant threshold", "error");
+        },
+      },
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div>
+        <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Security</h2>
+        <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted })}>Loading...</p>
+      </div>
+    );
+  }
+
+  if (isError || !settings) {
+    return (
+      <div>
+        <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Security</h2>
+        <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "16px" })}>
+          Couldn't load security settings.
+        </p>
+        <button
+          onClick={() => refetch()}
+          style={f({
+            fontWeight: 600, fontSize: "12px", color: t.accentText, background: t.accent,
+            border: "none", borderRadius: "6px", padding: "8px 16px", cursor: "pointer",
+          })}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const current = settings.dormantTokenThresholdDays;
+
+  return (
+    <div>
+      <h2 style={f({ fontWeight: 700, fontSize: "18px", color: t.text, marginBottom: "4px" })}>Security</h2>
+      <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "24px" })}>
+        Studio-wide security policies for access tokens.
+      </p>
+
+      <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: "8px", padding: "20px" }}>
+        <h3 style={f({ fontWeight: 600, fontSize: "14px", color: t.text, marginBottom: "4px" })}>
+          Dormant token threshold
+        </h3>
+        <p style={f({ fontWeight: 400, fontSize: "12px", color: t.textMuted, marginBottom: "14px", lineHeight: 1.5 })}>
+          Active access tokens with no activity for this many days are flagged as
+          dormant on the Access Tokens page and included in the weekly owner
+          summary email.
+        </p>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {DORMANT_THRESHOLD_OPTIONS.map((days) => {
+            const selected = current === days;
+            return (
+              <button
+                key={days}
+                type="button"
+                onClick={() => !selected && handleChange(days)}
+                disabled={updateSettings.isPending}
+                style={f({
+                  fontWeight: 600, fontSize: "12px",
+                  color: selected ? t.accentText : t.text,
+                  background: selected ? t.accent : "transparent",
+                  border: `1px solid ${selected ? t.accent : t.border}`,
+                  borderRadius: "6px", padding: "8px 16px",
+                  cursor: selected || updateSettings.isPending ? "default" : "pointer",
+                  opacity: updateSettings.isPending ? 0.7 : 1,
+                })}
+              >
+                {days} days
+              </button>
+            );
+          })}
+        </div>
+        <p style={f({ fontWeight: 400, fontSize: "11px", color: t.textMuted, marginTop: "12px" })}>
+          Currently: <strong style={{ color: t.text }}>{current} days</strong>
+        </p>
+      </div>
     </div>
   );
 }

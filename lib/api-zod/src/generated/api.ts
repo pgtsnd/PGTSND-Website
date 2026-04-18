@@ -1672,6 +1672,50 @@ export const CreateAccessTokenBody = zod.object({
 });
 
 /**
+ * Returns studio-wide configuration values such as the dormant access-token
+threshold. Available to any authenticated team member so the in-app
+dormant badge can render correctly.
+
+ * @summary Get studio-wide settings
+ */
+export const GetStudioSettingsResponse = zod.object({
+  id: zod.string(),
+  dormantTokenThresholdDays: zod.union([
+    zod.literal(30),
+    zod.literal(60),
+    zod.literal(90),
+    zod.literal(180),
+  ]),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * Owner only. Updates the studio-wide settings singleton.
+ * @summary Update studio-wide settings
+ */
+export const UpdateStudioSettingsBody = zod.object({
+  dormantTokenThresholdDays: zod
+    .union([
+      zod.literal(30),
+      zod.literal(60),
+      zod.literal(90),
+      zod.literal(180),
+    ])
+    .optional(),
+});
+
+export const UpdateStudioSettingsResponse = zod.object({
+  id: zod.string(),
+  dormantTokenThresholdDays: zod.union([
+    zod.literal(30),
+    zod.literal(60),
+    zod.literal(90),
+    zod.literal(180),
+  ]),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
  * Owner/partner only. Marks the token revoked immediately.
  * @summary Revoke an access token
  */
