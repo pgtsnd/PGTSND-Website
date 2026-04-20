@@ -481,13 +481,16 @@ describe("dormant token summary job", () => {
     await runDormantTokenSummary(NOW);
     const call = sendEmailMock.mock.calls[0][0] as any;
     expect(call.text).toMatch(
-      /Unsubscribe from this email: https:\/\/app\.example\.com\/api\/unsubscribe\/dormant-tokens\?token=/,
+      /Unsubscribe from this email \(valid until July 16, 2026\): https:\/\/app\.example\.com\/api\/unsubscribe\/dormant-tokens\?token=/,
     );
     expect(call.text).toContain(
       "Manage email preferences: https://app.example.com/team/settings",
     );
     expect(call.html).toContain("/api/unsubscribe/dormant-tokens?token=");
     expect(call.html).toContain("/team/settings?section=notifications");
+    // The "valid until" date in the email must match the verifier's actual
+    // expiry window (issued-at + TTL). NOW + 90 days = 2026-07-16.
+    expect(call.html).toContain("valid until July 16, 2026");
   });
 
   it("treats every owner as opted out → no recipients", async () => {

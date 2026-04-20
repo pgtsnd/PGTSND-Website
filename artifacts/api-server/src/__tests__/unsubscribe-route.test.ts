@@ -363,6 +363,59 @@ describe("one-click unsubscribe route (integration)", () => {
     expect(findUser("user-abc")!.emailNotifyDormantTokens).toBe(false);
   });
 
+  it("the resend email shows the date the fresh link will actually stop working", async () => {
+    const before = Date.now();
+    await request(appModule)
+      .post("/api/unsubscribe/dormant-tokens/resend")
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .send("email=owner%40example.com")
+      .expect(200);
+
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    const args = sendEmailMock.mock.calls[0][0] as {
+      text: string;
+      html: string;
+    };
+
+    // Compute the window of acceptable expiry dates, accounting for the
+    // few-ms gap between `before` and when the route actually issued the
+    // token. The displayed date must fall in that window.
+    const ttlMs = 90 * 24 * 60 * 60 * 1000;
+    const fmt = (ms: number) =>
+      new Date(ms).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "UTC",
+      });
+    const candidates = new Set<string>();
+    for (let t = before; t <= Date.now(); t += 1) {
+      candidates.add(fmt(t + ttlMs));
+      if (candidates.size > 3) break;
+    }
+    candidates.add(fmt(before + ttlMs));
+    candidates.add(fmt(Date.now() + ttlMs));
+
+    const matches = (haystack: string) =>
+      [...candidates].some((c) => haystack.includes(`valid until ${c}`));
+    expect(matches(args.text)).toBe(true);
+    expect(
+      [...candidates].some((c) => args.html.includes(`Valid until ${c}`)),
+    ).toBe(true);
+
+    // And the displayed date must match the verifier — extract the link
+    // from the email and confirm it still verifies right now (i.e. the
+    // promise of "valid until <future-date>" is real).
+    const linkMatch = args.text.match(
+      /https:\/\/app\.example\.com\/api\/unsubscribe\/dormant-tokens\?token=([^\s]+)/,
+    );
+    expect(linkMatch).not.toBeNull();
+    const followUp = await request(appModule)
+      .get(`/api/unsubscribe/dormant-tokens?token=${linkMatch![1]}`)
+      .expect(200);
+    expect(followUp.text).toContain("You're unsubscribed");
+  });
+
   it("POST resend with an unknown email returns the same generic page and sends nothing", async () => {
     const res = await request(appModule)
       .post("/api/unsubscribe/dormant-tokens/resend")

@@ -429,6 +429,7 @@ export interface DormantTokensSummaryTemplateInput {
   tokens: DormantTokenRowInput[];
   link: string;
   unsubscribeUrl?: string;
+  unsubscribeExpiresAtLabel?: string;
   managePreferencesUrl?: string;
 }
 
@@ -473,8 +474,11 @@ export function renderDormantTokensSummaryEmail(
     "You're receiving this weekly summary because you're an owner on PGTSND Productions.",
   ];
   if (input.unsubscribeUrl) {
+    const expiry = input.unsubscribeExpiresAtLabel
+      ? ` (valid until ${input.unsubscribeExpiresAtLabel})`
+      : "";
     footerParts.push(
-      `Unsubscribe from this email: ${input.unsubscribeUrl}`,
+      `Unsubscribe from this email${expiry}: ${input.unsubscribeUrl}`,
     );
   }
   if (input.managePreferencesUrl) {

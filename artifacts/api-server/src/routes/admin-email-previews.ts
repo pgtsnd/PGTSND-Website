@@ -402,6 +402,7 @@ const PREVIEWS: PreviewDef[] = [
         link: str(v, "link", "https://pgtsnd.example.com/team/access"),
         unsubscribeUrl:
           "https://pgtsnd.example.com/api/unsubscribe/dormant-tokens?token=preview",
+        unsubscribeExpiresAtLabel: "July 17, 2026",
         managePreferencesUrl:
           "https://pgtsnd.example.com/team/settings?section=notifications",
       });

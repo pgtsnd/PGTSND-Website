@@ -20,6 +20,16 @@ function configuredTtlMs(): number {
   return Math.floor(n);
 }
 
+/**
+ * The date at which a token issued at `issuedAtMs` will stop being accepted
+ * by `verifyUnsubscribeToken`. Use this to display an accurate "valid until"
+ * date in unsubscribe emails so the copy matches the verifier's actual
+ * expiry window (including any `UNSUBSCRIBE_TOKEN_TTL_MS` override).
+ */
+export function unsubscribeTokenExpiresAt(issuedAtMs: number = Date.now()): Date {
+  return new Date(Math.floor(issuedAtMs) + configuredTtlMs());
+}
+
 function b64url(buf: Buffer): string {
   return buf
     .toString("base64")

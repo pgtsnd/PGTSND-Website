@@ -4,6 +4,7 @@ import { eq, sql } from "drizzle-orm";
 import {
   createUnsubscribeToken,
   verifyUnsubscribeToken,
+  unsubscribeTokenExpiresAt,
   UNSUBSCRIBE_TOKEN_TTL_DAYS,
 } from "../lib/unsubscribe-token";
 import { logger } from "../lib/logger";
@@ -214,11 +215,14 @@ router.post("/unsubscribe/dormant-tokens/resend", async (req, res) => {
     }
 
     const baseUrl = getAppBaseUrl().replace(/\/+$/, "");
+    const issuedAt = Date.now();
     const unsubscribeToken = createUnsubscribeToken(
       "dormant-tokens",
       user.id,
+      { issuedAt },
     );
     const unsubscribeUrl = `${baseUrl}/api/unsubscribe/dormant-tokens?token=${encodeURIComponent(unsubscribeToken)}`;
+    const expiresAtLabel = formatIssuedAt(unsubscribeTokenExpiresAt(issuedAt));
     const managePreferencesUrl = `${baseUrl}/team/settings?section=notifications`;
     const name = user.name?.trim() || "there";
 
@@ -226,7 +230,7 @@ router.post("/unsubscribe/dormant-tokens/resend", async (req, res) => {
     const text = [
       `Hi ${name},`,
       "",
-      `You asked us to re-send your one-click unsubscribe link for the weekly dormant access-token summary. Click below to opt out — the link is valid for the next ${UNSUBSCRIBE_TOKEN_TTL_DAYS} days:`,
+      `You asked us to re-send your one-click unsubscribe link for the weekly dormant access-token summary. Click below to opt out — the link is valid until ${expiresAtLabel}:`,
       "",
       unsubscribeUrl,
       "",
@@ -239,10 +243,11 @@ router.post("/unsubscribe/dormant-tokens/resend", async (req, res) => {
 
     const html = renderPage(
       "Your fresh unsubscribe link",
-      `<p>Hi ${escapeHtml(name)}, click the button below to unsubscribe from the weekly dormant access-token summary. This link is valid for the next ${UNSUBSCRIBE_TOKEN_TTL_DAYS} days.</p>
+      `<p>Hi ${escapeHtml(name)}, click the button below to unsubscribe from the weekly dormant access-token summary.</p>
        <p style="margin:24px 0;">
          <a href="${escapeHtml(unsubscribeUrl)}" style="display:inline-block;padding:12px 24px;font-weight:700;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;color:#000000;background:#ffffff;text-decoration:none;border-radius:6px;">Unsubscribe in one click</a>
        </p>
+       <p style="margin:0 0 8px 0;font-size:12px;color:#a3a3a3;">Valid until ${escapeHtml(expiresAtLabel)}.</p>
        <p style="font-size:12px;color:#737373;word-break:break-all;">If the button doesn't work, copy this link into your browser:<br/><a href="${escapeHtml(unsubscribeUrl)}" style="color:#a3a3a3;text-decoration:underline;">${escapeHtml(unsubscribeUrl)}</a></p>
        <p style="margin-top:20px;font-size:12px;color:#737373;">If you didn't request this, you can safely ignore this email — nothing has changed on your account. You can also <a href="${escapeHtml(managePreferencesUrl)}" style="color:#a3a3a3;text-decoration:underline;">manage all email preferences</a>.</p>`,
     );

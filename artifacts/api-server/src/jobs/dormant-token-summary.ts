@@ -11,8 +11,20 @@ import {
   renderDormantTokensSummaryEmail,
   type DormantTokenRowInput,
 } from "../services/email-templates";
-import { createUnsubscribeToken } from "../lib/unsubscribe-token";
+import {
+  createUnsubscribeToken,
+  unsubscribeTokenExpiresAt,
+} from "../lib/unsubscribe-token";
 import { getDormantTokenThresholdDays } from "../services/studio-settings";
+
+function formatExpiryDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
 
 // The dormant threshold is owner-configurable from /team/settings and stored
 // in the studio_settings singleton row; both this email job and the in-app
@@ -161,11 +173,16 @@ export async function runDormantTokenSummary(
 
   let sent = 0;
   for (const recipient of recipients) {
+    const issuedAt = now.getTime();
     const unsubscribeToken = createUnsubscribeToken(
       "dormant-tokens",
       recipient.id,
+      { issuedAt },
     );
     const unsubscribeUrl = `${baseUrl}/api/unsubscribe/dormant-tokens?token=${encodeURIComponent(unsubscribeToken)}`;
+    const unsubscribeExpiresAtLabel = formatExpiryDate(
+      unsubscribeTokenExpiresAt(issuedAt),
+    );
 
     const text = [
       `${dormant.length} active access token${dormant.length === 1 ? "" : "s"} ${dormant.length === 1 ? "has" : "have"} not been used in over ${thresholdDays} days:`,
@@ -177,7 +194,7 @@ export async function runDormantTokenSummary(
       "",
       `Review and revoke at: ${link}`,
       "",
-      `Unsubscribe from this email: ${unsubscribeUrl}`,
+      `Unsubscribe from this email (valid until ${unsubscribeExpiresAtLabel}): ${unsubscribeUrl}`,
       `Manage email preferences: ${managePreferencesUrl}`,
       "",
       "— PGTSND Productions",
@@ -190,6 +207,7 @@ export async function runDormantTokenSummary(
         tokens: dormant,
         link,
         unsubscribeUrl,
+        unsubscribeExpiresAtLabel,
         managePreferencesUrl,
       });
       const result = await sendEmail({
