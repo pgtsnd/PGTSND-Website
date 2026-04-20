@@ -11,7 +11,6 @@ import {
 } from "../lib/session-expired";
 
 export default function ClientHub() {
-  const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -64,12 +63,12 @@ export default function ClientHub() {
     setError("");
     setSubmitting(true);
     try {
-      const result = await loginWithToken(email, token);
+      const result = await loginWithToken(token);
       if (result.success) {
         navigate(result.redirect || "/client-hub/dashboard");
         return;
       }
-      setError(result.error || "Invalid email or access token");
+      setError(result.error || "Invalid access token");
     } catch {
       setError("Something went wrong");
     } finally {
@@ -128,7 +127,7 @@ export default function ClientHub() {
             marginBottom: "48px",
           }}
         >
-          Enter the email and access token your project lead handed you.
+          Enter the access token your project lead handed you.
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -158,14 +157,6 @@ export default function ClientHub() {
           </div>
 
           <div style={{ marginBottom: "40px" }}>
-            <label style={labelStyle}>Email Address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => { setEmail(e.target.value); setError(""); }}
-              placeholder="you@company.com"
-              style={inputStyle}
-            />
             {error && (
               <p
                 style={{
@@ -203,85 +194,6 @@ export default function ClientHub() {
           </p>
         </div>
 
-        <div
-          style={{
-            marginTop: "40px",
-            padding: "24px",
-            border: "1px solid rgba(255,255,255,0.15)",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 700,
-              fontSize: "11px",
-              textTransform: "uppercase",
-              letterSpacing: "0.15em",
-              color: "rgba(255,255,255,0.5)",
-              marginBottom: "12px",
-            }}
-          >
-            Demo Access
-          </p>
-          <p
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 400,
-              fontSize: "12px",
-              color: "rgba(255,255,255,0.5)",
-              lineHeight: 1.6,
-              marginBottom: "16px",
-            }}
-          >
-            Paste any of these access tokens to sign in as a demo user. Email is ignored for demo tokens.
-          </p>
-          {[
-            { label: "Owner", token: "DEMO-OWNER-2026" },
-            { label: "Crew",  token: "DEMO-CREW-2026"  },
-            { label: "Client", token: "DEMO-CLIENT-2026" },
-          ].map(({ label, token: demoToken }) => (
-            <div
-              key={demoToken}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "10px 0",
-                borderTop: "1px solid rgba(255,255,255,0.08)",
-                fontFamily: "'Montserrat', sans-serif",
-              }}
-            >
-              <span
-                style={{
-                  fontWeight: 600,
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.15em",
-                  color: "rgba(255,255,255,0.6)",
-                }}
-              >
-                {label}
-              </span>
-              <button
-                type="button"
-                onClick={() => { setToken(demoToken); setError(""); }}
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "13px",
-                  letterSpacing: "0.05em",
-                  color: "#ffffff",
-                  background: "transparent",
-                  border: "none",
-                  padding: 0,
-                  cursor: "pointer",
-                }}
-              >
-                {demoToken}
-              </button>
-            </div>
-          ))}
-        </div>
       </section>
 
       <Footer />

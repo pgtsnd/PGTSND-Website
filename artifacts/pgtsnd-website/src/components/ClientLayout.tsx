@@ -94,7 +94,7 @@ const navItems = [
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { t, toggle } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -241,14 +241,37 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             >
               {initials}
             </div>
-            <div>
-              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, lineHeight: 1.3 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {displayName}
               </p>
               <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textTertiary }}>
                 Client
               </p>
             </div>
+            <button
+              type="button"
+              onClick={() => { void logout(); }}
+              title="Sign out"
+              aria-label="Sign out"
+              style={{
+                background: "transparent",
+                border: `1px solid ${t.border}`,
+                borderRadius: "6px",
+                color: t.textTertiary,
+                cursor: "pointer",
+                padding: "6px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
           </div>
         </div>
       </aside>

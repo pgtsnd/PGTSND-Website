@@ -564,7 +564,7 @@ describe("access tokens — login", () => {
       .set(CSRF_HEADER_NAME, "x")
       .send({ email: "tokenuser@x.com", token: "TOTALLY-WRONG-TOKEN" });
     expect(res.status).toBe(401);
-    expect(res.body).toEqual({ error: "Invalid email or access token" });
+    expect(res.body).toEqual({ error: "Invalid access token" });
   });
 
   it("rejects login with valid token but wrong email (401)", async () => {
@@ -575,7 +575,7 @@ describe("access tokens — login", () => {
       .set(CSRF_HEADER_NAME, "x")
       .send({ email: "someone-else@x.com", token: plaintext });
     expect(res.status).toBe(401);
-    expect(res.body).toEqual({ error: "Invalid email or access token" });
+    expect(res.body).toEqual({ error: "Invalid access token" });
   });
 
   it("requires a token in the body (400)", async () => {
@@ -667,7 +667,7 @@ describe("access tokens — revocation", () => {
       .set(CSRF_HEADER_NAME, "x")
       .send({ email: "tokenuser@x.com", token: plaintext });
     expect(res.status).toBe(401);
-    expect(res.body).toEqual({ error: "Invalid email or access token" });
+    expect(res.body).toEqual({ error: "Invalid access token" });
   });
 
   it("after revoke, an existing session bound to the token is invalidated", async () => {

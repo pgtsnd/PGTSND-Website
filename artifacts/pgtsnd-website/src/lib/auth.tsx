@@ -23,7 +23,7 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string) => Promise<{ success: boolean; demo?: boolean; redirect?: string; error?: string }>;
-  loginWithToken: (email: string, token: string) => Promise<{ success: boolean; redirect?: string; error?: string }>;
+  loginWithToken: (token: string) => Promise<{ success: boolean; redirect?: string; error?: string }>;
   verifyMagicLink: (token: string) => Promise<{ success: boolean; redirect?: string; error?: string }>;
   googleLogin: () => Promise<void>;
   logout: () => Promise<void>;
@@ -122,12 +122,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginWithToken = async (email: string, token: string) => {
+  const loginWithToken = async (token: string) => {
     try {
       const res = await fetch(`${API_BASE}/auth/access-token-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...csrfHeaders() },
-        body: JSON.stringify({ email, token }),
+        body: JSON.stringify({ token }),
         credentials: "include",
       });
       const data = await res.json();
@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
         return { success: true, redirect: data.redirect };
       }
-      return { success: false, error: data.error || "Invalid email or access token" };
+      return { success: false, error: data.error || "Invalid access token" };
     } catch {
       return { success: false, error: "Network error" };
     }

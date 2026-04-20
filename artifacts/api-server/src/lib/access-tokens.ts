@@ -113,10 +113,9 @@ export async function createAccessToken(
 
 export async function findActiveAccessTokenByPlaintext(
   token: string,
-  email: string,
+  email?: string,
 ) {
   const tokenHash = hashAccessToken(token);
-  const normalizedEmail = email.toLowerCase().trim();
 
   const [row] = await db
     .select({
@@ -143,7 +142,9 @@ export async function findActiveAccessTokenByPlaintext(
     .limit(1);
 
   if (!row) return null;
-  if (row.userEmail.toLowerCase() !== normalizedEmail) return null;
+  if (email && row.userEmail.toLowerCase() !== email.toLowerCase().trim()) {
+    return null;
+  }
   return row;
 }
 

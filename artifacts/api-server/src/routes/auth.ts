@@ -166,14 +166,10 @@ router.post(
         return;
       }
 
-      if (!email || typeof email !== "string") {
-        res.status(400).json({ error: "Email and access token are required" });
-        return;
-      }
-
-      const found = await findActiveAccessTokenByPlaintext(accessToken, email);
+      const emailHint = typeof email === "string" && email.length > 0 ? email : undefined;
+      const found = await findActiveAccessTokenByPlaintext(accessToken, emailHint);
       if (!found) {
-        res.status(401).json({ error: "Invalid email or access token" });
+        res.status(401).json({ error: "Invalid access token" });
         return;
       }
 

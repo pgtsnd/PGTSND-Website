@@ -11,7 +11,6 @@ import {
 } from "../lib/session-expired";
 
 export default function TeamLogin() {
-  const [email, setEmail] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -49,12 +48,12 @@ export default function TeamLogin() {
     setError("");
     setSubmitting(true);
     try {
-      const result = await loginWithToken(email, accessToken);
+      const result = await loginWithToken(accessToken);
       if (result.success) {
         navigate(result.redirect || "/team/dashboard");
         return;
       }
-      setError(result.error || "Invalid email or access token");
+      setError(result.error || "Invalid access token");
     } catch {
       setError("Something went wrong");
     } finally {
@@ -113,7 +112,7 @@ export default function TeamLogin() {
             marginBottom: "48px",
           }}
         >
-          Enter your team email and the access token your project lead issued you.
+          Enter the access token your project lead issued you.
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -169,40 +168,6 @@ export default function TeamLogin() {
             </p>
           </div>
           <div style={{ marginBottom: "48px" }}>
-            <label
-              htmlFor="team-email"
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 600,
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.15em",
-                color: "rgba(255,255,255,0.5)",
-                display: "block",
-                marginBottom: "8px",
-              }}
-            >
-              Email Address
-            </label>
-            <input
-              id="team-email"
-              type="email"
-              value={email}
-              onChange={(e) => { setEmail(e.target.value); setError(""); }}
-              placeholder="you@pgtsnd.com"
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 400,
-                fontSize: "16px",
-                color: "#ffffff",
-                background: "transparent",
-                border: "none",
-                borderBottom: "1px solid rgba(255,255,255,0.3)",
-                padding: "14px 0",
-                width: "100%",
-                outline: "none",
-              }}
-            />
             {error && (
               <p
                 style={{
@@ -224,86 +189,6 @@ export default function TeamLogin() {
             label={submitting ? "Signing In..." : "Sign In"}
           />
         </form>
-
-        <div
-          style={{
-            marginTop: "64px",
-            padding: "24px",
-            border: "1px solid rgba(255,255,255,0.15)",
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 700,
-              fontSize: "11px",
-              textTransform: "uppercase",
-              letterSpacing: "0.15em",
-              color: "rgba(255,255,255,0.5)",
-              marginBottom: "12px",
-            }}
-          >
-            Demo Access
-          </p>
-          <p
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 400,
-              fontSize: "12px",
-              color: "rgba(255,255,255,0.5)",
-              lineHeight: 1.6,
-              marginBottom: "16px",
-            }}
-          >
-            Paste any of these access tokens to sign in as a demo user. Email is ignored for demo tokens.
-          </p>
-          {[
-            { label: "Owner", token: "DEMO-OWNER-2026" },
-            { label: "Crew",  token: "DEMO-CREW-2026"  },
-            { label: "Client", token: "DEMO-CLIENT-2026" },
-          ].map(({ label, token }) => (
-            <div
-              key={token}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "10px 0",
-                borderTop: "1px solid rgba(255,255,255,0.08)",
-                fontFamily: "'Montserrat', sans-serif",
-              }}
-            >
-              <span
-                style={{
-                  fontWeight: 600,
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.15em",
-                  color: "rgba(255,255,255,0.6)",
-                }}
-              >
-                {label}
-              </span>
-              <button
-                type="button"
-                onClick={() => { setAccessToken(token); setError(""); }}
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "13px",
-                  letterSpacing: "0.05em",
-                  color: "#ffffff",
-                  background: "transparent",
-                  border: "none",
-                  padding: 0,
-                  cursor: "pointer",
-                }}
-              >
-                {token}
-              </button>
-            </div>
-          ))}
-        </div>
       </section>
 
       <Footer />

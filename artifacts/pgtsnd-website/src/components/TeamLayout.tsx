@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useTheme } from "./ThemeContext";
 import { useTeamAuth } from "../contexts/TeamAuthContext";
+import { useAuth } from "../lib/auth";
 import logo from "@assets/logo.webp";
 
 interface NavItem {
@@ -111,6 +112,7 @@ export default function TeamLayout({ children }: { children: React.ReactNode }) 
   const [location] = useLocation();
   const { t, toggle } = useTheme();
   const { currentUser } = useTeamAuth();
+  const { logout } = useAuth();
 
   const isOwner = currentUser?.role === "owner" || currentUser?.role === "partner";
   const portalLabel = isOwner ? "Owner Dashboard" : "Team Portal";
@@ -191,10 +193,33 @@ export default function TeamLayout({ children }: { children: React.ReactNode }) 
         <div style={{ padding: "16px 20px", borderTop: `1px solid ${t.border}`, marginTop: "auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: t.accent, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", color: t.accentText }}>{currentUser?.initials ?? "??"}</div>
-            <div>
-              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, lineHeight: 1.3 }}>{currentUser?.name ?? "Team"}</p>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "13px", color: t.text, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{currentUser?.name ?? "Team"}</p>
               <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400, fontSize: "11px", color: t.textMuted }}>{currentUser?.title ?? ""}</p>
             </div>
+            <button
+              type="button"
+              onClick={() => { void logout(); }}
+              title="Sign out"
+              aria-label="Sign out"
+              style={{
+                background: "transparent",
+                border: `1px solid ${t.border}`,
+                borderRadius: "6px",
+                color: t.textMuted,
+                cursor: "pointer",
+                padding: "6px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
           </div>
         </div>
       </aside>
