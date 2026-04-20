@@ -9,6 +9,11 @@ import {
 } from "../lib/unsubscribe-token";
 import { logger } from "../lib/logger";
 import { sendEmail, getAppBaseUrl } from "../services/email";
+import {
+  checkRateLimit,
+  hashRateLimitKey,
+  UNSUBSCRIBE_RESEND_LIMITS,
+} from "../middleware/rate-limit";
 
 const router = Router();
 
@@ -190,6 +195,46 @@ router.post("/unsubscribe/dormant-tokens/resend", async (req, res) => {
   };
 
   if (!email || !email.includes("@")) {
+    respondOk();
+    return;
+  }
+
+  // Per-IP throttle: stops a single attacker from cycling through many
+  // addresses to spam many inboxes. Checked first so a flood from one
+  // source can't even start an email lookup.
+  const ip = (req.ip || req.socket.remoteAddress || "unknown").toString();
+  const ipCheck = checkRateLimit(
+    "unsubscribe-resend:ip",
+    hashRateLimitKey("unsubscribe-resend:ip", ip),
+    UNSUBSCRIBE_RESEND_LIMITS.perIp,
+  );
+  if (!ipCheck.allowed) {
+    logger.warn(
+      { ipHashPrefix: hashRateLimitKey("unsubscribe-resend:ip", ip).slice(0, 8) },
+      "Unsubscribe resend rate-limited by IP",
+    );
+    respondOk();
+    return;
+  }
+
+  // Per-email throttle: even with rotating IPs, a given recipient can only
+  // be re-sent a fresh link a few times per hour. Checked before the DB
+  // lookup so an attacker can't probe for valid addresses by timing.
+  const emailCheck = checkRateLimit(
+    "unsubscribe-resend:email",
+    hashRateLimitKey("unsubscribe-resend:email", email),
+    UNSUBSCRIBE_RESEND_LIMITS.perEmail,
+  );
+  if (!emailCheck.allowed) {
+    logger.warn(
+      {
+        emailHashPrefix: hashRateLimitKey(
+          "unsubscribe-resend:email",
+          email,
+        ).slice(0, 8),
+      },
+      "Unsubscribe resend rate-limited by email",
+    );
     respondOk();
     return;
   }

@@ -131,6 +131,10 @@ vi.mock("drizzle-orm", async () => {
 import appModule from "../app";
 import { createUnsubscribeToken } from "../lib/unsubscribe-token";
 import { CSRF_COOKIE_NAME } from "../middleware/csrf";
+import {
+  resetRateLimitNamespace,
+  UNSUBSCRIBE_RESEND_LIMITS,
+} from "../middleware/rate-limit";
 
 function findUser(id: string): FakeUserRow | undefined {
   return userRows.find((u) => u.id === id);
@@ -139,6 +143,8 @@ function findUser(id: string): FakeUserRow | undefined {
 describe("one-click unsubscribe route (integration)", () => {
   beforeEach(() => {
     resetUsers();
+    resetRateLimitNamespace("unsubscribe-resend:ip");
+    resetRateLimitNamespace("unsubscribe-resend:email");
     sendEmailMock.mockClear();
     sendEmailMock.mockImplementation(async () => ({ ok: true as const }));
     userRows.push({
@@ -438,6 +444,97 @@ describe("one-click unsubscribe route (integration)", () => {
       expect(res.text).toContain("Check your inbox");
       expect(sendEmailMock).not.toHaveBeenCalled();
     }
+  });
+
+  it("POST resend silently throttles repeated requests for the same email", async () => {
+    const limit = UNSUBSCRIBE_RESEND_LIMITS.perEmail.limit;
+    expect(limit).toBeGreaterThanOrEqual(2); // a real recipient retrying once must succeed
+
+    for (let i = 0; i < limit; i++) {
+      await request(appModule)
+        .post("/api/unsubscribe/dormant-tokens/resend")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send("email=owner%40example.com")
+        .expect(200);
+    }
+    expect(sendEmailMock).toHaveBeenCalledTimes(limit);
+
+    sendEmailMock.mockClear();
+    // The next attempt within the window should still render the same page
+    // but must not actually send another email.
+    const res = await request(appModule)
+      .post("/api/unsubscribe/dormant-tokens/resend")
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .send("email=owner%40example.com")
+      .expect(200);
+    expect(res.text).toContain("Check your inbox");
+    expect(sendEmailMock).not.toHaveBeenCalled();
+
+    // Email casing should not be a way to bypass the per-email cap.
+    const res2 = await request(appModule)
+      .post("/api/unsubscribe/dormant-tokens/resend")
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .send("email=OWNER%40Example.COM")
+      .expect(200);
+    expect(res2.text).toContain("Check your inbox");
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("POST resend silently throttles a flood from a single IP across many addresses", async () => {
+    // Stage extra real users so per-email limits don't fire first.
+    const ipLimit = UNSUBSCRIBE_RESEND_LIMITS.perIp.limit;
+    for (let i = 0; i < ipLimit + 5; i++) {
+      userRows.push({
+        id: `user-${i}`,
+        email: `target${i}@example.com`,
+        name: null,
+        emailNotifyDormantTokens: true,
+        dormantTokensSnoozeUntil: null,
+        dormantTokensUnsubscribedAt: null,
+      });
+    }
+
+    for (let i = 0; i < ipLimit; i++) {
+      await request(appModule)
+        .post("/api/unsubscribe/dormant-tokens/resend")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send(`email=target${i}%40example.com`)
+        .expect(200);
+    }
+    expect(sendEmailMock).toHaveBeenCalledTimes(ipLimit);
+
+    sendEmailMock.mockClear();
+    // A fresh email address from the same IP, past the cap, must be silently
+    // dropped — same generic page, no real email sent.
+    const res = await request(appModule)
+      .post("/api/unsubscribe/dormant-tokens/resend")
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .send(`email=target${ipLimit}%40example.com`)
+      .expect(200);
+    expect(res.text).toContain("Check your inbox");
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("POST resend with an unknown email still consumes the per-IP throttle (no probing free pass)", async () => {
+    const ipLimit = UNSUBSCRIBE_RESEND_LIMITS.perIp.limit;
+    for (let i = 0; i < ipLimit; i++) {
+      await request(appModule)
+        .post("/api/unsubscribe/dormant-tokens/resend")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send(`email=stranger${i}%40nowhere.test`)
+        .expect(200);
+    }
+    expect(sendEmailMock).not.toHaveBeenCalled();
+
+    // After consuming the IP cap on unknowns, a real address from the same
+    // IP is still throttled — generic page, no email.
+    const res = await request(appModule)
+      .post("/api/unsubscribe/dormant-tokens/resend")
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .send("email=owner%40example.com")
+      .expect(200);
+    expect(res.text).toContain("Check your inbox");
+    expect(sendEmailMock).not.toHaveBeenCalled();
   });
 
   it("POST resend is exempt from CSRF (no header / cookie required)", async () => {
