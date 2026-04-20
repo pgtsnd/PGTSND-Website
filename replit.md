@@ -123,6 +123,22 @@ pnpm workspace. Each package owns its dependencies. Notable artifacts:
 - Access tokens are hashed in the DB; only the hash is stored.
   Revocation is enforced on every `/auth/me` lookup via `tokenId`.
 
+## Deployment
+- Two artifacts publish: `pgtsnd-website` (static `vite build`) and
+  `api-server` (esbuild bundle to `dist/index.mjs`, run with `node`).
+- The API server applies the latest schema at **runtime** on startup
+  when `RUN_DB_PUSH_ON_BOOT=true` (set in the production artifact env).
+  Implementation lives in `artifacts/api-server/src/index.ts` and
+  spawns `pnpm --filter @workspace/db run push-force`. A failed push
+  is logged but does NOT crash the server, so a transient DB issue
+  can't block the deploy from coming up.
+- `drizzle-kit` lives in `lib/db` **dependencies** (not devDeps) so
+  prod-only installs still have it available at runtime.
+- Do NOT put `pnpm db push` in the deploy build step — it requires
+  `DATABASE_URL` at build time, which Replit Autoscale doesn't always
+  provide, and would block the deploy on a DB that's reachable later
+  anyway.
+
 # External Dependencies
 
 - **Stripe** — invoicing, Stripe Checkout, webhook handling
